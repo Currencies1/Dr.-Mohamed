@@ -204,32 +204,33 @@
         </div>
     </div>
 
+    <!-- كود ربط Firebase الصحيح الخاص بك -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
-            authDomain: "ahmad-662ee.firebaseapp.com",
-            projectId: "ahmad-662ee",
-            storageBucket: "ahmad-662ee.firebasestorage.app",
-            messagingSenderId: "740891153734",
-            appId: "1:740891153734:web:d4927b652d05f499618147",
-            measurementId: "G-S0ZD5K16NM"
+            apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
+            authDomain: "mohamed-ismail-c0525.firebaseapp.com",
+            projectId: "mohamed-ismail-c0525",
+            storageBucket: "mohamed-ismail-c0525.firebasestorage.app",
+            messagingSenderId: "582285551584",
+            appId: "1:582285551584:web:abbb715cb6b70582556d85",
+            measurementId: "G-JZ45DZ3ZTP"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let cooldownTimer = null;
-        let checkInterval = null;
+        let pollInterval = null;
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
             const phone = document.getElementById("phone").value.trim();
             const appointmentDate = document.getElementById("appointmentDate").value;
             const details = document.getElementById("details").value.trim();
-            const supplies = document.getElementById("medicalSupplies").value.trim() || "لا توجد مستلزمات أو تقارير مضافة";
+            const supplies = document.getElementById("medicalSupplies").value.trim() || "لا توجد مستلزمات مضافة";
             const statusMsg = document.getElementById("statusMsg");
             const submitBtn = document.getElementById("submitBtn");
             const btnText = document.getElementById("btnText");
@@ -245,10 +246,10 @@
             statusMsg.innerText = "جاري إرسال حجزك للعيادة...";
 
             try {
-                const formattedDetails = `التاريخ: ${appointmentDate} | الهاتف: ${phone} \nالأعراض: ${details} \nالمستلزمات والتقارير: ${supplies}`;
+                const formattedDetails = `التاريخ: ${appointmentDate} | الهاتف: ${phone} \nالأعراض: ${details} \nالمستلزمات: ${supplies}`;
 
-                // حفظ الطلب في قاعدة البيانات
-                const docRef = await addDoc(collection(db, "orders"), {
+                // الإرسال إلى مجموعة appointments الصحيحة في مشروعك الجديد
+                const docRef = await addDoc(collection(db, "appointments"), {
                     username: username,
                     details: formattedDetails,
                     status: "قيد الانتظار",
@@ -256,42 +257,42 @@
                 });
 
                 statusMsg.className = "success-msg";
-                statusMsg.innerHTML = `تم إرسال طلب الحجز بنجاح!<br><span style="font-size:12px; color:#0369a1;">جاري فحص حالة الطلب بشكل دوري... يرجى عدم إغلاق الصفحة.</span>`;
+                statusMsg.innerHTML = `تم إرسال طلب الحجز بنجاح!<br><span style="font-size:12px; color:#0369a1;">بانتظار رد الدكتور محمد الأسماعيل...</span>`;
 
-                // تفريغ الحقول بعد النجاح
+                // تفريغ الحقول
                 document.getElementById("username").value = "";
                 document.getElementById("phone").value = "";
                 document.getElementById("appointmentDate").value = "";
                 document.getElementById("details").value = "";
                 document.getElementById("medicalSupplies").value = "";
 
-                // فحص دوري سليم ومناسب للجوال (يفحص كل 5 ثوانٍ حالة المستند مباشرة)
-                if (checkInterval) clearInterval(checkInterval);
+                // فحص دوري كل 4 ثوانٍ لرصد تغيير الحالة (مقبول / مرفوض)
+                if (pollInterval) clearInterval(pollInterval);
 
-                checkInterval = setInterval(async () => {
+                pollInterval = setInterval(async () => {
                     try {
-                        const docSnap = await getDoc(doc(db, "orders", docRef.id));
-                        if (docSnap.exists()) {
-                            const currentStatus = docSnap.data().status;
+                        const snap = await getDoc(doc(db, "appointments", docRef.id));
+                        if (snap.exists()) {
+                            const currentStatus = snap.data().status;
 
                             if (currentStatus === "مقبول") {
-                                clearInterval(checkInterval);
+                                clearInterval(pollInterval);
                                 statusMsg.className = "accepted-msg";
-                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول** طلب حجز موعدك من قِبل د. محمد الأسماعيل. ننتظر زيارتك.`;
+                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول** طلب حجز موعدك من قِبل د. محمد الأسماعيل.`;
                                 alert("تم قبول طلب الحجز الخاص بك بنجاح!");
                             } else if (currentStatus === "مرفوض") {
-                                clearInterval(checkInterval);
+                                clearInterval(pollInterval);
                                 statusMsg.className = "rejected-msg";
-                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي. يمكنك المحاولة لاحقاً.`;
+                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي.`;
                                 alert("عذراً، تم رفض طلب الحجز.");
                             }
                         }
-                    } catch (e) {
-                        console.log("خطأ في فحص الحالة:", e);
+                    } catch (err) {
+                        console.error("خطأ في فحص الحالة:", err);
                     }
-                }, 5000); // يفحص كل 5 ثوانٍ لضمان التحديث على الجوال
+                }, 4000);
 
-                // تفعيل عداد الـ 29 ثانية لمنع الإرسال المتكرر
+                // عداد حظر التكرار (29 ثانية)
                 let timeLeft = 29;
                 submitBtn.disabled = true;
                 btnIcon.className = "fa-solid fa-lock";
@@ -313,7 +314,7 @@
             } catch (error) {
                 console.error("خطأ في الإرسال:", error);
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "فشل إرسال الحجز! يرجى التحقق من الاتصال بالإنترنت.";
+                statusMsg.innerText = "فشل إرسال الحجز! تحقق من اتصال الإنترنت.";
             }
         };
     </script>
