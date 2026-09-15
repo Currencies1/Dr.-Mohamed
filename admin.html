@@ -104,8 +104,8 @@
         const container = document.getElementById("ordersContainer");
         const countBadge = document.getElementById("orderCount");
 
-        // استخدام onSnapshot للاستماع الفوري والتلقائي لأي تغيير أو طلب جديد بدون تحديث الصفحة
-        onSnapshot(collection(db, "orders"), (querySnapshot) => {
+        // تم تعديل orders إلى appointments لتطابق صفحة المريض
+        onSnapshot(collection(db, "appointments"), (querySnapshot) => {
             container.innerHTML = "";
             
             if (querySnapshot.empty) {
@@ -119,7 +119,7 @@
             querySnapshot.forEach((item) => {
                 const data = item.data();
                 const docId = item.id;
-                const status = data.status || "قيد الانتظار";
+                const status = data.status || "قيد الانتظار الطبية";
                 
                 let statusClass = "status-pending";
                 if (status.includes("مقبول")) statusClass = "status-accepted";
@@ -130,10 +130,10 @@
                 card.innerHTML = `
                     <div class="order-info">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <h3>اسم المريض: ${data.username || "بدون اسم"}</h3>
+                            <h3>اسم المريض: ${data.username || data.name || "بدون اسم"}</h3>
                             <span class="status-badge ${statusClass}">${status}</span>
                         </div>
-                        <p><strong>التفاصيل:</strong> ${data.details || "لا توجد تفاصيل"}</p>
+                        <p><strong>التفاصيل:</strong> ${data.details || data.symptoms || "لا توجد تفاصيل"}</p>
                         <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
                     </div>
                     <div class="order-actions">
@@ -156,14 +156,14 @@
 
         window.updateStatus = async function(id, newStatus) {
             try {
-                await updateDoc(doc(db, "orders", id), { status: newStatus });
+                await updateDoc(doc(db, "appointments", id), { status: newStatus });
             } catch (e) { alert("خطأ في التحديث: " + e.message); }
         };
 
         window.deleteOrder = async function(id) {
             if (confirm("حذف الحجز نهائياً؟")) {
                 try {
-                    await deleteDoc(doc(db, "orders", id));
+                    await deleteDoc(doc(db, "appointments", id));
                 } catch (e) { alert("خطأ في الحذف: " + e.message); }
             }
         }
