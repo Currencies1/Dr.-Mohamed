@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم الاحترافية - الإدارة</title>
+    <title>لوحة تحكم دكتور الداخلية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            --primary: #0ea5e9;
             --success: #10b981;
             --danger: #ef4444;
-            --bg-color: #f8fafc;
+            --warning: #f59e0b;
+            --bg-color: #f1f5f9;
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #e2e8f0;
@@ -22,205 +22,172 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { background: var(--bg-color); color: var(--text-color); direction: rtl; padding: 20px; }
 
-        .login-wrapper { display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-card { background: var(--card-bg); padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
-        .login-card h2 { margin-bottom: 24px; color: var(--primary); text-align: center; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; }
+        .container { max-width: 1000px; margin: 0 auto; }
         
-        .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:hover { background: var(--primary-hover); }
-        .btn-success { background: var(--success); }
-        .btn-danger { background: var(--danger); }
-        .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; }
-
-        .admin-dashboard { max-width: 1200px; margin: 0 auto; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 20px 30px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .admin-header { 
+            background: var(--card-bg); padding: 20px 25px; border-radius: 15px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; 
+            justify-content: space-between; align-items: center; margin-bottom: 25px; 
+        }
+        .admin-header h1 { font-size: 20px; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .admin-header h1 i { color: var(--primary); }
         
-        .table-container { background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 16px 20px; border-bottom: 1px solid var(--border-color); }
-        th { background: #f8fafc; font-weight: 600; color: #64748b; font-size: 14px; }
+        .badge-count { background: #e0f2fe; color: var(--primary); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; }
 
-        #toast { position: fixed; bottom: 30px; left: 30px; background: #1e293b; color: #fff; padding: 14px 24px; border-radius: 10px; display: none; z-index: 1000; font-weight: 600; }
-        .hidden { display: none !important; }
-        .notes-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; }
+        .orders-grid { display: grid; gap: 15px; }
+        
+        .order-card { 
+            background: var(--card-bg); border-radius: 14px; padding: 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+        .order-card:hover { transform: translateY(-2px); }
+        
+        .order-info { margin-bottom: 15px; }
+        .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 5px; }
+        .order-info p { font-size: 14px; color: #475569; margin-bottom: 8px; line-height: 1.6; }
+        .order-meta { font-size: 12px; color: #94a3b8; display: flex; gap: 15px; }
+
+        .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+        
+        .btn-action { 
+            padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; 
+            cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; 
+        }
+        .btn-accept { background: #d1fae5; color: #065f46; }
+        .btn-accept:hover { background: #a7f3d0; }
+        
+        .btn-reject { background: #fee2e2; color: #991b1b; }
+        .btn-reject:hover { background: #fecaca; }
+
+        .status-badge { 
+            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; 
+        }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-accepted { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+
+        .no-data { text-align: center; padding: 40px; color: #94a3b8; font-size: 15px; background: var(--card-bg); border-radius: 14px; }
     </style>
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="loginSection" class="login-wrapper">
-        <div class="login-card">
-            <h2><i class="fa-solid fa-shield-halved"></i> تسجيل دخول الأدمن</h2>
-            <div id="loginError" style="color: var(--danger); margin-bottom: 15px; font-size: 14px; text-align: center;"></div>
-            
-            <div class="form-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" id="emailInput" class="form-control" placeholder="name@example.com">
-            </div>
-            
-            <div class="form-group">
-                <label>كلمة المرور</label>
-                <input type="password" id="moh-pass" class="form-control" placeholder="••••••••">
-            </div>
-            
-            <button onclick="login()" class="btn">دخول للنظام <i class="fa-solid fa-arrow-left"></i></button>
+    <div class="container">
+        <div class="admin-header">
+            <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات عيادة الداخلية</h1>
+            <div class="badge-count" id="orderCount">الطلبات: 0</div>
+        </div>
+
+        <div id="ordersContainer" class="orders-grid">
+            <div class="no-data">جاري تحميل الحجوزات الواردة...</div>
         </div>
     </div>
 
-    <!-- لوحة التحكم -->
-    <div id="adminSection" class="admin-dashboard hidden">
-        <div class="header-bar">
-            <div>
-                <h2>مرحباً، محمد إسماعيل</h2>
-                <p style="color: #64748b; font-size: 14px;">إدارة ومتابعة طلبات المستخدمين لحظة بلحظة</p>
-            </div>
-            <button onclick="logout()" class="btn btn-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i> تسجيل خروج</button>
-        </div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>اسم المستخدم</th>
-                        <th>تفاصيل الطلب</th>
-                        <th>حالة الطلب</th>
-                        <th>ملاحظات الأدمن</th>
-                        <th>الإجراءات المتاحة</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                    <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">جاري التحميل...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="toast"><i class="fa-solid fa-bell" style="margin-left: 8px; color: #f59e0b;"></i> <span id="toastText"></span></div>
-
+    <!-- ربط Firebase وجلب البيانات للوحة الأدمن -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // نفس إعدادات مشروعك الحقيقية
         const firebaseConfig = {
-            apiKey: "BLMrzNXetbELyqmG-IA9NyZi5EiR2I351vxTOKG5nAz257H8bj9WLc2njSIq7__fwXvwk1HH3Cmkp_VoZ-h3Lx4",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "xxxxxx",
-            appId: "xxxxxx"
+            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
+            authDomain: "ahmad-662ee.firebaseapp.com",
+            projectId: "ahmad-662ee",
+            storageBucket: "ahmad-662ee.firebasestorage.app",
+            messagingSenderId: "740891153734",
+            appId: "1:740891153734:web:d4927b652d05f499618147",
+            measurementId: "G-S0ZD5K16NM"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const ADMIN_EMAIL = "MohamedIsmail123@gmail.com";
-        const ADMIN_PASS = "mohamad123";
+        async function fetchOrders() {
+            const container = document.getElementById("ordersContainer");
+            const countBadge = document.getElementById("orderCount");
 
-        if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
-
-        window.login = function() {
-            const email = document.getElementById("emailInput").value.trim();
-            const pass = document.getElementById("moh-pass").value.trim();
-            const errorDiv = document.getElementById("loginError");
-
-            if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-                localStorage.setItem("isAdminLoggedIn", "true");
-                showAdminPanel();
-            } else {
-                errorDiv.innerText = "البريد الإلكتروني أو كلمة المرور غير صحيحة!";
-            }
-        };
-
-        window.logout = function() {
-            localStorage.removeItem("isAdminLoggedIn");
-            location.reload();
-        };
-
-        function showAdminPanel() {
-            document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("adminSection").classList.remove("hidden");
-            listenToOrders();
-        }
-
-        if (localStorage.getItem("isAdminLoggedIn") === "true") {
-            showAdminPanel();
-        }
-
-        function listenToOrders() {
-            const tbody = document.getElementById("ordersTableBody");
-            let isFirstLoad = true;
-
-            onSnapshot(collection(db, "orders"), (snapshot) => {
-                tbody.innerHTML = "";
-                if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">لا توجد طلبات جديدة حالياً.</td></tr>`;
+            try {
+                // جلب البيانات من نفس جدول "orders"
+                const querySnapshot = await getDocs(collection(db, "orders"));
+                container.innerHTML = "";
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً.</div>`;
+                    countBadge.innerText = "الطلبات: 0";
                     return;
                 }
 
-                if (!isFirstLoad) {
-                    showToast("تنبيه: وصل طلب جديد للنظام فوراً!");
-                    showDesktopNotification("طلب جديد", "تم استلام طلب جديد يحتاج إلى مراجعتك.");
-                }
-                isFirstLoad = false;
+                countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
 
-                snapshot.forEach((docSnap) => {
-                    let order = docSnap.data();
-                    let orderId = docSnap.id;
+                querySnapshot.forEach((document) => {
+                    const data = document.data();
+                    const docId = document.id;
+                    const status = data.status || "قيد الانتظار";
+                    
+                    let statusClass = "status-pending";
+                    if (status === "مقبول / مؤكد") statusClass = "status-accepted";
+                    if (status === "ملغي / مرفوض") statusClass = "status-rejected";
 
-                    let row = `<tr>
-                        <td>${order.username || 'مستخدم'}</td>
-                        <td>${order.details || 'بدون تفاصيل'}</td>
-                        <td><span style="padding: 4px 8px; border-radius: 4px; background: #e2e8f0; font-size: 12px;">${order.status || 'قيد الانتظار'}</span></td>
-                        <td><input type="text" class="notes-input" id="note_${orderId}" placeholder="اكتب ملاحظة..." value="${order.notes || ''}"></td>
-                        <td>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-success btn-sm" onclick="updateOrder('${orderId}', 'قبول')"><i class="fa-solid fa-check"></i> قبول</button>
-                                <button class="btn btn-danger btn-sm" onclick="updateOrder('${orderId}', 'رفض')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                    const card = document.createElement("div");
+                    card.className = "order-card";
+                    card.innerHTML = `
+                        <div class="order-info">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h3>اسم المريض: ${data.username || "بدون اسم"}</h3>
+                                <span class="status-badge ${statusClass}">${status}</span>
                             </div>
-                        </td>
-                    </tr>`;
-                    tbody.innerHTML += row;
+                            <p><strong>تفاصيل الموعد والأعراض:</strong> ${data.details || "لا توجد تفاصيل"}</p>
+                            <div class="order-meta">
+                                <span><i class="fa-regular fa-clock"></i> ${data.createdAt ? new Date(data.createdAt).toLocaleString('ar-EG') : 'وقت غير معروف'}</span>
+                            </div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')">
+                                <i class="fa-solid fa-check"></i> قبول الموعد
+                            </button>
+                            <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')">
+                                <i class="fa-solid fa-xmark"></i> رفض الحجز
+                            </button>
+                            <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')">
+                                <i class="fa-solid fa-trash"></i> حذف
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
                 });
-            });
+
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                container.innerHTML = `<div class="no-data" style="color:var(--danger);">خطأ في جلب الطلبات، تحقق من صلاحيات وقواعد قاعدة البيانات (Firestore Rules).</div>`;
+            }
         }
 
-        window.updateOrder = async function(orderId, status) {
-            const notes = document.getElementById(`note_${orderId}`).value;
+        window.updateStatus = async function(id, newStatus) {
             try {
-                const orderRef = doc(db, "orders", orderId);
-                await updateDoc(orderRef, {
-                    status: status,
-                    notes: notes
-                });
-                
-                const msg = `تم ${status} الطلب وإرسال الملاحظة بنجاح.`;
-                showToast(msg);
-                showDesktopNotification("تحديث الطلب", msg);
-            } catch (e) {
-                alert("حدث خطأ أثناء التحديث.");
+                const docRef = doc(db, "orders", id);
+                await updateDoc(docRef, { status: newStatus });
+                fetchOrders();
+            } catch (error) {
+                alert("حدث خطأ أثناء تحديث الحالة!");
             }
         };
 
-        function showToast(message) {
-            const toast = document.getElementById("toast");
-            document.getElementById("toastText").innerText = message;
-            toast.style.display = "block";
-            setTimeout(() => { toast.style.display = "none"; }, 4000);
-        }
-
-        function showDesktopNotification(title, body) {
-            if (Notification.permission === "granted") {
-                new Notification(title, {
-                    body: body,
-                    icon: "https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
-                });
+        window.deleteOrder = async function(id) {
+            if (confirm("هل أنت متأكد من حذف هذا الحجز نهائياً؟")) {
+                try {
+                    await deleteDoc(doc(db, "orders", id));
+                    fetchOrders();
+                } catch (error) {
+                    alert("حدث خطأ أثناء الحذف!");
+                }
             }
         }
+
+        // جلب الطلبات فور فتح اللوحة
+        fetchOrders();
+        
+        // تحديث تلقائي كل 10 ثوانٍ لجلب أي حجز جديد فور وصوله دون الحاجة لتحديث الصفحة
+        setInterval(fetchOrders, 10000);
     </script>
 </body>
 </html>
