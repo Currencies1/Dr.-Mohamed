@@ -14,11 +14,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-    <!-- Header (بدون زر الإدارة) -->
     <header class="bg-indigo-700 text-white py-5 shadow-lg">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-3 space-x-reverse">
-                <svg class="w-8 h-8 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
             </div>
             <button onclick="requestNotificationPermission()" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-400/30 transition">تفعيل الإشعارات 🔔</button>
@@ -60,11 +58,6 @@
                 </div>
 
                 <div id="childSection" class="hidden bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 space-y-4">
-                    <div class="flex items-center space-x-2 space-x-reverse text-indigo-700 font-bold mb-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        <span>بيانات الطفل والملاحظات</span>
-                    </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1 text-slate-700">اسم الطفل</label>
@@ -93,7 +86,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md hover:shadow-indigo-200 transition duration-200 text-lg">
+                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md transition duration-200 text-lg">
                     تأكيد الحجز
                 </button>
             </form>
@@ -101,6 +94,16 @@
             <div id="statusMessage" class="hidden mt-6 p-4 rounded-xl text-center font-medium"></div>
         </div>
     </main>
+
+    <!-- نافذة التأكيد المنبثقة الشاشة كاملة -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 text-center max-w-sm w-full shadow-2xl border border-emerald-100 transform transition-all">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🎉</div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">تم تأكيد حجزك!</h3>
+            <p id="modalText" class="text-sm text-slate-600 mb-6"></p>
+            <button onclick="closeModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition">حسناً، فهمت</button>
+        </div>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -116,7 +119,18 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let activeDocId = null;
+        // استرجاع الحجز السابق من ذاكرة الهاتف إن وجد
+        let activeDocId = localStorage.getItem('lastBookingId');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (activeDocId) {
+                const msg = document.getElementById('statusMessage');
+                msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-amber-50 text-amber-800 border border-amber-200";
+                msg.textContent = "لديك طلب حجز قائم، جاري متابعة حالة الحجز...";
+                msg.classList.remove('hidden');
+                listenForApproval(activeDocId);
+            }
+        });
 
         function requestNotificationPermission() {
             if ("Notification" in window) {
@@ -158,6 +172,7 @@
             try {
                 const docRef = await db.collection('appointments').add(bookingData);
                 activeDocId = docRef.id;
+                localStorage.setItem('lastBookingId', activeDocId);
 
                 const msg = document.getElementById('statusMessage');
                 msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
@@ -177,18 +192,31 @@
 
         function listenForApproval(docId) {
             db.collection('appointments').doc(docId).onSnapshot(snapshot => {
+                if (!snapshot.exists) return;
                 const data = snapshot.data();
+                
                 if (data && data.status === 'مؤكد') {
-                    if (Notification.permission === "granted") {
+                    // إظهار نافذة منبثقة ملونة على شاشة الهاتف فوراً
+                    document.getElementById('modalText').textContent = `أهلاً بك ${data.fullName}، تم تأكيد موعدك بنجاح بتاريخ ${data.date} الساعة ${data.time}.`;
+                    document.getElementById('confirmModal').classList.remove('hidden');
+
+                    const msg = document.getElementById('statusMessage');
+                    msg.className = "mt-6 p-4 rounded-xl text-center font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                    msg.textContent = "🎉 تم تأكيد هذا الحجز رسمياً من قبل الإدارة!";
+
+                    // إشعار النظام
+                    if ("Notification" in window && Notification.permission === "granted") {
                         new Notification("المركز الطبي", {
-                            body: `عزيزي/تي ${data.fullName}، تم تأكيد حجزك بنجاح لموعد: ${data.date}`,
+                            body: `تم تأكيد حجزك لموعد: ${data.date}`,
                             icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
                         });
-                    } else {
-                        alert(`🎉 تم تأكيد حجزك بنجاح! التاريخ: ${data.date} الساعة: ${data.time}`);
                     }
                 }
             });
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
         }
     </script>
 </body>
