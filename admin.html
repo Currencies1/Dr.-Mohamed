@@ -1,147 +1,33 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - إدارة الحجوزات الطبية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Tajawal', sans-serif; } </style>
+async function toggleStatus(id, currentStatus) {
+    const newStatus = currentStatus === 'قيد الانتظار' ? 'مؤكد' : 'قيد الانتظار';
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-</head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
+    // جلب بيانات الحجز لتفقد الـ fcmToken
+    const doc = await db.collection('appointments').doc(id).get();
+    const data = doc.data();
 
-    <header class="bg-slate-900 text-white py-5 shadow-lg">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <span class="bg-indigo-600 text-xs px-2.5 py-1 rounded-md font-bold tracking-wider">ADMIN</span>
-                <h1 class="text-xl font-bold">لوحة إدارة الحجوزات (سحابية)</h1>
-            </div>
-            <button onclick="requestAdminNotificationPermission()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">تفعيل إشعارات الطلبات 🔔</button>
-        </div>
-    </header>
+    await db.collection('appointments').doc(id).update({ status: newStatus });
 
-    <main class="container mx-auto px-4 py-10">
-        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-200">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">جدول الحجوزات المباشرة</h2>
-                    <p class="text-slate-500 text-sm mt-1">يتم تحديث الطلبات لحظياً فور حجز أي مريض</p>
-                </div>
-            </div>
+    // إرسال إشعار للخلفية إذا كان المعرف موجوداً والحالة مؤكدة
+    if (newStatus === 'مؤكد' && data.fcmToken) {
+        sendPushNotification(data.fcmToken, data.fullName, data.date);
+    }
+}
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-right border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-200">
-                            <th class="p-4">الاسم الثلاثي</th>
-                            <th class="p-4">الهاتف / العمر</th>
-                            <th class="p-4">قسم الحجز</th>
-                            <th class="p-4">تفاصيل إضافية (الأطفال)</th>
-                            <th class="p-4">التاريخ والوقت</th>
-                            <th class="p-4">الحالة</th>
-                            <th class="p-4">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="appointmentsTable" class="divide-y divide-slate-100 text-sm">
-                        <tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">جاري جلب البيانات السحابية...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
-            authDomain: "ahmad-662ee.firebaseapp.com",
-            projectId: "ahmad-662ee",
-            storageBucket: "ahmad-662ee.firebasestorage.app",
-            messagingSenderId: "740891153734",
-            appId: "1:740891153734:web:d4927b652d05f499618147",
-            measurementId: "G-S0ZD5K16NM"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        let initialLoad = true;
-
-        function requestAdminNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(p => {
-                    if (p === "granted") alert("تم تفعيل إشعارات الإدارة بنجاح!");
-                });
+function sendPushNotification(token, name, date) {
+    // تتطلب هذه العملية Server Key من لوحة Firebase Cloud Messaging
+    // إرسال الطلب عبر REST API الخاص بـ Firebase
+    fetch('https://fcm.googleapis.com/fcm/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'key=YOUR_FIREBASE_SERVER_KEY' // ضع هنا Server Key الخاص بمشروعك
+        },
+        body: JSON.stringify({
+            to: token,
+            notification: {
+                title: "تم تأكيد الحجز 🎉",
+                body: `أهلاً ${name}، تم تأكيد موعدك بنجاح بتاريخ ${date}.`
             }
-        }
-
-        db.collection('appointments').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-            const table = document.getElementById('appointmentsTable');
-            
-            if (snapshot.empty) {
-                table.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">لا توجد حجوزات مسجلة حتى الآن</td></tr>`;
-                return;
-            }
-
-            if (!initialLoad) {
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'added') {
-                        if (Notification.permission === "granted") {
-                            new Notification("المركز الطبي", {
-                                body: "🔔 وصل طلب حجز طبي جديد الآن!",
-                                icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
-                            });
-                        } else {
-                            alert("🔔 وصل طلب حجز جديد الآن!");
-                        }
-                    }
-                });
-            }
-            initialLoad = false;
-
-            table.innerHTML = snapshot.docs.map(doc => {
-                const item = doc.data();
-                const id = doc.id;
-
-                let childDetails = '<span class="text-slate-400">-</span>';
-                if (item.type === 'أطفال' && item.childInfo) {
-                    childDetails = `
-                        <div class="text-xs space-y-1">
-                            <p><span class="font-bold text-slate-700">الطفل:</span> ${item.childInfo.childName || 'غير محدد'}</p>
-                            <p><span class="font-bold text-slate-700">العمر:</span> ${item.childInfo.childAge || 'غير محدد'}</p>
-                            ${item.childInfo.requirements ? `<p class="text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100 mt-1">${item.childInfo.requirements}</p>` : ''}
-                        </div>
-                    `;
-                }
-
-                return `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 font-semibold text-slate-800">${item.fullName}</td>
-                    <td class="p-4"><div class="text-xs"><p class="font-bold text-slate-700">${item.phone}</p><p class="text-slate-400">${item.age} سنة</p></div></td>
-                    <td class="p-4"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${item.type === 'أطفال' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${item.type === 'أطفال' ? 'قسم الأطفال' : 'قسم باطني'}</span></td>
-                    <td class="p-4 max-w-xs">${childDetails}</td>
-                    <td class="p-4"><div class="text-xs"><p class="font-bold text-slate-700">${item.date}</p><p class="text-slate-400">${item.time}</p></div></td>
-                    <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${item.status === 'مؤكد' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${item.status}</span></td>
-                    <td class="p-4 space-x-1 space-x-reverse">
-                        <button onclick="toggleStatus('${id}', '${item.status}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition">قبول / تغيير الحالة</button>
-                        <button onclick="deleteAppointment('${id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">حذف</button>
-                    </td>
-                </tr>
-            `}).join('');
-        });
-
-        async function toggleStatus(id, currentStatus) {
-            const newStatus = currentStatus === 'قيد الانتظار' ? 'مؤكد' : 'قيد الانتظار';
-            await db.collection('appointments').doc(id).update({ status: newStatus });
-        }
-
-        async function deleteAppointment(id) {
-            if (confirm("هل تريد حذف هذا الحجز؟")) {
-                await db.collection('appointments').doc(id).delete();
-            }
-        }
-    </script>
-</body>
-</html>
+        })
+    });
+}
