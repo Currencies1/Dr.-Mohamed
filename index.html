@@ -14,9 +14,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+    <!-- Header (بدون زر الإدارة) -->
     <header class="bg-indigo-700 text-white py-5 shadow-lg">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <svg class="w-8 h-8 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
+            </div>
             <button onclick="requestNotificationPermission()" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-400/30 transition">تفعيل الإشعارات 🔔</button>
         </div>
     </header>
@@ -25,7 +29,7 @@
         <div class="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100">
             <div class="mb-8 border-b pb-4 border-slate-100">
                 <h2 class="text-2xl font-bold text-slate-900">حجز موعد جديد</h2>
-                <p class="text-slate-500 text-sm mt-1">أدخل بياناتك وسيصل الطلب مباشرة للإدارة</p>
+                <p class="text-slate-500 text-sm mt-1">يرجى تعبئة البيانات لتأكيد الحجز مباشر عبر النظام</p>
             </div>
             
             <form id="bookingForm" class="space-y-6">
@@ -56,6 +60,11 @@
                 </div>
 
                 <div id="childSection" class="hidden bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 space-y-4">
+                    <div class="flex items-center space-x-2 space-x-reverse text-indigo-700 font-bold mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <span>بيانات الطفل والملاحظات</span>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1 text-slate-700">اسم الطفل</label>
@@ -63,13 +72,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1 text-slate-700">عمر الطفل</label>
-                            <input type="text" id="childAge" placeholder="مثال: سنتان" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                            <input type="text" id="childAge" placeholder="مثال: سنتان / 5 أشهر" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium mb-1 text-slate-700">ترتيبات وملاحظات الحجز</label>
-                        <textarea id="childRequirements" rows="3" placeholder="ملاحظات خاصة..." class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"></textarea>
+                        <textarea id="childRequirements" rows="3" placeholder="ذكر أي مرافقين، حالة طارئة، أو ترتيبات خاصة..." class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"></textarea>
                     </div>
                 </div>
 
@@ -84,7 +93,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md transition duration-200 text-lg">
+                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md hover:shadow-indigo-200 transition duration-200 text-lg">
                     تأكيد الحجز
                 </button>
             </form>
@@ -94,14 +103,14 @@
     </main>
 
     <script>
-        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
+            authDomain: "ahmad-662ee.firebaseapp.com",
+            projectId: "ahmad-662ee",
+            storageBucket: "ahmad-662ee.firebasestorage.app",
+            messagingSenderId: "740891153734",
+            appId: "1:740891153734:web:d4927b652d05f499618147",
+            measurementId: "G-S0ZD5K16NM"
         };
         
         firebase.initializeApp(firebaseConfig);
@@ -126,7 +135,7 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.textContent = "جاري الإرسال...";
+            btn.textContent = "جاري إرسال الحجز...";
 
             const bookingType = document.getElementById('bookingType').value;
             
@@ -152,7 +161,7 @@
 
                 const msg = document.getElementById('statusMessage');
                 msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
-                msg.textContent = "تم إرسال طلب الحجز بنجاح! نرجو عدم إغلاق الصفحة لتلقي إشعار القبول.";
+                msg.textContent = "تم إرسال طلب الحجز بنجاح! سيتم إخطارك فور موافقة الإدارة.";
                 msg.classList.remove('hidden');
 
                 listenForApproval(activeDocId);
@@ -172,11 +181,11 @@
                 if (data && data.status === 'مؤكد') {
                     if (Notification.permission === "granted") {
                         new Notification("المركز الطبي", {
-                            body: `تم تأكيد حجزك بنجاح لموعد: ${data.date}`,
+                            body: `عزيزي/تي ${data.fullName}، تم تأكيد حجزك بنجاح لموعد: ${data.date}`,
                             icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
                         });
                     } else {
-                        alert(`🎉 تم تأكيد حجزك بنجاح! التاريخ: ${data.date}`);
+                        alert(`🎉 تم تأكيد حجزك بنجاح! التاريخ: ${data.date} الساعة: ${data.time}`);
                     }
                 }
             });
