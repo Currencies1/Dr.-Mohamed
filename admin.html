@@ -82,7 +82,15 @@
         .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 5px; }
         .order-info p { font-size: 14px; color: #475569; margin-bottom: 8px; line-height: 1.6; }
         
-        .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap; }
+        .queue-input-group {
+            display: flex; align-items: center; gap: 10px; margin: 15px 0; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
+        }
+        .queue-input-group label { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+        .queue-input-group input {
+            padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; width: 90px; text-align: center; font-weight: bold; font-size: 15px; outline: none;
+        }
+
+        .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap; align-items: center; }
         
         .btn-action { 
             padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; 
@@ -137,7 +145,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات مشروعك الأساسي والصحيح (mohamed-ismail-c0525)
         const firebaseConfig = {
             apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
             authDomain: "mohamed-ismail-c0525.firebaseapp.com",
@@ -154,12 +161,10 @@
         const container = document.getElementById("ordersContainer");
         const countBadge = document.getElementById("orderCount");
 
-        // التحقق من الجلسة المخزنة مسبقاً
         if (localStorage.getItem("doctorLoggedIn") === "true") {
             showDashboard();
         }
 
-        // دالة تسجيل الدخول
         window.handleLogin = function(event) {
             event.preventDefault();
             const email = document.getElementById("emailInput").value.trim();
@@ -175,7 +180,6 @@
             }
         };
 
-        // دالة تسجيل الخروج
         window.handleLogout = function() {
             localStorage.removeItem("doctorLoggedIn");
             document.getElementById("adminDashboard").style.display = "none";
@@ -189,7 +193,6 @@
             loadAppointments();
         }
 
-        // جلب ومزامنة الحجوزات لحظياً من مجموعة appointments
         function loadAppointments() {
             onSnapshot(collection(db, "appointments"), (querySnapshot) => {
                 container.innerHTML = "";
@@ -206,6 +209,7 @@
                     const data = item.data();
                     const docId = item.id;
                     const status = data.status || "قيد الانتظار";
+                    const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
                     
                     let statusClass = "status-pending";
                     if (status.includes("مقبول")) statusClass = "status-accepted";
@@ -219,12 +223,17 @@
                                 <h3>اسم المريض: ${data.username || data.name || "بدون اسم"}</h3>
                                 <span class="status-badge ${statusClass}">${status}</span>
                             </div>
-                            <p><strong>رقم الهاتف:</strong> ${data.phone || data.mobile || "غير متوفر"}</p>
-                            <p><strong>التفاصيل والأعراض:</strong> ${data.details || data.symptoms || "لا توجد تفاصيل"}</p>
+                            <p>${data.details || data.symptoms || "لا توجد تفاصيل"}</p>
+                            
+                            <div class="queue-input-group">
+                                <label><i class="fa-solid fa-ticket"></i> تحديد رقم الدور للمريض:</label>
+                                <input type="text" id="queue_${docId}" value="${currentQueue}" placeholder="مثال: 1">
+                            </div>
+
                             <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
                         </div>
                         <div class="order-actions">
-                            <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')"><i class="fa-solid fa-check"></i> قبول</button>
+                            <button class="btn-action btn-accept" onclick="acceptWithQueue('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور</button>
                             <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
                             <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
                         </div>
@@ -241,6 +250,24 @@
                 `;
             });
         }
+
+        // دالة حفظ رقم الدور وتغيير الحالة إلى مقبول
+        window.acceptWithQueue = async function(id) {
+            const queueInput = document.getElementById(`queue_${id}`).value.trim();
+            if (!queueInput) {
+                alert("الرجاء إدخال رقم الدور للمريض قبل الضغط على قبول!");
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, "appointments", id), { 
+                    status: "مقبول / مؤكد",
+                    queueNumber: queueInput
+                });
+            } catch (e) { 
+                alert("خطأ في التحديث: " + e.message); 
+            }
+        };
 
         window.updateStatus = async function(id, newStatus) {
             try {
