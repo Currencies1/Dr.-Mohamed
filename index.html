@@ -140,7 +140,7 @@
                 <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
             </div>
 
-            <div class="section-title"><i class="fa-solid id-card"></i> المعلومات الشخصية</div>
+            <div class="section-title"><i class="fa-solid fa-id-card"></i> المعلومات الشخصية</div>
             
             <div class="form-grid two-cols">
                 <div class="form-group">
@@ -204,10 +204,10 @@
         </div>
     </div>
 
-    <!-- كود ربط Firebase الصحيح الخاص بك -->
+    <!-- كود ربط Firebase المحدث للمزامنة الفورية -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
@@ -223,7 +223,7 @@
         const db = getFirestore(app);
 
         let cooldownTimer = null;
-        let pollInterval = null;
+        let unsubscribeLive = null; // لإلغاء المراقبة القديمة عند إرسال طلب جديد
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
@@ -248,7 +248,7 @@
             try {
                 const formattedDetails = `التاريخ: ${appointmentDate} | الهاتف: ${phone} \nالأعراض: ${details} \nالمستلزمات: ${supplies}`;
 
-                // الإرسال إلى مجموعة appointments الصحيحة في مشروعك الجديد
+                // الإرسال إلى مجموعة appointments في الفايربيس
                 const docRef = await addDoc(collection(db, "appointments"), {
                     username: username,
                     details: formattedDetails,
@@ -257,7 +257,7 @@
                 });
 
                 statusMsg.className = "success-msg";
-                statusMsg.innerHTML = `تم إرسال طلب الحجز بنجاح!<br><span style="font-size:12px; color:#0369a1;">بانتظار رد الدكتور محمد الأسماعيل...</span>`;
+                statusMsg.innerHTML = `تم إرسال طلب الحجز بنجاح!<br><span style="font-size:12px; color:#0369a1;">بانتظار رد د. محمد الأسماعيل...</span>`;
 
                 // تفريغ الحقول
                 document.getElementById("username").value = "";
@@ -266,31 +266,26 @@
                 document.getElementById("details").value = "";
                 document.getElementById("medicalSupplies").value = "";
 
-                // فحص دوري كل 4 ثوانٍ لرصد تغيير الحالة (مقبول / مرفوض)
-                if (pollInterval) clearInterval(pollInterval);
+                // إذا كانت هناك مراقبة سابقة، قم بإيقافها لمنع التداخل
+                if (unsubscribeLive) {
+                    unsubscribeLive();
+                }
 
-                pollInterval = setInterval(async () => {
-                    try {
-                        const snap = await getDoc(doc(db, "appointments", docRef.id));
-                        if (snap.exists()) {
-                            const currentStatus = snap.data().status;
+                // ربط المراقبة الفورية (Real-time onSnapshot) لتحديث حالة المريض في نفس الثانية فور ضغط الدكتور على قبول أو رفض
+                unsubscribeLive = onSnapshot(doc(db, "appointments", docRef.id), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const currentStatus = docSnap.data().status;
 
-                            if (currentStatus === "مقبول") {
-                                clearInterval(pollInterval);
-                                statusMsg.className = "accepted-msg";
-                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول** طلب حجز موعدك من قِبل د. محمد الأسماعيل.`;
-                                alert("تم قبول طلب الحجز الخاص بك بنجاح!");
-                            } else if (currentStatus === "مرفوض") {
-                                clearInterval(pollInterval);
-                                statusMsg.className = "rejected-msg";
-                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي.`;
-                                alert("عذراً، تم رفض طلب الحجز.");
-                            }
+                        // التحقق الشامل لتجنب مشاكل تطابق النصوص
+                        if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
+                            statusMsg.className = "accepted-msg";
+                            statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول وتأكيد** طلب حجز موعدك من قِبل د. محمد الأسماعيل.`;
+                        } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
+                            statusMsg.className = "rejected-msg";
+                            statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي.`;
                         }
-                    } catch (err) {
-                        console.error("خطأ في فحص الحالة:", err);
                     }
-                }, 4000);
+                });
 
                 // عداد حظر التكرار (29 ثانية)
                 let timeLeft = 29;
