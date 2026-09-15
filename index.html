@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة تقديم الطلبات</title>
+    <title>بوابة تقديم الطلبات الشاملة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -34,19 +34,13 @@
         .form-card { 
             background: var(--card-bg); 
             width: 100%; 
-            max-width: 450px; 
+            max-width: 550px; 
             padding: 40px; 
             border-radius: 20px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
-            animation: fadeIn 0.5s ease-in-out;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); 
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-header { text-align: center; margin-bottom: 30px; }
+        .form-header { text-align: center; margin-bottom: 25px; }
         .form-header .icon-box {
             width: 60px; height: 60px; background: #e0e7ff; color: var(--primary);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -55,30 +49,29 @@
         .form-header h2 { font-weight: 700; color: var(--text-color); font-size: 22px; }
         .form-header p { color: #64748b; font-size: 13px; margin-top: 5px; }
 
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
         .input-with-icon { position: relative; }
         .input-with-icon i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         
-        input, textarea { 
+        input, select, textarea { 
             width: 100%; padding: 12px 16px 12px 45px; border: 1.5px solid var(--border-color); 
-            border-radius: 12px; font-size: 14px; outline: none; background: #fff; transition: all 0.3s; 
+            border-radius: 10px; font-size: 14px; outline: none; background: #fff; transition: all 0.3s; 
         }
-        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
         textarea { padding-right: 45px; resize: none; }
 
         .btn-submit { 
             background: var(--primary); color: white; border: none; padding: 14px; 
-            border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; 
-            font-size: 16px; transition: background 0.3s, transform 0.1s; 
+            border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; 
+            font-size: 16px; transition: background 0.3s; 
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            margin-top: 10px;
         }
         .btn-submit:hover { background: var(--primary-hover); }
-        .btn-submit:active { transform: scale(0.98); }
 
         #statusMsg { 
-            margin-top: 20px; text-align: center; font-weight: 600; font-size: 14px; 
+            margin-top: 15px; text-align: center; font-weight: 600; font-size: 13px; 
             padding: 10px; border-radius: 8px; display: none; 
         }
         .success-msg { background: #d1fae5; color: #065f46; display: block !important; }
@@ -90,36 +83,58 @@
 
     <div class="form-card">
         <div class="form-header">
-            <div class="icon-box"><i class="fa-solid fa-paper-plane"></i></div>
-            <h2>تقديم طلب جديد</h2>
-            <p>املأ البيانات أدناه وسيتم إرسالها إلى الإدارة مباشرة</p>
+            <div class="icon-box"><i class="fa-solid fa-file-lines"></i></div>
+            <h2>نموذج الطلب المتكامل</h2>
+            <p>أدخل تفاصيل طلبك بدقة لضمان معالجته من قبل الإدارة</p>
         </div>
 
         <div class="form-group">
-            <label>اسم المستخدم</label>
+            <label>اسم المستخدم الثلاثي</label>
             <div class="input-with-icon">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" placeholder="أدخل اسمك الكريم">
+                <input type="text" id="username" placeholder="مثال: أحمد محمد...">
             </div>
         </div>
 
         <div class="form-group">
-            <label>تفاصيل الطلب</label>
+            <label>نوع الطلب / القسم</label>
+            <div class="input-with-icon">
+                <i class="fa-solid fa-list-check"></i>
+                <select id="orderType">
+                    <option value="" disabled selected>اختر تصنيف الطلب</option>
+                    <option value="دعم فني وتقني">دعم فني وتقني</option>
+                    <option value="طلب استفسار أو مساعدة">طلب استفسار أو مساعدة</option>
+                    <option value="تفعيل حساب أو صلاحية">تفعيل حساب أو صلاحية</option>
+                    <option value="أخرى">أخرى</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>رقم الهاتف أو وسيلة التواصل</label>
+            <div class="input-with-icon">
+                <i class="fa-solid fa-phone"></i>
+                <input type="text" id="phone" placeholder="أدخل رقم الهاتف للتواصل">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>تفاصيل الطلب الكاملة</label>
             <div class="input-with-icon">
                 <i class="fa-solid fa-pen-to-square" style="top: 25px;"></i>
-                <textarea id="details" rows="4" placeholder="اكتب تفاصيل طلبك بوضوح..."></textarea>
+                <textarea id="details" rows="3" placeholder="اشرح طلبك بالتفصيل..."></textarea>
             </div>
         </div>
 
         <button type="button" class="btn-submit" onclick="sendOrder()">
-            <span>إرسال الطلب</span>
+            <span>إرسال الطلب الآن</span>
             <i class="fa-solid fa-arrow-left"></i>
         </button>
 
         <div id="statusMsg"></div>
     </div>
 
-    <!-- كود ربط Firebase والتحكم بالإرسال -->
+    <!-- كود ربط Firebase وإرسال البيانات -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -138,45 +153,44 @@
         const db = getFirestore(app);
 
         window.sendOrder = async function() {
-            const usernameInput = document.getElementById("username");
-            const detailsInput = document.getElementById("details");
+            const username = document.getElementById("username").value.trim();
+            const orderType = document.getElementById("orderType").value;
+            const phone = document.getElementById("phone").value.trim();
+            const details = document.getElementById("details").value.trim();
             const statusMsg = document.getElementById("statusMsg");
 
-            const username = usernameInput.value.trim();
-            const details = detailsInput.value.trim();
-
-            if (!username || !details) {
+            if (!username || !orderType || !phone || !details) {
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "الرجاء تعبئة جميع الحقول قبل الإرسال!";
+                statusMsg.innerText = "الرجاء تعبئة كافة الحقول المطلوبة بالتفصيل!";
                 return;
             }
 
             statusMsg.className = "loading-msg";
-            statusMsg.innerText = "جاري إرسال الطلب إلى النظام...";
+            statusMsg.innerText = "جاري إرسال طلبك لقاعدة البيانات...";
 
             try {
+                const fullDetails = `[التصنيف: ${orderType}] - [الهاتف: ${phone}] - التفاصيل: ${details}`;
+
                 await addDoc(collection(db, "orders"), {
                     username: username,
-                    details: details,
+                    details: fullDetails,
                     status: "قيد الانتظار",
                     notes: "",
                     createdAt: new Date().toISOString()
                 });
 
                 statusMsg.className = "success-msg";
-                statusMsg.innerText = "تم إرسال طلبك بنجاح وسيتم متابعته من الإدارة!";
+                statusMsg.innerText = "تم إرسال طلبك بنجاح وسيظهر لدى الإدارة فوراً!";
                 
-                // تفريغ الحقول بعد النجاح
-                usernameInput.value = "";
-                detailsInput.value = "";
-
-                // إخفاء الرسالة بعد 5 ثوانٍ
-                setTimeout(() => { statusMsg.style.display = "none"; }, 5000);
+                document.getElementById("username").value = "";
+                document.getElementById("orderType").value = "";
+                document.getElementById("phone").value = "";
+                document.getElementById("details").value = "";
 
             } catch (error) {
                 console.error("خطأ في الإرسال:", error);
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "فشل الإرسال! تحقق من اتصال الإنترنت أو إعدادات القاعدة.";
+                statusMsg.innerText = "فشل الإرسال! تأكد من صحة إعدادات Firebase وقواعد الحماية.";
             }
         };
     </script>
