@@ -96,12 +96,13 @@
             padding: 15px; 
             border-radius: 10px; 
             display: none; 
+            line-height: 1.6;
         }
         .success-msg { background: #d1fae5; color: #065f46; border: 1px solid #10b981; display: block !important; }
         .error-msg { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; display: block !important; }
         .loading-msg { background: #e0f2fe; color: #0369a1; border: 1px solid #0284c7; display: block !important; }
-        .accepted-msg { background: #d1fae5; color: #065f46; border: 2px solid #10b981; display: block !important; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .rejected-msg { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; display: block !important; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .accepted-msg { background: #d1fae5; color: #065f46; border: 2px solid #10b981; display: block !important; font-size: 16px; font-weight: bold; }
+        .rejected-msg { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; display: block !important; font-size: 16px; font-weight: bold; }
 
         .doctor-signature {
             text-align: center;
@@ -205,7 +206,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
@@ -221,8 +222,7 @@
         const db = getFirestore(app);
 
         let cooldownTimer = null;
-        let unsubscribeStatus = null;
-        let lastStatus = "قيد الانتظار";
+        let checkInterval = null;
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
@@ -256,7 +256,7 @@
                 });
 
                 statusMsg.className = "success-msg";
-                statusMsg.innerText = "تم إرسال طلب حجز الموعد بنجاح! بانتظار رد الطبيب...";
+                statusMsg.innerHTML = `تم إرسال طلب الحجز بنجاح!<br><span style="font-size:12px; color:#0369a1;">جاري فحص حالة الطلب بشكل دوري... يرجى عدم إغلاق الصفحة.</span>`;
 
                 // تفريغ الحقول بعد النجاح
                 document.getElementById("username").value = "";
@@ -265,31 +265,31 @@
                 document.getElementById("details").value = "";
                 document.getElementById("medicalSupplies").value = "";
 
-                // الاستماع اللحظي لتغيير حالة الطلب
-                if (unsubscribeStatus) unsubscribeStatus(); 
-                
-                unsubscribeStatus = onSnapshot(doc(db, "orders", docRef.id), (docSnap) => {
-                    if (docSnap.exists()) {
-                        const currentStatus = docSnap.data().status;
-                        console.log("الحالة الحالية من القاعدة:", currentStatus);
+                // فحص دوري سليم ومناسب للجوال (يفحص كل 5 ثوانٍ حالة المستند مباشرة)
+                if (checkInterval) clearInterval(checkInterval);
 
-                        if (currentStatus !== lastStatus) {
-                            lastStatus = currentStatus;
+                checkInterval = setInterval(async () => {
+                    try {
+                        const docSnap = await getDoc(doc(db, "orders", docRef.id));
+                        if (docSnap.exists()) {
+                            const currentStatus = docSnap.data().status;
 
                             if (currentStatus === "مقبول") {
+                                clearInterval(checkInterval);
                                 statusMsg.className = "accepted-msg";
-                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم <strong>قبول</strong> طلب حجز موعدك من قِبل د. محمد الأسماعيل. ننتظر زيارتك.`;
-                                alert("تم قبول طلب الحجز الخاص بك!"); // تنبيه إضافي للتأكد من الظهور
+                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول** طلب حجز موعدك من قِبل د. محمد الأسماعيل. ننتظر زيارتك.`;
+                                alert("تم قبول طلب الحجز الخاص بك بنجاح!");
                             } else if (currentStatus === "مرفوض") {
+                                clearInterval(checkInterval);
                                 statusMsg.className = "rejected-msg";
-                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم <strong>رفض</strong> طلب الحجز الحالي. يمكنك المحاولة لاحقاً.`;
-                                alert("تم رفض طلب الحجز الخاص بك."); // تنبيه إضافي للتأكد من الظهور
+                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي. يمكنك المحاولة لاحقاً.`;
+                                alert("عذراً، تم رفض طلب الحجز.");
                             }
                         }
+                    } catch (e) {
+                        console.log("خطأ في فحص الحالة:", e);
                     }
-                }, (error) => {
-                    console.error("خطأ في المراقبة (غالباً بسبب قواعد الأمان Firestore Rules):", error);
-                });
+                }, 5000); // يفحص كل 5 ثوانٍ لضمان التحديث على الجوال
 
                 // تفعيل عداد الـ 29 ثانية لمنع الإرسال المتكرر
                 let timeLeft = 29;
