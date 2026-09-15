@@ -75,7 +75,7 @@
         <div class="header-bar">
             <div>
                 <h2>مرحباً، محمد إسماعيل</h2>
-                <p style="color: #64748b; font-size: 14px;">إدارة ومتابعة طلبات المستخدمين لحظة بلحظة عبر السحابة</p>
+                <p style="color: #64748b; font-size: 14px;">إدارة ومتابعة طلبات المستخدمين لحظة بلحظة</p>
             </div>
             <button onclick="logout()" class="btn btn-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i> تسجيل خروج</button>
         </div>
@@ -86,12 +86,13 @@
                     <tr>
                         <th>اسم المستخدم</th>
                         <th>تفاصيل الطلب</th>
+                        <th>حالة الطلب</th>
                         <th>ملاحظات الأدمن</th>
                         <th>الإجراءات المتاحة</th>
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
-                    <tr><td colspan="4" style="text-align: center; color: #64748b; padding: 40px;">جاري التحميل...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">جاري التحميل...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -99,19 +100,18 @@
 
     <div id="toast"><i class="fa-solid fa-bell" style="margin-left: 8px; color: #f59e0b;"></i> <span id="toastText"></span></div>
 
-    <!-- مكتبات Firebase للربط المباشر -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ضع إعدادات مشروعك في الفايربيس هنا:
+        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
+            apiKey: "BLMrzNXetbELyqmG-IA9NyZi5EiR2I351vxTOKG5nAz257H8bj9WLc2njSIq7__fwXvwk1HH3Cmkp_VoZ-h3Lx4", // تم دمج المفتاح الخاص بك هنا
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
             projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "xxxxxx",
+            appId: "xxxxxx"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -119,6 +119,11 @@
 
         const ADMIN_EMAIL = "MohamedIsmail123@gmail.com";
         const ADMIN_PASS = "mohamad123";
+
+        // طلب إذن إرسال إشعارات خارج المتصفح عند تشغيل الصفحة
+        if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
 
         window.login = function() {
             const email = document.getElementById("emailInput").value.trim();
@@ -148,7 +153,6 @@
             showAdminPanel();
         }
 
-        // الاستماع الفوري للطلبات (Realtime Listener) بدون الحاجة لتحديث الصفحة
         function listenToOrders() {
             const tbody = document.getElementById("ordersTableBody");
             let isFirstLoad = true;
@@ -156,12 +160,13 @@
             onSnapshot(collection(db, "orders"), (snapshot) => {
                 tbody.innerHTML = "";
                 if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 40px;">لا توجد طلبات جديدة حالياً.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">لا توجد طلبات جديدة حالياً.</td></tr>`;
                     return;
                 }
 
                 if (!isFirstLoad) {
                     showToast("تنبيه: وصل طلب جديد للنظام فوراً!");
+                    showDesktopNotification("طلب جديد", "تم استلام طلب جديد يحتاج إلى مراجعتك.");
                 }
                 isFirstLoad = false;
 
@@ -172,6 +177,7 @@
                     let row = `<tr>
                         <td>${order.username || 'مستخدم'}</td>
                         <td>${order.details || 'بدون تفاصيل'}</td>
+                        <td><span style="padding: 4px 8px; border-radius: 4px; background: #e2e8f0; font-size: 12px;">${order.status || 'قيد الانتظار'}</span></td>
                         <td><input type="text" class="notes-input" id="note_${orderId}" placeholder="اكتب ملاحظة..." value="${order.notes || ''}"></td>
                         <td>
                             <div style="display: flex; gap: 8px;">
@@ -185,7 +191,7 @@
             });
         }
 
-        // تحديث حالة الطلب وإرسال الملاحظة للسحابة ليراها المستخدم
+        // تحديث الطلب وإظهار إشعار منبثق داخلي وخارجي (خارج المتصفح)
         window.updateOrder = async function(orderId, status) {
             const notes = document.getElementById(`note_${orderId}`).value;
             try {
@@ -194,17 +200,31 @@
                     status: status,
                     notes: notes
                 });
-                showToast(`تم ${status} الطلب وإرسال الملاحظة بنجاح.`);
+                
+                const msg = `تم ${status} الطلب وإرسال الملاحظة بنجاح.`;
+                showToast(msg);
+                showDesktopNotification("تحديث الطلب", msg);
             } catch (e) {
                 alert("حدث خطأ أثناء التحديث.");
             }
         };
 
+        // إشعار داخل الصفحة (Toast)
         function showToast(message) {
             const toast = document.getElementById("toast");
             document.getElementById("toastText").innerText = message;
             toast.style.display = "block";
             setTimeout(() => { toast.style.display = "none"; }, 4000);
+        }
+
+        // إشعار خارج المتصفح (Browser Push Notification)
+        function showDesktopNotification(title, body) {
+            if (Notification.permission === "granted") {
+                new Notification(title, {
+                    body: body,
+                    icon: "https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
+                });
+            }
         }
     </script>
 </body>
