@@ -104,9 +104,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
-            apiKey: "BLMrzNXetbELyqmG-IA9NyZi5EiR2I351vxTOKG5nAz257H8bj9WLc2njSIq7__fwXvwk1HH3Cmkp_VoZ-h3Lx4", // تم دمج المفتاح الخاص بك هنا
+            apiKey: "BLMrzNXetbELyqmG-IA9NyZi5EiR2I351vxTOKG5nAz257H8bj9WLc2njSIq7__fwXvwk1HH3Cmkp_VoZ-h3Lx4",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_PROJECT_ID.appspot.com",
@@ -120,7 +119,6 @@
         const ADMIN_EMAIL = "MohamedIsmail123@gmail.com";
         const ADMIN_PASS = "mohamad123";
 
-        // طلب إذن إرسال إشعارات خارج المتصفح عند تشغيل الصفحة
         if (Notification.permission !== "granted") {
             Notification.requestPermission();
         }
@@ -191,7 +189,6 @@
             });
         }
 
-        // تحديث الطلب وإظهار إشعار منبثق داخلي وخارجي (خارج المتصفح)
         window.updateOrder = async function(orderId, status) {
             const notes = document.getElementById(`note_${orderId}`).value;
             try {
@@ -209,7 +206,6 @@
             }
         };
 
-        // إشعار داخل الصفحة (Toast)
         function showToast(message) {
             const toast = document.getElementById("toast");
             document.getElementById("toastText").innerText = message;
@@ -217,7 +213,6 @@
             setTimeout(() => { toast.style.display = "none"; }, 4000);
         }
 
-        // إشعار خارج المتصفح (Browser Push Notification)
         function showDesktopNotification(title, body) {
             if (Notification.permission === "granted") {
                 new Notification(title, {
