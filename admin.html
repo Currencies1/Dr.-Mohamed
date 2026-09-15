@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - إدارة الحجوزات الطبية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Tajawal', sans-serif; } </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+    <!-- Navbar -->
+    <header class="bg-slate-900 text-white py-5 shadow-lg">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <span class="bg-indigo-600 text-xs px-2.5 py-1 rounded-md font-bold tracking-wider">ADMIN</span>
+                <h1 class="text-xl font-bold">لوحة إدارة الحجوزات والعيادات</h1>
+            </div>
+            <a href="index.html" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm transition border border-slate-700">واجهة الحجز</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10">
+        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">جدول الحجوزات المسجلة</h2>
+                    <p class="text-slate-500 text-sm mt-1">إدارة واعتماد المواعيد الواردة من المرضى</p>
+                </div>
+                <button onclick="clearAll()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200">مسح كافة البيانات</button>
+            </div>
+
+            <!-- الجدول -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-200">
+                            <th class="p-4">الاسم الثلاثي</th>
+                            <th class="p-4">الهاتف / العمر</th>
+                            <th class="p-4">قسم الحجز</th>
+                            <th class="p-4">تفاصيل إضافية (الأطفال)</th>
+                            <th class="p-4">التاريخ والوقت</th>
+                            <th class="p-4">الحالة</th>
+                            <th class="p-4">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTable" class="divide-y divide-slate-100 text-sm">
+                        <!-- تُعبأ البيانات عبر JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function loadAppointments() {
+            const table = document.getElementById('appointmentsTable');
+            const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            
+            if (appointments.length === 0) {
+                table.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">لا توجد حجوزات مسجلة حالياً</td></tr>`;
+                return;
+            }
+
+            table.innerHTML = appointments.map((item, index) => {
+                let childDetails = '<span class="text-slate-400">-</span>';
+                if (item.type === 'أطفال' && item.childInfo) {
+                    childDetails = `
+                        <div class="text-xs space-y-1">
+                            <p><span class="font-bold text-slate-700">الطفل:</span> ${item.childInfo.childName || 'غير محدد'}</p>
+                            <p><span class="font-bold text-slate-700">العمر:</span> ${item.childInfo.childAge || 'غير محدد'}</p>
+                            ${item.childInfo.requirements ? `<p class="text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100 mt-1">${item.childInfo.requirements}</p>` : ''}
+                        </div>
+                    `;
+                }
+
+                return `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-semibold text-slate-800">${item.fullName}</td>
+                    <td class="p-4">
+                        <div class="text-xs">
+                            <p class="font-bold text-slate-700">${item.phone}</p>
+                            <p class="text-slate-400">${item.age} سنة</p>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${item.type === 'أطفال' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                            ${item.type === 'أطفال' ? 'قسم الأطفال' : 'قسم باطني'}
+                        </span>
+                    </td>
+                    <td class="p-4 max-w-xs">${childDetails}</td>
+                    <td class="p-4">
+                        <div class="text-xs">
+                            <p class="font-bold text-slate-700">${item.date}</p>
+                            <p class="text-slate-400">${item.time}</p>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${item.status === 'مؤكد' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="p-4 space-x-1 space-x-reverse">
+                        <button onclick="toggleStatus(${index})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition">تغيير الحالة</button>
+                        <button onclick="deleteAppointment(${index})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">حذف</button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function toggleStatus(index) {
+            let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            appointments[index].status = appointments[index].status === 'قيد الانتظار' ? 'مؤكد' : 'قيد الانتظار';
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+            loadAppointments();
+        }
+
+        function deleteAppointment(index) {
+            let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            appointments.splice(index, 1);
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+            loadAppointments();
+        }
+
+        function clearAll() {
+            if (confirm("هل أنت تأكد من مسح جميع الحجوزات؟")) {
+                localStorage.removeItem('appointments');
+                loadAppointments();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAppointments);
+    </script>
+</body>
+</html>
+
