@@ -104,7 +104,7 @@
         const container = document.getElementById("ordersContainer");
         const countBadge = document.getElementById("orderCount");
 
-        // تم تعديل orders إلى appointments لتطابق صفحة المريض
+        // تم ربطها بقاعدة appointments الصحيحة
         onSnapshot(collection(db, "appointments"), (querySnapshot) => {
             container.innerHTML = "";
             
@@ -119,7 +119,7 @@
             querySnapshot.forEach((item) => {
                 const data = item.data();
                 const docId = item.id;
-                const status = data.status || "قيد الانتظار الطبية";
+                const status = data.status || "قيد الانتظار";
                 
                 let statusClass = "status-pending";
                 if (status.includes("مقبول")) statusClass = "status-accepted";
