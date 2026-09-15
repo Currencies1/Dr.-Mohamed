@@ -89,14 +89,19 @@
         .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
 
         #statusMsg { 
-            margin-top: 15px; text-align: center; font-weight: 600; font-size: 13px; 
-            padding: 14px; border-radius: 8px; display: none; 
+            margin-top: 20px; 
+            text-align: center; 
+            font-weight: 600; 
+            font-size: 14px; 
+            padding: 15px; 
+            border-radius: 10px; 
+            display: none; 
         }
-        .success-msg { background: #d1fae5; color: #065f46; display: block !important; }
-        .error-msg { background: #fee2e2; color: #991b1b; display: block !important; }
-        .loading-msg { background: #e0f2fe; color: #0369a1; display: block !important; }
-        .accepted-msg { background: #d1fae5; color: #065f46; border: 2px solid #10b981; display: block !important; font-size: 15px; font-weight: bold; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
-        .rejected-msg { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; display: block !important; font-size: 15px; font-weight: bold; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .success-msg { background: #d1fae5; color: #065f46; border: 1px solid #10b981; display: block !important; }
+        .error-msg { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; display: block !important; }
+        .loading-msg { background: #e0f2fe; color: #0369a1; border: 1px solid #0284c7; display: block !important; }
+        .accepted-msg { background: #d1fae5; color: #065f46; border: 2px solid #10b981; display: block !important; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .rejected-msg { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; display: block !important; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
         .doctor-signature {
             text-align: center;
@@ -217,6 +222,7 @@
 
         let cooldownTimer = null;
         let unsubscribeStatus = null;
+        let lastStatus = "قيد الانتظار";
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
@@ -259,20 +265,30 @@
                 document.getElementById("details").value = "";
                 document.getElementById("medicalSupplies").value = "";
 
-                // الاستماع اللحظي لتغيير حالة الطلب (مقبول أو مرفوض)
+                // الاستماع اللحظي لتغيير حالة الطلب
                 if (unsubscribeStatus) unsubscribeStatus(); 
+                
                 unsubscribeStatus = onSnapshot(doc(db, "orders", docRef.id), (docSnap) => {
                     if (docSnap.exists()) {
                         const currentStatus = docSnap.data().status;
-                        
-                        if (currentStatus === "مقبول") {
-                            statusMsg.className = "accepted-msg";
-                            statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول** طلب حجز موعدك من قِبل د. محمد الأسماعيل. ننتظر زيارتك.`;
-                        } else if (currentStatus === "مرفوض") {
-                            statusMsg.className = "rejected-msg";
-                            statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي. يمكنك المحاولة لاحقاً.`;
+                        console.log("الحالة الحالية من القاعدة:", currentStatus);
+
+                        if (currentStatus !== lastStatus) {
+                            lastStatus = currentStatus;
+
+                            if (currentStatus === "مقبول") {
+                                statusMsg.className = "accepted-msg";
+                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم <strong>قبول</strong> طلب حجز موعدك من قِبل د. محمد الأسماعيل. ننتظر زيارتك.`;
+                                alert("تم قبول طلب الحجز الخاص بك!"); // تنبيه إضافي للتأكد من الظهور
+                            } else if (currentStatus === "مرفوض") {
+                                statusMsg.className = "rejected-msg";
+                                statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم <strong>رفض</strong> طلب الحجز الحالي. يمكنك المحاولة لاحقاً.`;
+                                alert("تم رفض طلب الحجز الخاص بك."); // تنبيه إضافي للتأكد من الظهور
+                            }
                         }
                     }
+                }, (error) => {
+                    console.error("خطأ في المراقبة (غالباً بسبب قواعد الأمان Firestore Rules):", error);
                 });
 
                 // تفعيل عداد الـ 29 ثانية لمنع الإرسال المتكرر
