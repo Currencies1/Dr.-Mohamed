@@ -130,6 +130,32 @@
         .doctor-signature .doc-name i {
             color: var(--primary);
         }
+
+        /* تنسيق أيقونة الواتساب العائمة */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            background-color: #25d366;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 32px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .whatsapp-float:hover {
+            background-color: #20ba5a;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -248,6 +274,11 @@
             </div>
         </div>
     </div>
+
+    <!-- أيقونة الواتساب العائمة -->
+    <a href="https://wa.me/963937050272" class="whatsapp-float" target="_blank" title="تواصل معنا عبر واتساب">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
 
     <!-- كود ربط Firebase والتحكم بالحقول -->
     <script type="module">
