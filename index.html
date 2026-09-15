@@ -62,6 +62,8 @@
 
         .form-group { margin-bottom: 4px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #334155; }
+        label .required { color: var(--danger); margin-right: 4px; }
+        
         .input-with-icon { position: relative; }
         .input-with-icon i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         
@@ -101,7 +103,7 @@
         .success-msg { background: #d1fae5; color: #065f46; border: 1px solid #10b981; display: block !important; }
         .error-msg { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; display: block !important; }
         .loading-msg { background: #e0f2fe; color: #0369a1; border: 1px solid #0284c7; display: block !important; }
-        .accepted-msg { background: #d1fae5; color: #065f46; border: 2px solid #10b981; display: block !important; font-size: 16px; font-weight: bold; }
+        .accepted-msg { background: #d1fae5; color: #065f46; border: 2px solid #10b981; display: block !important; font-size: 15px; font-weight: bold; text-align: right; }
         .rejected-msg { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; display: block !important; font-size: 16px; font-weight: bold; }
 
         .doctor-signature {
@@ -136,7 +138,7 @@
         <div class="form-card" id="mainCard">
             <div class="form-header">
                 <div class="icon-box"><i class="fa-solid fa-user-doctor"></i></div>
-                <h2>حجز موعد في عيادة الأمراض الباطنية</h2>
+                <h2>حجز موعد - عيادة الأمراض الداخلية</h2>
                 <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
             </div>
 
@@ -145,39 +147,71 @@
                 
                 <div class="form-grid two-cols">
                     <div class="form-group">
-                        <label>اسم المريض الثلاثي/الرباعي</label>
+                        <label>الاسم الثلاثي <span class="required">*</span></label>
                         <div class="input-with-icon">
                             <i class="fa-solid fa-user"></i>
-                            <input type="text" id="username" placeholder="الاسم الكامل...">
+                            <input type="text" id="username" placeholder="الاسم الثلاثي..." required>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>رقم الهاتف (للتواصل وتأكيد الحجز)</label>
+                        <label>العمر <span class="required">*</span></label>
                         <div class="input-with-icon">
-                            <i class="fa-solid fa-phone"></i>
-                            <input type="tel" id="phone" placeholder="09xxxxxxxx">
+                            <i class="fa-solid fa-child"></i>
+                            <input type="number" id="age" placeholder="مثال: 35" min="1" max="120" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="section-title"><i class="fa-solid fa-calendar-check"></i> تفاصيل الموعد</div>
+                <div class="form-grid two-cols" style="margin-top: 12px;">
+                    <div class="form-group">
+                        <label>الإقامة <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" id="residence" placeholder="المدينة / المنطقة..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم الهاتف بالرمز الدولي حصراً <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-phone"></i>
+                            <input type="tel" id="phone" placeholder="+9639xxxxxxxx" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-calendar-check"></i> تفاصيل وزيارة الموعد</div>
                 
-                <div class="form-group">
-                    <label>تاريخ الموعد المطلوب</label>
-                    <div class="input-with-icon">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        <input type="date" id="appointmentDate">
+                <div class="form-grid two-cols">
+                    <div class="form-group">
+                        <label>تاريخ الموعد المطلوب <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            <input type="date" id="appointmentDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>نوع الزيارة <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-stethoscope"></i>
+                            <select id="visitType" required>
+                                <option value="" disabled selected>اختر نوع الزيارة...</option>
+                                <option value="مريض جديد">مريض جديد</option>
+                                <option value="مراجعة">مراجعة</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <div class="section-title"><i class="fa-solid fa-file-medical"></i> الأعراض والمستلزمات الطبية المصاحبة</div>
                 
                 <div class="form-group">
-                    <label>وصف الأعراض أو سبب الزيارة</label>
+                    <label>وصف الأعراض أو سبب الزيارة <span class="required">*</span></label>
                     <div class="input-with-icon">
                         <i class="fa-solid fa-notes-medical" style="top: 25px;"></i>
-                        <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية..."></textarea>
+                        <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية..." required></textarea>
                     </div>
                 </div>
 
@@ -206,7 +240,7 @@
         </div>
     </div>
 
-    <!-- كود ربط Firebase المحدث مع الحفظ عبر التحديث والقدرة على تسجيل مريض آخر -->
+    <!-- كود ربط Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -226,15 +260,13 @@
 
         let unsubscribeLive = null;
 
-        // دالة لإخفاء حقول الإدخال وإظهار رسالة الانتظار الثابتة
         function lockScreenToWaiting() {
             document.getElementById("formFieldsContainer").style.display = "none";
             const statusMsg = document.getElementById("statusMsg");
             statusMsg.className = "loading-msg";
-            statusMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> تم إرسال الطلب بنجاح!<br><b>يرجى الانتظار وعدم مغادرة الصفحة حتى يتم تأكيد الحجز من قِبل الطبيب...</b>`;
+            statusMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> تم إرسال الطلب بنجاح!<br><b>يرجى الانتظار وعدم مغادرة الصفحة حتى يتم تأكيد الحجز من قِبل الطبيب وإعطائك رقم الدور...</b>`;
         }
 
-        // التحقق عند فتح أو تحديث الصفحة إذا كان هناك طلب سابق قيد الانتظار
         window.addEventListener("DOMContentLoaded", () => {
             const savedDocId = localStorage.getItem("current_appointment_id");
             if (savedDocId) {
@@ -245,15 +277,19 @@
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
+            const age = document.getElementById("age").value.trim();
+            const residence = document.getElementById("residence").value.trim();
             const phone = document.getElementById("phone").value.trim();
             const appointmentDate = document.getElementById("appointmentDate").value;
+            const visitType = document.getElementById("visitType").value;
             const details = document.getElementById("details").value.trim();
             const supplies = document.getElementById("medicalSupplies").value.trim() || "لا توجد مستلزمات مضافة";
             const statusMsg = document.getElementById("statusMsg");
 
-            if (!username || !phone || !appointmentDate || !details) {
+            // التحقق من تعبئة جميع الحقول الإجبارية
+            if (!username || !age || !residence || !phone || !appointmentDate || !visitType || !details) {
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "الرجاء تعبئة الحقول الأساسية المطلوبة للحجز!";
+                statusMsg.innerText = "الرجاء تعبئة جميع الحقول الإجبارية المطلوبة!";
                 return;
             }
 
@@ -261,19 +297,18 @@
             statusMsg.innerText = "جاري إرسال حجزك للعيادة...";
 
             try {
-                const formattedDetails = `التاريخ: ${appointmentDate} | الهاتف: ${phone} \nالأعراض: ${details} \nالمستلزمات: ${supplies}`;
+                const formattedDetails = `العمر: ${age} | الإقامة: ${residence} | الهاتف: ${phone} | النوع: ${visitType} | التاريخ: ${appointmentDate} \nالأعراض: ${details} \nالمستلزمات: ${supplies}`;
 
                 const docRef = await addDoc(collection(db, "appointments"), {
                     username: username,
                     details: formattedDetails,
                     status: "قيد الانتظار",
+                    queueNumber: "قيد الصدور", // الحقل الذي سيكتبه المشرف لاحقاً
                     createdAt: new Date().toISOString()
                 });
 
-                // حفظ معرف الطلب في التذاكر المحلية لكي يظل ثابتاً حتى لو حدث تحديث للصفحة
                 localStorage.setItem("current_appointment_id", docRef.id);
 
-                // إخفاء الحقول وتثبيت شاشة الانتظار
                 lockScreenToWaiting();
                 monitorAppointment(docRef.id);
 
@@ -291,29 +326,35 @@
 
             unsubscribeLive = onSnapshot(doc(db, "appointments", docId), (docSnap) => {
                 if (docSnap.exists()) {
-                    const currentStatus = docSnap.data().status;
+                    const data = docSnap.data();
+                    const currentStatus = data.status;
+                    const queueNum = data.queueNumber || "لم يتم تحديده بعد";
 
                     if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
                         statusMsg.className = "accepted-msg";
                         statusMsg.innerHTML = `
-                            <i class="fa-solid fa-circle-check" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
-                            مبروك! تم <b>قبول وتأكيد</b> طلب حجز موعدك من قِبل د. محمد الأسماعيل.<br><br>
-                            <button onclick="resetForNewPatient()" style="background: #065f46; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                <i class="fa-solid fa-user-plus"></i> تسجل لمريض آخر
-                            </button>
+                            <div style="text-align: center;">
+                                <i class="fa-solid fa-circle-check" style="font-size: 28px; margin-bottom: 8px; color: #10b981; display: block;"></i>
+                                <span style="font-size: 16px;">مبروك! تم <b>قبول وتأكيد</b> طلب حجز موعدك.</span><br><br>
+                                <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1.5px solid #10b981; margin-bottom: 15px; display: inline-block; width: 100%;">
+                                    <i class="fa-solid fa-ticket" style="color: #0284c7;"></i> <b>رقم الدور الخاص بك:</b> <span style="font-size: 18px; color: #0284c7;">${queueNum}</span>
+                                </div><br>
+                                <button onclick="resetForNewPatient()" style="background: #065f46; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; width: 100%;">
+                                    <i class="fa-solid fa-user-plus"></i> تسجل لمريض آخر
+                                </button>
+                            </div>
                         `;
                     } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
                         statusMsg.className = "rejected-msg";
                         statusMsg.innerHTML = `
                             <i class="fa-solid fa-circle-xmark" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
                             نعتذر منك، تم <b>رفض</b> طلب الحجز الحالي من قِبل الطبيب.<br><br>
-                            <button onclick="resetForNewPatient()" style="background: #991b1b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                            <button onclick="resetForNewPatient()" style="background: #991b1b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; width: 100%;">
                                 <i class="fa-solid fa-rotate-right"></i> محاولة حجز جديدة / لمريض آخر
                             </button>
                         `;
                     }
                 } else {
-                    // في حال تم حذف الطلب من قاعدة البيانات
                     statusMsg.className = "error-msg";
                     statusMsg.innerHTML = `عذراً، لم يتم العثور على هذا الطلب.<br><br>
                         <button onclick="resetForNewPatient()" style="background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">تسجيل مريض جديد</button>
@@ -322,17 +363,18 @@
             });
         }
 
-        // دالة لإعادة ضبط الصفحة لتسجيل مريض آخر
         window.resetForNewPatient = function() {
             localStorage.removeItem("current_appointment_id");
             if (unsubscribeLive) unsubscribeLive();
             
-            // إظهار حقول النموذج مرة أخرى وإفريغها
             document.getElementById("formFieldsContainer").style.display = "block";
             document.getElementById("statusMsg").style.display = "none";
             document.getElementById("username").value = "";
+            document.getElementById("age").value = "";
+            document.getElementById("residence").value = "";
             document.getElementById("phone").value = "";
             document.getElementById("appointmentDate").value = "";
+            document.getElementById("visitType").selectedIndex = 0;
             document.getElementById("details").value = "";
             document.getElementById("medicalSupplies").value = "";
         };
