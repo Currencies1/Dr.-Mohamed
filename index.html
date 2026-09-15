@@ -3,214 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز موعد طبي - المركز الطبي المتخصص</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Tajawal', sans-serif; } </style>
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+    <title>صفحة المستخدم - إرسال الطلب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #f8fafc; padding: 40px; direction: rtl; }
+        .form-container { max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        button { background: #4f46e5; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; font-size: 16px; }
+        button:hover { background: #4338ca; }
+        #statusMsg { margin-top: 15px; text-align: center; font-weight: 600; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body>
 
-    <header class="bg-indigo-700 text-white py-5 shadow-lg">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
-            <button onclick="requestNotificationPermission()" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-400/30 transition">تفعيل الإشعارات 🔔</button>
+    <div class="form-container">
+        <h2>تقديم طلب جديد</h2>
+        <div class="form-group">
+            <label>اسم المستخدم:</label>
+            <input type="text" id="username" placeholder="أدخل اسمك الكريم">
         </div>
-    </header>
-
-    <main class="container mx-auto px-4 py-12 max-w-2xl">
-        <!-- كارت تنبيه قبول الحجز داخل الصفحة -->
-        <div id="approvalModal" class="hidden mb-6 bg-emerald-500 text-white p-6 rounded-3xl shadow-xl border border-emerald-400 text-center animate-bounce">
-            <h3 class="text-2xl font-bold mb-2">🎉 تم تأكيد حجزك رسمياً!</h3>
-            <p id="approvalDetails" class="text-emerald-100 text-sm">تم قبول طلب الحجز من قبل إدارة المركز الطبي.</p>
+        <div class="form-group">
+            <label>تفاصيل الطلب:</label>
+            <textarea id="details" rows="4" placeholder="اكتب تفاصيل طلبك هنا..."></textarea>
         </div>
+        <button onclick="sendOrder()">إرسال الطلب للإدارة</button>
+        <div id="statusMsg"></div>
+    </div>
 
-        <div class="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100">
-            <div class="mb-8 border-b pb-4 border-slate-100">
-                <h2 class="text-2xl font-bold text-slate-900">حجز موعد جديد</h2>
-                <p class="text-slate-500 text-sm mt-1">يرجى تعبئة البيانات لتأكيد الحجز مباشر عبر النظام</p>
-            </div>
-            
-            <form id="bookingForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-slate-700">الاسم الثلاثي <span class="text-rose-500">*</span></label>
-                    <input type="text" id="patientName" placeholder="أدخل اسمك الثلاثي" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                </div>
+    <!-- ربط Firebase وإرسال البيانات -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">رقم الهاتف <span class="text-rose-500">*</span></label>
-                        <input type="tel" id="patientPhone" placeholder="09xxxxxxxx" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">العمر <span class="text-rose-500">*</span></label>
-                        <input type="number" id="patientAge" placeholder="مثال: 30" required min="1" max="120" class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-slate-700">نوع الحجز <span class="text-rose-500">*</span></label>
-                    <select id="bookingType" required onchange="handleTypeChange()" class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white transition">
-                        <option value="">-- اختر قسم الحجز --</option>
-                        <option value="داخلي">قسم باطنية (داخلي)</option>
-                        <option value="أطفال">قسم الأطفال</option>
-                    </select>
-                </div>
-
-                <div id="childSection" class="hidden bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1 text-slate-700">اسم الطفل</label>
-                            <input type="text" id="childName" placeholder="اسم الطفل الكامل" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1 text-slate-700">عمر الطفل</label>
-                            <input type="text" id="childAge" placeholder="مثال: سنتان / 5 أشهر" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1 text-slate-700">ترتيبات وملاحظات الحجز</label>
-                        <textarea id="childRequirements" rows="3" placeholder="ذكر أي مرافقين، حالة طارئة، أو ترتيبات خاصة..." class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"></textarea>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">التاريخ <span class="text-rose-500">*</span></label>
-                        <input type="date" id="appointmentDate" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">الوقت <span class="text-rose-500">*</span></label>
-                        <input type="time" id="appointmentTime" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                    </div>
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md transition duration-200 text-lg">
-                    تأكيد الحجز
-                </button>
-            </form>
-
-            <div id="statusMessage" class="hidden mt-6 p-4 rounded-xl text-center font-medium"></div>
-        </div>
-    </main>
-
-    <script>
+        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
-            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
-            authDomain: "ahmad-662ee.firebaseapp.com",
-            projectId: "ahmad-662ee",
-            storageBucket: "ahmad-662ee.firebasestorage.app",
-            messagingSenderId: "740891153734",
-            appId: "1:740891153734:web:d4927b652d05f499618147",
-            measurementId: "G-S0ZD5K16NM"
+            apiKey: "BLMrzNXetbELyqmG-IA9NyZi5EiR2I351vxTOKG5nAz257H8bj9WLc2njSIq7__fwXvwk1HH3Cmkp_VoZ-h3Lx4",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "xxxxxx",
+            appId: "xxxxxx"
         };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        let messaging = null;
-        let fcmToken = null;
 
-        // فحص وجود حجز سابق في الجهاز للاستماع لتغيرات حالته
-        const savedDocId = localStorage.getItem('lastAppointmentId');
-        if (savedDocId) {
-            listenToAppointment(savedDocId);
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        if ('serviceWorker' in navigator && firebase.messaging.isSupported()) {
-            messaging = firebase.messaging();
-            navigator.serviceWorker.register('/firebase-messaging-sw.js')
-                .then(reg => messaging.useServiceWorker(reg))
-                .catch(err => console.log('SW register fail:', err));
-        }
+        window.sendOrder = async function() {
+            const username = document.getElementById("username").value.trim();
+            const details = document.getElementById("details").value.trim();
+            const statusMsg = document.getElementById("statusMsg");
 
-        async function requestNotificationPermission() {
-            if (!messaging) return;
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    fcmToken = await messaging.getToken();
-                    alert("تم تفعيل الإشعارات بنجاح!");
-                }
-            } catch (err) {
-                console.error(err);
+            if (!username || !details) {
+                statusMsg.style.color = "red";
+                statusMsg.innerText = "الرجاء تعبئة جميع الحقول!";
+                return;
             }
-        }
-
-        function handleTypeChange() {
-            const bookingType = document.getElementById('bookingType').value;
-            document.getElementById('childSection').classList.toggle('hidden', bookingType !== 'أطفال');
-        }
-
-        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.textContent = "جاري إرسال الحجز...";
-
-            if (messaging && !fcmToken) {
-                try { fcmToken = await messaging.getToken(); } catch(e){}
-            }
-
-            const bookingType = document.getElementById('bookingType').value;
-            
-            const bookingData = {
-                fullName: document.getElementById('patientName').value,
-                phone: document.getElementById('patientPhone').value,
-                age: document.getElementById('patientAge').value,
-                type: bookingType,
-                date: document.getElementById('appointmentDate').value,
-                time: document.getElementById('appointmentTime').value,
-                fcmToken: fcmToken || null,
-                childInfo: bookingType === 'أطفال' ? {
-                    childName: document.getElementById('childName').value,
-                    childAge: document.getElementById('childAge').value,
-                    requirements: document.getElementById('childRequirements').value
-                } : null,
-                status: 'قيد الانتظار',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
 
             try {
-                const docRef = await db.collection('appointments').add(bookingData);
-                
-                // حفظ رقم الحجز في الجهاز لمتابعته
-                localStorage.setItem('lastAppointmentId', docRef.id);
-                listenToAppointment(docRef.id);
-
-                const msg = document.getElementById('statusMessage');
-                msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-amber-50 text-amber-700 border border-amber-200";
-                msg.textContent = "تم إرسال طلب الحجز بنجاح! الطلب الآن قيد الانتظار لموافقة الإدارة.";
-                msg.classList.remove('hidden');
-                this.reset();
-                handleTypeChange();
-            } catch (err) {
-                alert("حدث خطأ أثناء إرسال الطلب: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "تأكيد الحجز";
+                await addDoc(collection(db, "orders"), {
+                    username: username,
+                    details: details,
+                    status: "قيد الانتظار",
+                    notes: "",
+                    createdAt: new Date()
+                });
+                statusMsg.style.color = "green";
+                statusMsg.innerText = "تم إرسال طلبك بنجاح!";
+                document.getElementById("username").value = "";
+                document.getElementById("details").value = "";
+            } catch (error) {
+                statusMsg.style.color = "red";
+                statusMsg.innerText = "حدث خطأ أثناء الإرسال، حاول مرة أخرى.";
             }
-        });
-
-        // دالة الاستماع التلقائي والمباشر للتغيرات في حالة الحجز
-        function listenToAppointment(docId) {
-            db.collection('appointments').doc(docId).onSnapshot(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.status === 'مؤكد') {
-                        const modal = document.getElementById('approvalModal');
-                        const details = document.getElementById('approvalDetails');
-                        details.textContent = `أهلاً ${data.fullName}، تم تأكيد موعدك بنجاح بتاريخ ${data.date} الساعة ${data.time}.`;
-                        modal.classList.remove('hidden');
-                    }
-                }
-            });
-        }
+        };
     </script>
 </body>
 </html>
