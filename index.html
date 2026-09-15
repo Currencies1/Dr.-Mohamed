@@ -133,65 +133,67 @@
 <body>
 
     <div class="container">
-        <div class="form-card">
+        <div class="form-card" id="mainCard">
             <div class="form-header">
                 <div class="icon-box"><i class="fa-solid fa-user-doctor"></i></div>
                 <h2>حجز موعد في عيادة الأمراض الباطنية</h2>
                 <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
             </div>
 
-            <div class="section-title"><i class="fa-solid fa-id-card"></i> المعلومات الشخصية</div>
-            
-            <div class="form-grid two-cols">
+            <div id="formFieldsContainer">
+                <div class="section-title"><i class="fa-solid fa-id-card"></i> المعلومات الشخصية</div>
+                
+                <div class="form-grid two-cols">
+                    <div class="form-group">
+                        <label>اسم المريض الثلاثي/الرباعي</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="username" placeholder="الاسم الكامل...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رقم الهاتف (للتواصل وتأكيد الحجز)</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-phone"></i>
+                            <input type="tel" id="phone" placeholder="09xxxxxxxx">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-calendar-check"></i> تفاصيل الموعد</div>
+                
                 <div class="form-group">
-                    <label>اسم المريض الثلاثي/الرباعي</label>
+                    <label>تاريخ الموعد المطلوب</label>
                     <div class="input-with-icon">
-                        <i class="fa-solid fa-user"></i>
-                        <input type="text" id="username" placeholder="الاسم الكامل...">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <input type="date" id="appointmentDate">
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-file-medical"></i> الأعراض والمستلزمات الطبية المصاحبة</div>
+                
+                <div class="form-group">
+                    <label>وصف الأعراض أو سبب الزيارة</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-notes-medical" style="top: 25px;"></i>
+                        <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية..."></textarea>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>رقم الهاتف (للتواصل وتأكيد الحجز)</label>
+                    <label>المستلزمات، التقارير أو الأدوية السابقة (إن وجدت)</label>
                     <div class="input-with-icon">
-                        <i class="fa-solid fa-phone"></i>
-                        <input type="tel" id="phone" placeholder="09xxxxxxxx">
+                        <i class="fa-solid fa-box-archive" style="top: 25px;"></i>
+                        <textarea id="medicalSupplies" rows="2" placeholder="ذكر التحاليل السابقة، تقارير سابقة، أو أدوية يتم تناولها حالياً..."></textarea>
                     </div>
                 </div>
-            </div>
 
-            <div class="section-title"><i class="fa-solid fa-calendar-check"></i> تفاصيل الموعد</div>
-            
-            <div class="form-group">
-                <label>تاريخ الموعد المطلوب</label>
-                <div class="input-with-icon">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <input type="date" id="appointmentDate">
-                </div>
+                <button type="button" id="submitBtn" class="btn-submit" onclick="sendOrder()">
+                    <span id="btnText">إرسال طلب الحجز للطبيب</span>
+                    <i class="fa-solid fa-paper-plane" id="btnIcon"></i>
+                </button>
             </div>
-
-            <div class="section-title"><i class="fa-solid fa-file-medical"></i> الأعراض والمستلزمات الطبية المصاحبة</div>
-            
-            <div class="form-group">
-                <label>وصف الأعراض أو سبب الزيارة</label>
-                <div class="input-with-icon">
-                    <i class="fa-solid fa-notes-medical" style="top: 25px;"></i>
-                    <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية..."></textarea>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>المستلزمات، التقارير أو الأدوية السابقة (إن وجدت)</label>
-                <div class="input-with-icon">
-                    <i class="fa-solid fa-box-archive" style="top: 25px;"></i>
-                    <textarea id="medicalSupplies" rows="2" placeholder="ذكر التحاليل السابقة، تقارير سابقة، أو أدوية يتم تناولها حالياً..."></textarea>
-                </div>
-            </div>
-
-            <button type="button" id="submitBtn" class="btn-submit" onclick="sendOrder()">
-                <span id="btnText">إرسال طلب الحجز للطبيب</span>
-                <i class="fa-solid fa-paper-plane" id="btnIcon"></i>
-            </button>
 
             <div id="statusMsg"></div>
 
@@ -204,7 +206,7 @@
         </div>
     </div>
 
-    <!-- كود ربط Firebase المحدث للمزامنة الفورية -->
+    <!-- كود ربط Firebase المحدث مع الحفظ عبر التحديث والقدرة على تسجيل مريض آخر -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -222,8 +224,24 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let cooldownTimer = null;
-        let unsubscribeLive = null; // لإلغاء المراقبة القديمة عند إرسال طلب جديد
+        let unsubscribeLive = null;
+
+        // دالة لإخفاء حقول الإدخال وإظهار رسالة الانتظار الثابتة
+        function lockScreenToWaiting() {
+            document.getElementById("formFieldsContainer").style.display = "none";
+            const statusMsg = document.getElementById("statusMsg");
+            statusMsg.className = "loading-msg";
+            statusMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> تم إرسال الطلب بنجاح!<br><b>يرجى الانتظار وعدم مغادرة الصفحة حتى يتم تأكيد الحجز من قِبل الطبيب...</b>`;
+        }
+
+        // التحقق عند فتح أو تحديث الصفحة إذا كان هناك طلب سابق قيد الانتظار
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedDocId = localStorage.getItem("current_appointment_id");
+            if (savedDocId) {
+                lockScreenToWaiting();
+                monitorAppointment(savedDocId);
+            }
+        });
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
@@ -232,9 +250,6 @@
             const details = document.getElementById("details").value.trim();
             const supplies = document.getElementById("medicalSupplies").value.trim() || "لا توجد مستلزمات مضافة";
             const statusMsg = document.getElementById("statusMsg");
-            const submitBtn = document.getElementById("submitBtn");
-            const btnText = document.getElementById("btnText");
-            const btnIcon = document.getElementById("btnIcon");
 
             if (!username || !phone || !appointmentDate || !details) {
                 statusMsg.className = "error-msg";
@@ -248,7 +263,6 @@
             try {
                 const formattedDetails = `التاريخ: ${appointmentDate} | الهاتف: ${phone} \nالأعراض: ${details} \nالمستلزمات: ${supplies}`;
 
-                // الإرسال إلى مجموعة appointments في الفايربيس
                 const docRef = await addDoc(collection(db, "appointments"), {
                     username: username,
                     details: formattedDetails,
@@ -256,61 +270,71 @@
                     createdAt: new Date().toISOString()
                 });
 
-                statusMsg.className = "success-msg";
-                statusMsg.innerHTML = `تم إرسال طلب الحجز بنجاح!<br><span style="font-size:12px; color:#0369a1;">بانتظار رد د. محمد الأسماعيل...</span>`;
+                // حفظ معرف الطلب في التذاكر المحلية لكي يظل ثابتاً حتى لو حدث تحديث للصفحة
+                localStorage.setItem("current_appointment_id", docRef.id);
 
-                // تفريغ الحقول
-                document.getElementById("username").value = "";
-                document.getElementById("phone").value = "";
-                document.getElementById("appointmentDate").value = "";
-                document.getElementById("details").value = "";
-                document.getElementById("medicalSupplies").value = "";
-
-                // إذا كانت هناك مراقبة سابقة، قم بإيقافها لمنع التداخل
-                if (unsubscribeLive) {
-                    unsubscribeLive();
-                }
-
-                // ربط المراقبة الفورية (Real-time onSnapshot) لتحديث حالة المريض في نفس الثانية فور ضغط الدكتور على قبول أو رفض
-                unsubscribeLive = onSnapshot(doc(db, "appointments", docRef.id), (docSnap) => {
-                    if (docSnap.exists()) {
-                        const currentStatus = docSnap.data().status;
-
-                        // التحقق الشامل لتجنب مشاكل تطابق النصوص
-                        if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
-                            statusMsg.className = "accepted-msg";
-                            statusMsg.innerHTML = `<i class="fa-solid fa-circle-check"></i> مبروك! تم **قبول وتأكيد** طلب حجز موعدك من قِبل د. محمد الأسماعيل.`;
-                        } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
-                            statusMsg.className = "rejected-msg";
-                            statusMsg.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> نعتذر منك، تم **رفض** طلب الحجز الحالي.`;
-                        }
-                    }
-                });
-
-                // عداد حظر التكرار (29 ثانية)
-                let timeLeft = 29;
-                submitBtn.disabled = true;
-                btnIcon.className = "fa-solid fa-lock";
-
-                if (cooldownTimer) clearInterval(cooldownTimer);
-                
-                cooldownTimer = setInterval(() => {
-                    if (timeLeft > 0) {
-                        btnText.innerText = `يرجى الانتظار (${timeLeft} ثانية) لإرسال طلب آخر`;
-                        timeLeft--;
-                    } else {
-                        clearInterval(cooldownTimer);
-                        submitBtn.disabled = false;
-                        btnText.innerText = "إرسال طلب الحجز للطبيب";
-                        btnIcon.className = "fa-solid fa-paper-plane";
-                    }
-                }, 1000);
+                // إخفاء الحقول وتثبيت شاشة الانتظار
+                lockScreenToWaiting();
+                monitorAppointment(docRef.id);
 
             } catch (error) {
                 console.error("خطأ في الإرسال:", error);
                 statusMsg.className = "error-msg";
                 statusMsg.innerText = "فشل إرسال الحجز! تحقق من اتصال الإنترنت.";
             }
+        };
+
+        function monitorAppointment(docId) {
+            if (unsubscribeLive) unsubscribeLive();
+
+            const statusMsg = document.getElementById("statusMsg");
+
+            unsubscribeLive = onSnapshot(doc(db, "appointments", docId), (docSnap) => {
+                if (docSnap.exists()) {
+                    const currentStatus = docSnap.data().status;
+
+                    if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
+                        statusMsg.className = "accepted-msg";
+                        statusMsg.innerHTML = `
+                            <i class="fa-solid fa-circle-check" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                            مبروك! تم <b>قبول وتأكيد</b> طلب حجز موعدك من قِبل د. محمد الأسماعيل.<br><br>
+                            <button onclick="resetForNewPatient()" style="background: #065f46; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                <i class="fa-solid fa-user-plus"></i> تسجل لمريض آخر
+                            </button>
+                        `;
+                    } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
+                        statusMsg.className = "rejected-msg";
+                        statusMsg.innerHTML = `
+                            <i class="fa-solid fa-circle-xmark" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                            نعتذر منك، تم <b>رفض</b> طلب الحجز الحالي من قِبل الطبيب.<br><br>
+                            <button onclick="resetForNewPatient()" style="background: #991b1b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                <i class="fa-solid fa-rotate-right"></i> محاولة حجز جديدة / لمريض آخر
+                            </button>
+                        `;
+                    }
+                } else {
+                    // في حال تم حذف الطلب من قاعدة البيانات
+                    statusMsg.className = "error-msg";
+                    statusMsg.innerHTML = `عذراً، لم يتم العثور على هذا الطلب.<br><br>
+                        <button onclick="resetForNewPatient()" style="background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">تسجيل مريض جديد</button>
+                    `;
+                }
+            });
+        }
+
+        // دالة لإعادة ضبط الصفحة لتسجيل مريض آخر
+        window.resetForNewPatient = function() {
+            localStorage.removeItem("current_appointment_id");
+            if (unsubscribeLive) unsubscribeLive();
+            
+            // إظهار حقول النموذج مرة أخرى وإفريغها
+            document.getElementById("formFieldsContainer").style.display = "block";
+            document.getElementById("statusMsg").style.display = "none";
+            document.getElementById("username").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("appointmentDate").value = "";
+            document.getElementById("details").value = "";
+            document.getElementById("medicalSupplies").value = "";
         };
     </script>
 </body>
