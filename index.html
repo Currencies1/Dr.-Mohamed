@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز موعد طبي - الدكتور محمد الأسماعيل</title>
+    <title>حجز موعد طبي - المركز الطبي المتخصص</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style> body { font-family: 'Tajawal', sans-serif; } </style>
@@ -11,14 +11,13 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
     <header class="bg-indigo-700 text-white py-5 shadow-lg">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
-            </div>
+            <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
             <button onclick="requestNotificationPermission()" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-400/30 transition">تفعيل الإشعارات 🔔</button>
         </div>
     </header>
@@ -95,16 +94,6 @@
         </div>
     </main>
 
-    <!-- نافذة التأكيد المنبثقة الشاشة كاملة -->
-    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl p-6 text-center max-w-sm w-full shadow-2xl border border-emerald-100 transform transition-all">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🎉</div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">تم تأكيد حجزك!</h3>
-            <p id="modalText" class="text-sm text-slate-600 mb-6"></p>
-            <button onclick="closeModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition">حسناً، فهمت</button>
-        </div>
-    </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
@@ -118,25 +107,26 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        let messaging = null;
+        let fcmToken = null;
 
-        // استرجاع الحجز السابق من ذاكرة الهاتف إن وجد
-        let activeDocId = localStorage.getItem('lastBookingId');
+        if ('serviceWorker' in navigator && firebase.messaging.isSupported()) {
+            messaging = firebase.messaging();
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .then(reg => messaging.useServiceWorker(reg))
+                .catch(err => console.log('SW register fail:', err));
+        }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if (activeDocId) {
-                const msg = document.getElementById('statusMessage');
-                msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-amber-50 text-amber-800 border border-amber-200";
-                msg.textContent = "لديك طلب حجز قائم، جاري متابعة حالة الحجز...";
-                msg.classList.remove('hidden');
-                listenForApproval(activeDocId);
-            }
-        });
-
-        function requestNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(p => {
-                    if (p === "granted") alert("تم تفعيل الإشعارات بنجاح!");
-                });
+        async function requestNotificationPermission() {
+            if (!messaging) return;
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    fcmToken = await messaging.getToken();
+                    alert("تم تفعيل الإشعارات بنجاح!");
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
 
@@ -151,6 +141,10 @@
             btn.disabled = true;
             btn.textContent = "جاري إرسال الحجز...";
 
+            if (messaging && !fcmToken) {
+                try { fcmToken = await messaging.getToken(); } catch(e){}
+            }
+
             const bookingType = document.getElementById('bookingType').value;
             
             const bookingData = {
@@ -160,6 +154,7 @@
                 type: bookingType,
                 date: document.getElementById('appointmentDate').value,
                 time: document.getElementById('appointmentTime').value,
+                fcmToken: fcmToken || null,
                 childInfo: bookingType === 'أطفال' ? {
                     childName: document.getElementById('childName').value,
                     childAge: document.getElementById('childAge').value,
@@ -170,16 +165,11 @@
             };
 
             try {
-                const docRef = await db.collection('appointments').add(bookingData);
-                activeDocId = docRef.id;
-                localStorage.setItem('lastBookingId', activeDocId);
-
+                await db.collection('appointments').add(bookingData);
                 const msg = document.getElementById('statusMessage');
                 msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
-                msg.textContent = "تم إرسال طلب الحجز بنجاح! سيتم إخطارك فور موافقة الإدارة.";
+                msg.textContent = "تم إرسال طلب الحجز بنجاح! سيصلك إشعار عند الموافقة حتى لو أغلقت المتصفح.";
                 msg.classList.remove('hidden');
-
-                listenForApproval(activeDocId);
                 this.reset();
                 handleTypeChange();
             } catch (err) {
@@ -189,35 +179,6 @@
                 btn.textContent = "تأكيد الحجز";
             }
         });
-
-        function listenForApproval(docId) {
-            db.collection('appointments').doc(docId).onSnapshot(snapshot => {
-                if (!snapshot.exists) return;
-                const data = snapshot.data();
-                
-                if (data && data.status === 'مؤكد') {
-                    // إظهار نافذة منبثقة ملونة على شاشة الهاتف فوراً
-                    document.getElementById('modalText').textContent = `أهلاً بك ${data.fullName}، تم تأكيد موعدك بنجاح بتاريخ ${data.date} الساعة ${data.time}.`;
-                    document.getElementById('confirmModal').classList.remove('hidden');
-
-                    const msg = document.getElementById('statusMessage');
-                    msg.className = "mt-6 p-4 rounded-xl text-center font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
-                    msg.textContent = "🎉 تم تأكيد هذا الحجز رسمياً من قبل الإدارة!";
-
-                    // إشعار النظام
-                    if ("Notification" in window && Notification.permission === "granted") {
-                        new Notification("المركز الطبي", {
-                            body: `تم تأكيد حجزك لموعد: ${data.date}`,
-                            icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
-                        });
-                    }
-                }
-            });
-        }
-
-        function closeModal() {
-            document.getElementById('confirmModal').classList.add('hidden');
-        }
     </script>
 </body>
 </html>
