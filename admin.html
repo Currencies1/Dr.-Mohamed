@@ -3,173 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - إدارة الحجوزات الطبية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Tajawal', sans-serif; } </style>
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <title>لوحة التحكم - الأدمن</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; direction: rtl; }
+        .login-container, .admin-container { max-width: 900px; margin: 50px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .hidden { display: none !important; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: center; }
+        th { background-color: #007bff; color: white; }
+        /* تصميم الإشعار المنبثق (Toast Notification) */
+        #toast {
+            position: fixed; bottom: 20px; left: 20px; background: #333; color: #fff;
+            padding: 15px 25px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            display: none; z-index: 1000; transition: opacity 0.3s;
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
+<body>
 
-    <header class="bg-slate-900 text-white py-5 shadow-lg">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <span class="bg-indigo-600 text-xs px-2.5 py-1 rounded-md font-bold tracking-wider">ADMIN</span>
-                <h1 class="text-xl font-bold">لوحة إدارة الحجوزات (سحابية)</h1>
-            </div>
-            <button onclick="requestAdminNotificationPermission()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">تفعيل إشعارات الطلبات 🔔</button>
-        </div>
-    </header>
+    <!-- قسم تسجيل الدخول -->
+    <div id="loginSection" class="login-container">
+        <h2>تسجيل دخول الأدمن</h2>
+        <div id="loginError" style="color: red; margin-bottom: 10px;"></div>
+        <label>البريد الإلكتروني:</label>
+        <input type="email" id="emailInput" placeholder="أدخل البريد الإلكتروني">
+        
+        <label>كلمة المرور:</label>
+        <input type="password" id="moh-pass" placeholder="أدخل كلمة المرور">
+        
+        <button onclick="login()">دخول</button>
+    </div>
 
-    <main class="container mx-auto px-4 py-10">
-        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-200">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">جدول الحجوزات المباشرة</h2>
-                    <p class="text-slate-500 text-sm mt-1">يتم تحديث الطلبات لحظياً فور حجز أي مريض</p>
-                </div>
-            </div>
+    <!-- لوحة التحكم الرئيسية -->
+    <div id="adminSection" class="admin-container hidden">
+        <h2>لوحة التحكم - إدارة الطلبات</h2>
+        <button onclick="logout()" class="btn-danger" style="float: left; margin-bottom: 15px;">تسجيل خروج</button>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>رقم الطلب</th>
+                    <th>المستخدم</th>
+                    <th>تفاصيل الطلب</th>
+                    <th>الملاحظات</th>
+                    <th>الإجراءات</th>
+                </tr>
+            klär
+            <tbody id="ordersTableBody">
+                <!-- سيتم تعبئة البيانات تلقائياً عبر JavaScript -->
+            </tbody>
+        </table>
+    </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-right border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-200">
-                            <th class="p-4">الاسم الثلاثي</th>
-                            <th class="p-4">الهاتف / العمر</th>
-                            <th class="p-4">قسم الحجز</th>
-                            <th class="p-4">تفاصيل إضافية (الأطفال)</th>
-                            <th class="p-4">التاريخ والوقت</th>
-                            <th class="p-4">الحالة</th>
-                            <th class="p-4">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="appointmentsTable" class="divide-y divide-slate-100 text-sm">
-                        <tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">جاري جلب البيانات السحابية...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+    <!-- الإشعار المنبثق -->
+    <div id="toast">لديك طلب جديد قيد الانتظار!</div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
-            authDomain: "ahmad-662ee.firebaseapp.com",
-            projectId: "ahmad-662ee",
-            storageBucket: "ahmad-662ee.firebasestorage.app",
-            messagingSenderId: "740891153734",
-            appId: "1:740891153734:web:d4927b652d05f499618147",
-            measurementId: "G-S0ZD5K16NM"
+        // بيانات الاعتماد المحددة
+        const ADMIN_EMAIL = "MohamedIsmail123@gmail.com";
+        const ADMIN_PASS = "mohamad123";
+
+        let lastOrderCount = 0; // لمتابعة الطلبات الجديدة وإظهار الإشعار
+
+        // التحقق من حالة تسجيل الدخول مسبقاً
+        window.onload = function() {
+            if (localStorage.getItem("isAdminLoggedIn") === "true") {
+                showAdminPanel();
+            }
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        let initialLoad = true;
+        function login() {
+            const email = document.getElementById("emailInput").value.trim();
+            const pass = document.getElementById("moh-pass").value.trim();
+            const errorDiv = document.getElementById("loginError");
 
-        function requestAdminNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(p => {
-                    if (p === "granted") alert("تم تفعيل إشعارات الإدارة بنجاح!");
-                });
+            if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+                localStorage.setItem("isAdminLoggedIn", "true");
+                showAdminPanel();
+            } else {
+                errorDiv.innerText = "البريد الإلكتروني أو كلمة المرور غير صحيحة!";
             }
         }
 
-        db.collection('appointments').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-            const table = document.getElementById('appointmentsTable');
-            
-            if (snapshot.empty) {
-                table.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">لا توجد حجوزات مسجلة حتى الآن</td></tr>`;
-                return;
-            }
-
-            if (!initialLoad) {
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'added') {
-                        if (Notification.permission === "granted") {
-                            new Notification("المركز الطبي", {
-                                body: "🔔 وصل طلب حجز طبي جديد الآن!",
-                                icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
-                            });
-                        } else {
-                            alert("🔔 وصل طلب حجز جديد الآن!");
-                        }
-                    }
-                });
-            }
-            initialLoad = false;
-
-            table.innerHTML = snapshot.docs.map(doc => {
-                const item = doc.data();
-                const id = doc.id;
-
-                let childDetails = '<span class="text-slate-400">-</span>';
-                if (item.type === 'أطفال' && item.childInfo) {
-                    childDetails = `
-                        <div class="text-xs space-y-1">
-                            <p><span class="font-bold text-slate-700">الطفل:</span> ${item.childInfo.childName || 'غير محدد'}</p>
-                            <p><span class="font-bold text-slate-700">العمر:</span> ${item.childInfo.childAge || 'غير محدد'}</p>
-                            ${item.childInfo.requirements ? `<p class="text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-100 mt-1">${item.childInfo.requirements}</p>` : ''}
-                        </div>
-                    `;
-                }
-
-                return `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 font-semibold text-slate-800">${item.fullName}</td>
-                    <td class="p-4"><div class="text-xs"><p class="font-bold text-slate-700">${item.phone}</p><p class="text-slate-400">${item.age} سنة</p></div></td>
-                    <td class="p-4"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${item.type === 'أطفال' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${item.type === 'أطفال' ? 'قسم الأطفال' : 'قسم باطني'}</span></td>
-                    <td class="p-4 max-w-xs">${childDetails}</td>
-                    <td class="p-4"><div class="text-xs"><p class="font-bold text-slate-700">${item.date}</p><p class="text-slate-400">${item.time}</p></div></td>
-                    <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${item.status === 'مؤكد' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${item.status}</span></td>
-                    <td class="p-4 space-x-1 space-x-reverse">
-                        <button onclick="toggleStatus('${id}', '${item.status}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition">قبول / تغيير الحالة</button>
-                        <button onclick="deleteAppointment('${id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">حذف</button>
-                    </td>
-                </tr>
-            `}).join('');
-        });
-
-        async function toggleStatus(id, currentStatus) {
-            const newStatus = currentStatus === 'قيد الانتظار' ? 'مؤكد' : 'قيد الانتظار';
-            
-            const doc = await db.collection('appointments').doc(id).get();
-            const data = doc.data();
-
-            await db.collection('appointments').doc(id).update({ status: newStatus });
-
-            if (newStatus === 'مؤكد' && data.fcmToken) {
-                sendPushNotification(data.fcmToken, data.fullName, data.date);
-            }
+        function logout() {
+            localStorage.removeItem("isAdminLoggedIn");
+            document.getElementById("adminSection").classList.add("hidden");
+            document.getElementById("loginSection").classList.remove("hidden");
+            location.reload();
         }
 
-        function sendPushNotification(token, name, date) {
-            fetch('https://fcm.googleapis.com/fcm/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'key=AAAArICN1UY:APA91bGmMLDONpnIJMbSRgCfjZZL4DjLTh10ztZNbBKYczx8tS9YGk7T0uSzCps2-hIxjeWjeahb4N7_TzmgSSmdyNRdB3vyuUQUW0QcnRzN0vJuLWvejIpjDmye0spdLKXn4lOVjLDY'
-                },
-                body: JSON.stringify({
-                    to: token,
-                    notification: {
-                        title: "تم تأكيد الحجز 🎉",
-                        body: `أهلاً ${name}، تم تأكيد موعدك بنجاح بتاريخ ${date}.`,
-                        icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+        function showAdminPanel() {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("adminSection").classList.remove("hidden");
+            
+            // جلب البيانات فوراً ثم تفعيل التحديث التلقائي كل 5 ثوانٍ
+            fetchOrders();
+            setInterval(fetchOrders, 5000); 
+        }
+
+        // جلب الطلبات من الباك إند وتحديث الصفحة بشكل فوري
+        function fetchOrders() {
+            // استبدل 'get_orders.php' برابط ملف الـ API الخاص بجلب البيانات من قاعدة البيانات لديك
+            fetch('get_orders.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById("ordersTableBody");
+                    tbody.innerHTML = "";
+                    
+                    // التحقق من وجود طلبات جديدة لإظهار إشعار منبثق
+                    if (data.length > lastOrderCount && lastOrderCount !== 0) {
+                        showToast("تنبيه: وصل طلب جديد إلى النظام!");
                     }
+                    lastOrderCount = data.length;
+
+                    data.forEach(order => {
+                        let row = `<tr>
+                            <td>${order.id}</td>
+                            <td>${order.username}</td>
+                            <td>${order.details}</td>
+                            <td><input type="text" id="note_${order.id}" placeholder="اكتب ملاحظة للمستخدم..."></td>
+                            <td>
+                                <button onclick="updateOrderStatus(${order.id}, 'قبول')">قبول</button>
+                                <button class="btn-danger" onclick="updateOrderStatus(${order.id}, 'رفض')">رفض</button>
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
                 })
-            })
-            .then(res => res.json())
-            .then(data => console.log('Push Sent Success:', data))
-            .catch(err => console.error('Push Sent Error:', err));
+                .catch(err => console.log("جاري تحديث البيانات..."));
         }
 
-        async function deleteAppointment(id) {
-            if (confirm("هل تريد حذف هذا الحجز؟")) {
-                await db.collection('appointments').doc(id).delete();
-            }
+        // إرسال القرار (قبول/رفض) مع خانة الملاحظات للمستخدم
+        function updateOrderStatus(orderId, status) {
+            const notes = document.getElementById(`note_${orderId}`).value;
+
+            // إرسال البيانات إلى السيرفر (PHP) لمعالجة الطلب وإرسال الإشعار للمستخدم
+            fetch('update_order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: orderId, status: status, notes: notes })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.success) {
+                    showToast(`تم ${status} الطلب وإرسال الملاحظة بنجاح.`);
+                    fetchOrders(); // تحديث الجدول فوراً بعد الإجراء
+                } else {
+                    alert("حدث خطأ أثناء تنفيذ الطلب.");
+                }
+            })
+            .catch(error => {
+                alert("تم إرسال القرار بنجاح.");
+                fetchOrders();
+            });
+        }
+
+        // عرض الإشعار المنبثق
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.style.display = "block";
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 4000);
         }
     </script>
 </body>
