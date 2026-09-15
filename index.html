@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة تقديم الطلبات الشاملة</title>
+    <title>حجز موعد - عيادة الأمراض الباطنية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            --primary: #0ea5e9;
+            --primary-hover: #0284c7;
             --success: #10b981;
             --danger: #ef4444;
-            --bg-color: #f8fafc;
+            --bg-color: #f0fdf4;
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #cbd5e1;
@@ -21,7 +21,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { 
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
             color: var(--text-color); 
             display: flex; 
             justify-content: center; 
@@ -35,22 +35,22 @@
             background: var(--card-bg); 
             width: 100%; 
             max-width: 550px; 
-            padding: 40px; 
+            padding: 35px; 
             border-radius: 20px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08); 
         }
 
         .form-header { text-align: center; margin-bottom: 25px; }
         .form-header .icon-box {
-            width: 60px; height: 60px; background: #e0e7ff; color: var(--primary);
+            width: 65px; height: 65px; background: #e0f2fe; color: var(--primary);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; margin: 0 auto 15px;
+            font-size: 26px; margin: 0 auto 15px;
         }
         .form-header h2 { font-weight: 700; color: var(--text-color); font-size: 22px; }
         .form-header p { color: #64748b; font-size: 13px; margin-top: 5px; }
 
-        .form-group { margin-bottom: 18px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #334155; }
         .input-with-icon { position: relative; }
         .input-with-icon i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         
@@ -58,95 +58,91 @@
             width: 100%; padding: 12px 16px 12px 45px; border: 1.5px solid var(--border-color); 
             border-radius: 10px; font-size: 14px; outline: none; background: #fff; transition: all 0.3s; 
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
         textarea { padding-right: 45px; resize: none; }
 
         .btn-submit { 
             background: var(--primary); color: white; border: none; padding: 14px; 
             border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; 
-            font-size: 16px; transition: background 0.3s; 
+            font-size: 16px; transition: background 0.3s, transform 0.1s; 
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            margin-top: 10px;
+            margin-top: 10px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
         }
         .btn-submit:hover { background: var(--primary-hover); }
+        .btn-submit:active { transform: scale(0.98); }
 
         #statusMsg { 
             margin-top: 15px; text-align: center; font-weight: 600; font-size: 13px; 
-            padding: 10px; border-radius: 8px; display: none; 
+            padding: 12px; border-radius: 8px; display: none; 
         }
         .success-msg { background: #d1fae5; color: #065f46; display: block !important; }
         .error-msg { background: #fee2e2; color: #991b1b; display: block !important; }
-        .loading-msg { background: #e0e7ff; color: #3730a3; display: block !important; }
+        .loading-msg { background: #e0f2fe; color: #0369a1; display: block !important; }
     </style>
 </head>
 <body>
 
     <div class="form-card">
         <div class="form-header">
-            <div class="icon-box"><i class="fa-solid fa-file-lines"></i></div>
-            <h2>نموذج الطلب المتكامل</h2>
-            <p>أدخل تفاصيل طلبك بدقة لضمان معالجته من قبل الإدارة</p>
+            <div class="icon-box"><i class="fa-solid fa-stethoscope"></i></div>
+            <h2>حجز موعد - عيادة الداخلية</h2>
+            <p>أدخل بياناتك وموعد الحجز بدقة لعرضه على الطبيب مباشرة</p>
         </div>
 
         <div class="form-group">
-            <label>اسم المستخدم الثلاثي</label>
+            <label>اسم المريض الرباعي</label>
             <div class="input-with-icon">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" placeholder="مثال: أحمد محمد...">
+                <input type="text" id="username" placeholder="أدخل اسمك الكريم...">
             </div>
         </div>
 
         <div class="form-group">
-            <label>نوع الطلب / القسم</label>
-            <div class="input-with-icon">
-                <i class="fa-solid fa-list-check"></i>
-                <select id="orderType">
-                    <option value="" disabled selected>اختر تصنيف الطلب</option>
-                    <option value="دعم فني وتقني">دعم فني وتقني</option>
-                    <option value="طلب استفسار أو مساعدة">طلب استفسار أو مساعدة</option>
-                    <option value="تفعيل حساب أو صلاحية">تفعيل حساب أو صلاحية</option>
-                    <option value="أخرى">أخرى</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>رقم الهاتف أو وسيلة التواصل</label>
+            <label>رقم الهاتف (للتواصل وإرسال التأكيد)</label>
             <div class="input-with-icon">
                 <i class="fa-solid fa-phone"></i>
-                <input type="text" id="phone" placeholder="أدخل رقم الهاتف للتواصل">
+                <input type="tel" id="phone" placeholder="09xxxxxxxx">
             </div>
         </div>
 
         <div class="form-group">
-            <label>تفاصيل الطلب الكاملة</label>
+            <label>تاريخ الموعد المطلوب</label>
             <div class="input-with-icon">
-                <i class="fa-solid fa-pen-to-square" style="top: 25px;"></i>
-                <textarea id="details" rows="3" placeholder="اشرح طلبك بالتفصيل..."></textarea>
+                <i class="fa-solid fa-calendar-days"></i>
+                <input type="date" id="appointmentDate">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>وصف الأعراض أو سبب الزيارة</label>
+            <div class="input-with-icon">
+                <i class="fa-solid fa-notes-medical" style="top: 25px;"></i>
+                <textarea id="details" rows="3" placeholder="اكتب باختصار الأعراض أو الفحص المطلوب..."></textarea>
             </div>
         </div>
 
         <button type="button" class="btn-submit" onclick="sendOrder()">
-            <span>إرسال الطلب الآن</span>
+            <span>تأكيد وإرسال حجز الموعد</span>
             <i class="fa-solid fa-arrow-left"></i>
         </button>
 
         <div id="statusMsg"></div>
     </div>
 
-    <!-- كود ربط Firebase وإرسال البيانات -->
+    <!-- ربط Firebase وإرسال البيانات مباشرة لقاعدتك -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات Firebase الخاصة بك
+        // إعدادات Firebase الخاصة بك التي أرسلتها
         const firebaseConfig = {
-            apiKey: "BLMrzNXetbELyqmG-IA9NyZi5EiR2I351vxTOKG5nAz257H8bj9WLc2njSIq7__fwXvwk1HH3Cmkp_VoZ-h3Lx4",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "xxxxxx",
-            appId: "xxxxxx"
+            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
+            authDomain: "ahmad-662ee.firebaseapp.com",
+            projectId: "ahmad-662ee",
+            storageBucket: "ahmad-662ee.firebasestorage.app",
+            messagingSenderId: "740891153734",
+            appId: "1:740891153734:web:d4927b652d05f499618147",
+            measurementId: "G-S0ZD5K16NM"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -154,43 +150,45 @@
 
         window.sendOrder = async function() {
             const username = document.getElementById("username").value.trim();
-            const orderType = document.getElementById("orderType").value;
             const phone = document.getElementById("phone").value.trim();
+            const appointmentDate = document.getElementById("appointmentDate").value;
             const details = document.getElementById("details").value.trim();
             const statusMsg = document.getElementById("statusMsg");
 
-            if (!username || !orderType || !phone || !details) {
+            if (!username || !phone || !appointmentDate || !details) {
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "الرجاء تعبئة كافة الحقول المطلوبة بالتفصيل!";
+                statusMsg.innerText = "الرجاء تعبئة جميع الحقول المطلوبة للحجز!";
                 return;
             }
 
             statusMsg.className = "loading-msg";
-            statusMsg.innerText = "جاري إرسال طلبك لقاعدة البيانات...";
+            statusMsg.innerText = "جاري إرسال حجزك للعيادة...";
 
             try {
-                const fullDetails = `[التصنيف: ${orderType}] - [الهاتف: ${phone}] - التفاصيل: ${details}`;
+                // تجميع البيانات بنسق احترافي ليظهر بوضوح في لوحة تحكم دكتور الداخلية
+                const formattedDetails = `[تاريخ الحجز: ${appointmentDate}] - [الهاتف: ${phone}] - الأعراض: ${details}`;
 
                 await addDoc(collection(db, "orders"), {
                     username: username,
-                    details: fullDetails,
+                    details: formattedDetails,
                     status: "قيد الانتظار",
                     notes: "",
                     createdAt: new Date().toISOString()
                 });
 
                 statusMsg.className = "success-msg";
-                statusMsg.innerText = "تم إرسال طلبك بنجاح وسيظهر لدى الإدارة فوراً!";
+                statusMsg.innerText = "تم إرسال طلب حجز الموعد بنجاح! سيتم مراجعته وإرسال التأكيد.";
                 
+                // تفريغ الحقول بعد النجاح
                 document.getElementById("username").value = "";
-                document.getElementById("orderType").value = "";
                 document.getElementById("phone").value = "";
+                document.getElementById("appointmentDate").value = "";
                 document.getElementById("details").value = "";
 
             } catch (error) {
                 console.error("خطأ في الإرسال:", error);
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "فشل الإرسال! تأكد من صحة إعدادات Firebase وقواعد الحماية.";
+                statusMsg.innerText = "فشل إرسال الحجز! تحقق من اتصال الإنترنت أو قواعد الحماية في الفايربيس.";
             }
         };
     </script>
