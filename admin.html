@@ -67,11 +67,11 @@
     <div class="container">
         <div class="admin-header">
             <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات عيادة الداخلية</h1>
-            <div class="badge-count" id="orderCount">الطلبات: 0</div>
+            <div class="badge-count" id="orderCount">الطلبات: 4</div>
         </div>
 
         <div id="ordersContainer" class="orders-grid">
-            <div class="no-data">جاري الاتصال بقاعدة البيانات...</div>
+            <div class="no-data">جاري تحميل الطلبات...</div>
         </div>
     </div>
 
@@ -108,9 +108,10 @@
 
                 countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
 
-                querySnapshot.forEach((document) => {
-                    const data = document.data();
-                    const docId = document.id;
+                // تم تغيير اسم المتغير من document إلى item لتجنب التعارض
+                querySnapshot.forEach((item) => {
+                    const data = item.data();
+                    const docId = item.id;
                     const status = data.status || "قيد الانتظار";
                     
                     let statusClass = "status-pending";
@@ -141,9 +142,8 @@
                 console.error("خطأ الفايربيس:", error);
                 container.innerHTML = `
                     <div class="error-box">
-                        <strong>حدث خطأ تقني من Firebase:</strong><br>
-                        ${error.message} <br><br>
-                        <em>تأكد أن خدمة Firestore Database مفعلة في مشروعك وليست Realtime Database، وأن اسم المشروع صحيح.</em>
+                        <strong>حدث خطأ تقني:</strong><br>
+                        ${error.message}
                     </div>
                 `;
             }
