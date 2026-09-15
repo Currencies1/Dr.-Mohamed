@@ -12,7 +12,6 @@
             --primary: #0ea5e9;
             --success: #10b981;
             --danger: #ef4444;
-            --warning: #f59e0b;
             --bg-color: #f1f5f9;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -39,15 +38,12 @@
         .order-card { 
             background: var(--card-bg); border-radius: 14px; padding: 20px; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
-            transition: transform 0.2s;
         }
-        .order-card:hover { transform: translateY(-2px); }
         
         .order-info { margin-bottom: 15px; }
         .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 5px; }
         .order-info p { font-size: 14px; color: #475569; margin-bottom: 8px; line-height: 1.6; }
-        .order-meta { font-size: 12px; color: #94a3b8; display: flex; gap: 15px; }
-
+        
         .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; }
         
         .btn-action { 
@@ -55,19 +51,15 @@
             cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; 
         }
         .btn-accept { background: #d1fae5; color: #065f46; }
-        .btn-accept:hover { background: #a7f3d0; }
-        
         .btn-reject { background: #fee2e2; color: #991b1b; }
-        .btn-reject:hover { background: #fecaca; }
 
-        .status-badge { 
-            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; 
-        }
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
         .status-pending { background: #fef3c7; color: #d97706; }
         .status-accepted { background: #d1fae5; color: #065f46; }
         .status-rejected { background: #fee2e2; color: #991b1b; }
 
-        .no-data { text-align: center; padding: 40px; color: #94a3b8; font-size: 15px; background: var(--card-bg); border-radius: 14px; }
+        .no-data { text-align: center; padding: 40px; color: #64748b; font-size: 14px; background: var(--card-bg); border-radius: 14px; }
+        .error-box { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -79,16 +71,14 @@
         </div>
 
         <div id="ordersContainer" class="orders-grid">
-            <div class="no-data">جاري تحميل الحجوزات الواردة...</div>
+            <div class="no-data">جاري الاتصال بقاعدة البيانات...</div>
         </div>
     </div>
 
-    <!-- ربط Firebase وجلب البيانات للوحة الأدمن -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // نفس إعدادات مشروعك الحقيقية
         const firebaseConfig = {
             apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
             authDomain: "ahmad-662ee.firebaseapp.com",
@@ -107,12 +97,11 @@
             const countBadge = document.getElementById("orderCount");
 
             try {
-                // جلب البيانات من نفس جدول "orders"
                 const querySnapshot = await getDocs(collection(db, "orders"));
                 container.innerHTML = "";
                 
                 if (querySnapshot.empty) {
-                    container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً.</div>`;
+                    container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً في قاعدة البيانات.</div>`;
                     countBadge.innerText = "الطلبات: 0";
                     return;
                 }
@@ -125,8 +114,8 @@
                     const status = data.status || "قيد الانتظار";
                     
                     let statusClass = "status-pending";
-                    if (status === "مقبول / مؤكد") statusClass = "status-accepted";
-                    if (status === "ملغي / مرفوض") statusClass = "status-rejected";
+                    if (status.includes("مقبول")) statusClass = "status-accepted";
+                    if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
 
                     const card = document.createElement("div");
                     card.className = "order-card";
@@ -136,58 +125,47 @@
                                 <h3>اسم المريض: ${data.username || "بدون اسم"}</h3>
                                 <span class="status-badge ${statusClass}">${status}</span>
                             </div>
-                            <p><strong>تفاصيل الموعد والأعراض:</strong> ${data.details || "لا توجد تفاصيل"}</p>
-                            <div class="order-meta">
-                                <span><i class="fa-regular fa-clock"></i> ${data.createdAt ? new Date(data.createdAt).toLocaleString('ar-EG') : 'وقت غير معروف'}</span>
-                            </div>
+                            <p><strong>التفاصيل:</strong> ${data.details || "لا توجد تفاصيل"}</p>
+                            <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
                         </div>
                         <div class="order-actions">
-                            <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')">
-                                <i class="fa-solid fa-check"></i> قبول الموعد
-                            </button>
-                            <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')">
-                                <i class="fa-solid fa-xmark"></i> رفض الحجز
-                            </button>
-                            <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')">
-                                <i class="fa-solid fa-trash"></i> حذف
-                            </button>
+                            <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')">قبول</button>
+                            <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')">رفض</button>
+                            <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')">حذف</button>
                         </div>
                     `;
                     container.appendChild(card);
                 });
 
             } catch (error) {
-                console.error("خطأ في جلب البيانات:", error);
-                container.innerHTML = `<div class="no-data" style="color:var(--danger);">خطأ في جلب الطلبات، تحقق من صلاحيات وقواعد قاعدة البيانات (Firestore Rules).</div>`;
+                console.error("خطأ الفايربيس:", error);
+                container.innerHTML = `
+                    <div class="error-box">
+                        <strong>حدث خطأ تقني من Firebase:</strong><br>
+                        ${error.message} <br><br>
+                        <em>تأكد أن خدمة Firestore Database مفعلة في مشروعك وليست Realtime Database، وأن اسم المشروع صحيح.</em>
+                    </div>
+                `;
             }
         }
 
         window.updateStatus = async function(id, newStatus) {
             try {
-                const docRef = doc(db, "orders", id);
-                await updateDoc(docRef, { status: newStatus });
+                await updateDoc(doc(db, "orders", id), { status: newStatus });
                 fetchOrders();
-            } catch (error) {
-                alert("حدث خطأ أثناء تحديث الحالة!");
-            }
+            } catch (e) { alert("خطأ في التحديث: " + e.message); }
         };
 
         window.deleteOrder = async function(id) {
-            if (confirm("هل أنت متأكد من حذف هذا الحجز نهائياً؟")) {
+            if (confirm("حذف الحجز نهائياً؟")) {
                 try {
                     await deleteDoc(doc(db, "orders", id));
                     fetchOrders();
-                } catch (error) {
-                    alert("حدث خطأ أثناء الحذف!");
-                }
+                } catch (e) { alert("خطأ في الحذف: " + e.message); }
             }
         }
 
-        // جلب الطلبات فور فتح اللوحة
         fetchOrders();
-        
-        // تحديث تلقائي كل 10 ثوانٍ لجلب أي حجز جديد فور وصوله دون الحاجة لتحديث الصفحة
-        setInterval(fetchOrders, 10000);
     </script>
 </body>
 </html>
