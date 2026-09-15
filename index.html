@@ -23,6 +23,12 @@
     </header>
 
     <main class="container mx-auto px-4 py-12 max-w-2xl">
+        <!-- كارت تنبيه قبول الحجز داخل الصفحة -->
+        <div id="approvalModal" class="hidden mb-6 bg-emerald-500 text-white p-6 rounded-3xl shadow-xl border border-emerald-400 text-center animate-bounce">
+            <h3 class="text-2xl font-bold mb-2">🎉 تم تأكيد حجزك رسمياً!</h3>
+            <p id="approvalDetails" class="text-emerald-100 text-sm">تم قبول طلب الحجز من قبل إدارة المركز الطبي.</p>
+        </div>
+
         <div class="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100">
             <div class="mb-8 border-b pb-4 border-slate-100">
                 <h2 class="text-2xl font-bold text-slate-900">حجز موعد جديد</h2>
@@ -110,6 +116,12 @@
         let messaging = null;
         let fcmToken = null;
 
+        // فحص وجود حجز سابق في الجهاز للاستماع لتغيرات حالته
+        const savedDocId = localStorage.getItem('lastAppointmentId');
+        if (savedDocId) {
+            listenToAppointment(savedDocId);
+        }
+
         if ('serviceWorker' in navigator && firebase.messaging.isSupported()) {
             messaging = firebase.messaging();
             navigator.serviceWorker.register('/firebase-messaging-sw.js')
@@ -165,10 +177,15 @@
             };
 
             try {
-                await db.collection('appointments').add(bookingData);
+                const docRef = await db.collection('appointments').add(bookingData);
+                
+                // حفظ رقم الحجز في الجهاز لمتابعته
+                localStorage.setItem('lastAppointmentId', docRef.id);
+                listenToAppointment(docRef.id);
+
                 const msg = document.getElementById('statusMessage');
-                msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
-                msg.textContent = "تم إرسال طلب الحجز بنجاح! سيصلك إشعار عند الموافقة حتى لو أغلقت المتصفح.";
+                msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-amber-50 text-amber-700 border border-amber-200";
+                msg.textContent = "تم إرسال طلب الحجز بنجاح! الطلب الآن قيد الانتظار لموافقة الإدارة.";
                 msg.classList.remove('hidden');
                 this.reset();
                 handleTypeChange();
@@ -179,6 +196,21 @@
                 btn.textContent = "تأكيد الحجز";
             }
         });
+
+        // دالة الاستماع التلقائي والمباشر للتغيرات في حالة الحجز
+        function listenToAppointment(docId) {
+            db.collection('appointments').doc(docId).onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.status === 'مؤكد') {
+                        const modal = document.getElementById('approvalModal');
+                        const details = document.getElementById('approvalDetails');
+                        details.textContent = `أهلاً ${data.fullName}، تم تأكيد موعدك بنجاح بتاريخ ${data.date} الساعة ${data.time}.`;
+                        modal.classList.remove('hidden');
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
