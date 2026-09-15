@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حجز دور - عيادة الأمراض الداخلية</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background-color: #f4f7f6;
+      color: #333;
+      padding: 20px 15px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    h2 {
+      color: #1a5b82;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #1a5b82;
+    }
+    button {
+      width: 100%;
+      background-color: #1a5b82;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #134260;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>عيادة الأمراض الداخلية</h2>
+  <p class="subtitle">حجز دور مسبق للمعاينة</p>
+
+  <form action="https://formspree.io/f/xppwaqpo" method="POST">
+    <div class="form-group">
+      <label for="name">الاسم الثلاثي:</label>
+      <input type="text" id="name" name="اسم المريض" required placeholder="أدخل اسمك الكامل">
+    </div>
+
+    <div class="form-group">
+      <label for="phone">رقم الهاتف / الواتساب:</label>
+      <input type="tel" id="phone" name="رقم التواصل" required placeholder="09xxxxxxx">
+    </div>
+
+    <div class="form-group">
+      <label for="age">العمر:</label>
+      <input type="number" id="age" name="العمر" required placeholder="مثال: 35">
+    </div>
+
+    <div class="form-group">
+      <label for="date">تاريخ الموعد المطلوب:</label>
+      <input type="date" id="date" name="التاريخ المطلوب" required>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">سبب الزيارة / ملاحظات:</label>
+      <textarea id="notes" name="الملاحظات" rows="3" placeholder="أعراض مختصرة إن وجدت"></textarea>
+    </div>
+
+    <button type="submit">إرسال طلب الحجز</button>
+  </form>
+</div>
+
+</body>
+</html>
+
