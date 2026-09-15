@@ -10,18 +10,17 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-    <!-- Navbar -->
+    <!-- Header بدون زر الإدارة -->
     <header class="bg-indigo-700 text-white py-5 shadow-lg">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-3 space-x-reverse">
                 <svg class="w-8 h-8 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 <h1 class="text-2xl font-bold tracking-wide">المركز الطبي المتخصص</h1>
             </div>
-            <a href="admin.html" class="bg-indigo-800 hover:bg-indigo-900 px-4 py-2 rounded-xl text-sm transition font-medium border border-indigo-500/30">لوحة الإدارة</a>
+            <button onclick="requestNotificationPermission()" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-400/30 transition">تفعيل الإشعارات 🔔</button>
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="container mx-auto px-4 py-12 max-w-2xl">
         <div class="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100">
             <div class="mb-8 border-b pb-4 border-slate-100">
@@ -30,28 +29,23 @@
             </div>
             
             <form id="bookingForm" class="space-y-6">
-                
-                <!-- الاسم الثلاثي -->
                 <div>
                     <label class="block text-sm font-semibold mb-2 text-slate-700">الاسم الثلاثي <span class="text-rose-500">*</span></label>
                     <input type="text" id="patientName" placeholder="أدخل اسمك الثلاثي" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- رقم الهاتف -->
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-slate-700">رقم الهاتف <span class="text-rose-500">*</span></label>
                         <input type="tel" id="patientPhone" placeholder="09xxxxxxxx" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                     </div>
 
-                    <!-- العمر -->
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-slate-700">العمر <span class="text-rose-500">*</span></label>
                         <input type="number" id="patientAge" placeholder="مثال: 30" required min="1" max="120" class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                     </div>
                 </div>
 
-                <!-- نوع الحجز -->
                 <div>
                     <label class="block text-sm font-semibold mb-2 text-slate-700">نوع الحجز <span class="text-rose-500">*</span></label>
                     <select id="bookingType" required onchange="handleTypeChange()" class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white transition">
@@ -61,7 +55,6 @@
                     </select>
                 </div>
 
-                <!-- قسم الأطفال (يظهر ديناميكياً) -->
                 <div id="childSection" class="hidden bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 space-y-4">
                     <div class="flex items-center space-x-2 space-x-reverse text-indigo-700 font-bold mb-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -86,19 +79,16 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- التاريخ -->
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-slate-700">التاريخ <span class="text-rose-500">*</span></label>
                         <input type="date" id="appointmentDate" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                     </div>
-                    <!-- الوقت -->
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-slate-700">الوقت <span class="text-rose-500">*</span></label>
                         <input type="time" id="appointmentTime" required class="w-full p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                     </div>
                 </div>
 
-                <!-- زر الإرسال -->
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-md hover:shadow-indigo-200 transition duration-200 text-lg">
                     تأكيد الحجز
                 </button>
@@ -109,24 +99,32 @@
     </main>
 
     <script>
+        let myBookingId = null;
+
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        alert("تم تفعيل الإشعارات بنجاح!");
+                    }
+                });
+            }
+        }
+
         function handleTypeChange() {
             const bookingType = document.getElementById('bookingType').value;
             const childSection = document.getElementById('childSection');
-            
-            if (bookingType === 'أطفال') {
-                childSection.classList.remove('hidden');
-            } else {
-                childSection.classList.add('hidden');
-            }
+            childSection.classList.toggle('hidden', bookingType !== 'أطفال');
         }
 
         document.getElementById('bookingForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
             const bookingType = document.getElementById('bookingType').value;
+            myBookingId = Date.now();
             
             const booking = {
-                id: Date.now(),
+                id: myBookingId,
                 fullName: document.getElementById('patientName').value,
                 phone: document.getElementById('patientPhone').value,
                 age: document.getElementById('patientAge').value,
@@ -145,14 +143,36 @@
             appointments.push(booking);
             localStorage.setItem('appointments', JSON.stringify(appointments));
 
+            // علم لإشعار الإدارة
+            localStorage.setItem('hasNewBooking', 'true');
+
             const msg = document.getElementById('statusMessage');
             msg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
-            msg.textContent = "تم تسجيل طلب الحجز بنجاح! سيتم مراجعة الموعد وتأكيده.";
+            msg.textContent = "تم تسجيل طلب الحجز بنجاح! نرجو عدم إغلاق الصفحة لتلقي إشعار القبول فوراً.";
             msg.classList.remove('hidden');
 
             this.reset();
             handleTypeChange();
         });
+
+        // المراقبة التلقائية لحالة الحجز وتنبيه المستخدم عند الموافقة
+        setInterval(() => {
+            if (!myBookingId) return;
+            const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            const myBooking = appointments.find(item => item.id === myBookingId);
+
+            if (myBooking && myBooking.status === 'مؤكد') {
+                if (Notification.permission === "granted") {
+                    new Notification("المركز الطبي", {
+                        body: `عزيزي/تي ${myBooking.fullName}، تم تأكيد حجزك بنجاح لموعد: ${myBooking.date}`,
+                        icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+                    });
+                } else {
+                    alert(`🎉 تم تأكيد حجزك بنجاح! التاريخ: ${myBooking.date} الساعة: ${myBooking.time}`);
+                }
+                myBookingId = null; // إعادة تعيين حتى لا يكرر الإشعار
+            }
+        }, 3000);
     </script>
 </body>
 </html>
