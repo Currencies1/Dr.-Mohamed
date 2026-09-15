@@ -38,8 +38,14 @@
         .order-card { 
             background: var(--card-bg); border-radius: 14px; padding: 20px; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
+            animation: fadeIn 0.3s ease-in-out;
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .order-info { margin-bottom: 15px; }
         .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 5px; }
         .order-info p { font-size: 14px; color: #475569; margin-bottom: 8px; line-height: 1.6; }
@@ -51,7 +57,10 @@
             cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; 
         }
         .btn-accept { background: #d1fae5; color: #065f46; }
+        .btn-accept:hover { background: #a7f3d0; }
+        
         .btn-reject { background: #fee2e2; color: #991b1b; }
+        .btn-reject:hover { background: #fecaca; }
 
         .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
         .status-pending { background: #fef3c7; color: #d97706; }
@@ -67,17 +76,17 @@
     <div class="container">
         <div class="admin-header">
             <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات عيادة الداخلية</h1>
-            <div class="badge-count" id="orderCount">الطلبات: 4</div>
+            <div class="badge-count" id="orderCount">الطلبات: 0</div>
         </div>
 
         <div id="ordersContainer" class="orders-grid">
-            <div class="no-data">جاري تحميل الطلبات...</div>
+            <div class="no-data">جاري مزامنة الحجوزات لحظياً...</div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
@@ -92,67 +101,62 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function fetchOrders() {
-            const container = document.getElementById("ordersContainer");
-            const countBadge = document.getElementById("orderCount");
+        const container = document.getElementById("ordersContainer");
+        const countBadge = document.getElementById("orderCount");
 
-            try {
-                const querySnapshot = await getDocs(collection(db, "orders"));
-                container.innerHTML = "";
+        // استخدام onSnapshot للاستماع الفوري والتلقائي لأي تغيير أو طلب جديد بدون تحديث الصفحة
+        onSnapshot(collection(db, "orders"), (querySnapshot) => {
+            container.innerHTML = "";
+            
+            if (querySnapshot.empty) {
+                container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً في قاعدة البيانات.</div>`;
+                countBadge.innerText = "الطلبات: 0";
+                return;
+            }
+
+            countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
+
+            querySnapshot.forEach((item) => {
+                const data = item.data();
+                const docId = item.id;
+                const status = data.status || "قيد الانتظار";
                 
-                if (querySnapshot.empty) {
-                    container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً في قاعدة البيانات.</div>`;
-                    countBadge.innerText = "الطلبات: 0";
-                    return;
-                }
+                let statusClass = "status-pending";
+                if (status.includes("مقبول")) statusClass = "status-accepted";
+                if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
 
-                countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
-
-                // تم تغيير اسم المتغير من document إلى item لتجنب التعارض
-                querySnapshot.forEach((item) => {
-                    const data = item.data();
-                    const docId = item.id;
-                    const status = data.status || "قيد الانتظار";
-                    
-                    let statusClass = "status-pending";
-                    if (status.includes("مقبول")) statusClass = "status-accepted";
-                    if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
-
-                    const card = document.createElement("div");
-                    card.className = "order-card";
-                    card.innerHTML = `
-                        <div class="order-info">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <h3>اسم المريض: ${data.username || "بدون اسم"}</h3>
-                                <span class="status-badge ${statusClass}">${status}</span>
-                            </div>
-                            <p><strong>التفاصيل:</strong> ${data.details || "لا توجد تفاصيل"}</p>
-                            <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
+                const card = document.createElement("div");
+                card.className = "order-card";
+                card.innerHTML = `
+                    <div class="order-info">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h3>اسم المريض: ${data.username || "بدون اسم"}</h3>
+                            <span class="status-badge ${statusClass}">${status}</span>
                         </div>
-                        <div class="order-actions">
-                            <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')">قبول</button>
-                            <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')">رفض</button>
-                            <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')">حذف</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-
-            } catch (error) {
-                console.error("خطأ الفايربيس:", error);
-                container.innerHTML = `
-                    <div class="error-box">
-                        <strong>حدث خطأ تقني:</strong><br>
-                        ${error.message}
+                        <p><strong>التفاصيل:</strong> ${data.details || "لا توجد تفاصيل"}</p>
+                        <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
+                    </div>
+                    <div class="order-actions">
+                        <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')"><i class="fa-solid fa-check"></i> قبول</button>
+                        <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                        <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
                     </div>
                 `;
-            }
-        }
+                container.appendChild(card);
+            });
+        }, (error) => {
+            console.error("خطأ الفايربيس:", error);
+            container.innerHTML = `
+                <div class="error-box">
+                    <strong>حدث خطأ تقني في المزامنة اللحظية:</strong><br>
+                    ${error.message}
+                </div>
+            `;
+        });
 
         window.updateStatus = async function(id, newStatus) {
             try {
                 await updateDoc(doc(db, "orders", id), { status: newStatus });
-                fetchOrders();
             } catch (e) { alert("خطأ في التحديث: " + e.message); }
         };
 
@@ -160,12 +164,9 @@
             if (confirm("حذف الحجز نهائياً؟")) {
                 try {
                     await deleteDoc(doc(db, "orders", id));
-                    fetchOrders();
                 } catch (e) { alert("خطأ في الحذف: " + e.message); }
             }
         }
-
-        fetchOrders();
     </script>
 </body>
 </html>
