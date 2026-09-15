@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم دكتور الداخلية</title>
+    <title>لوحة تحكم الدكتور محمد إسماعيل</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -23,15 +23,47 @@
 
         .container { max-width: 1000px; margin: 0 auto; }
         
+        /* شاشة تسجيل الدخول */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); display: flex; justify-content: center;
+            align-items: center; z-index: 9999; backdrop-filter: blur(5px);
+        }
+        .login-card {
+            background: var(--card-bg); padding: 35px; border-radius: 20px;
+            width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .login-card h2 { margin-bottom: 20px; color: #0f172a; font-size: 22px; }
+        .login-card input {
+            width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border-color);
+            border-radius: 10px; font-size: 14px; outline: none; transition: 0.3s;
+        }
+        .login-card input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,165,233,0.15); }
+        .login-card button {
+            width: 100%; padding: 12px; background: var(--primary); color: white;
+            border: none; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer;
+            transition: 0.3s;
+        }
+        .login-card button:hover { background: #0284c7; }
+        .login-error { color: var(--danger); font-size: 13px; margin-top: 10px; display: none; }
+
+        /* لوحة التحكم الرئيسية */
+        #adminDashboard { display: none; }
+        
         .admin-header { 
             background: var(--card-bg); padding: 20px 25px; border-radius: 15px; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; 
             justify-content: space-between; align-items: center; margin-bottom: 25px; 
+            flex-wrap: wrap; gap: 15px;
         }
-        .admin-header h1 { font-size: 20px; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .admin-header h1 { font-size: 18px; color: #0f172a; display: flex; align-items: center; gap: 10px; }
         .admin-header h1 i { color: var(--primary); }
         
-        .badge-count { background: #e0f2fe; color: var(--primary); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .badge-count { background: #e0f2fe; color: var(--primary); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 14px; }
+        .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 6px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-logout:hover { background: #fecaca; }
 
         .orders-grid { display: grid; gap: 15px; }
         
@@ -50,7 +82,7 @@
         .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 5px; }
         .order-info p { font-size: 14px; color: #475569; margin-bottom: 8px; line-height: 1.6; }
         
-        .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap; }
         
         .btn-action { 
             padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; 
@@ -73,10 +105,27 @@
 </head>
 <body>
 
-    <div class="container">
+    <!-- نافذة تسجيل الدخول -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <h2><i class="fa-solid fa-lock" style="color: var(--primary);"></i> دخول لوحة الإدارة</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <input type="email" id="emailInput" placeholder="البريد الإلكتروني" required>
+                <input type="password" id="passwordInput" placeholder="كلمة المرور" required>
+                <button type="submit">تسجيل الدخول</button>
+                <div id="loginError" class="login-error">البريد الإلكتروني أو كلمة المرور غير صحيحة!</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم المحمية -->
+    <div id="adminDashboard" class="container">
         <div class="admin-header">
-            <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات عيادة الداخلية</h1>
-            <div class="badge-count" id="orderCount">الطلبات: 0</div>
+            <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات د. محمد إسماعيل</h1>
+            <div class="header-left">
+                <div class="badge-count" id="orderCount">الطلبات: 0</div>
+                <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+            </div>
         </div>
 
         <div id="ordersContainer" class="orders-grid">
@@ -88,14 +137,15 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // إعدادات مشروعك الأساسي والصحيح (mohamed-ismail-c0525)
         const firebaseConfig = {
-            apiKey: "AIzaSyCVJclfpEp9Jo9879C3RfZKiEdBUibwrxI",
-            authDomain: "ahmad-662ee.firebaseapp.com",
-            projectId: "ahmad-662ee",
-            storageBucket: "ahmad-662ee.firebasestorage.app",
-            messagingSenderId: "740891153734",
-            appId: "1:740891153734:web:d4927b652d05f499618147",
-            measurementId: "G-S0ZD5K16NM"
+            apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
+            authDomain: "mohamed-ismail-c0525.firebaseapp.com",
+            projectId: "mohamed-ismail-c0525",
+            storageBucket: "mohamed-ismail-c0525.firebasestorage.app",
+            messagingSenderId: "582285551584",
+            appId: "1:582285551584:web:abbb715cb6b70582556d85",
+            measurementId: "G-JZ45DZ3ZTP"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -104,55 +154,93 @@
         const container = document.getElementById("ordersContainer");
         const countBadge = document.getElementById("orderCount");
 
-        // تم ربطها بقاعدة appointments الصحيحة
-        onSnapshot(collection(db, "appointments"), (querySnapshot) => {
-            container.innerHTML = "";
-            
-            if (querySnapshot.empty) {
-                container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً في قاعدة البيانات.</div>`;
-                countBadge.innerText = "الطلبات: 0";
-                return;
+        // التحقق من الجلسة المخزنة مسبقاً
+        if (localStorage.getItem("doctorLoggedIn") === "true") {
+            showDashboard();
+        }
+
+        // دالة تسجيل الدخول
+        window.handleLogin = function(event) {
+            event.preventDefault();
+            const email = document.getElementById("emailInput").value.trim();
+            const password = document.getElementById("passwordInput").value.trim();
+            const errorDiv = document.getElementById("loginError");
+
+            if (email === "MohamedIsmail123@gmail.com" && password === "Mohamed123") {
+                localStorage.setItem("doctorLoggedIn", "true");
+                errorDiv.style.display = "none";
+                showDashboard();
+            } else {
+                errorDiv.style.display = "block";
             }
+        };
 
-            countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
+        // دالة تسجيل الخروج
+        window.handleLogout = function() {
+            localStorage.removeItem("doctorLoggedIn");
+            document.getElementById("adminDashboard").style.display = "none";
+            document.getElementById("loginOverlay").style.display = "flex";
+            document.getElementById("loginForm").reset();
+        };
 
-            querySnapshot.forEach((item) => {
-                const data = item.data();
-                const docId = item.id;
-                const status = data.status || "قيد الانتظار";
+        function showDashboard() {
+            document.getElementById("loginOverlay").style.display = "none";
+            document.getElementById("adminDashboard").style.display = "block";
+            loadAppointments();
+        }
+
+        // جلب ومزامنة الحجوزات لحظياً من مجموعة appointments
+        function loadAppointments() {
+            onSnapshot(collection(db, "appointments"), (querySnapshot) => {
+                container.innerHTML = "";
                 
-                let statusClass = "status-pending";
-                if (status.includes("مقبول")) statusClass = "status-accepted";
-                if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً في قاعدة البيانات.</div>`;
+                    countBadge.innerText = "الطلبات: 0";
+                    return;
+                }
 
-                const card = document.createElement("div");
-                card.className = "order-card";
-                card.innerHTML = `
-                    <div class="order-info">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <h3>اسم المريض: ${data.username || data.name || "بدون اسم"}</h3>
-                            <span class="status-badge ${statusClass}">${status}</span>
+                countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
+
+                querySnapshot.forEach((item) => {
+                    const data = item.data();
+                    const docId = item.id;
+                    const status = data.status || "قيد الانتظار";
+                    
+                    let statusClass = "status-pending";
+                    if (status.includes("مقبول")) statusClass = "status-accepted";
+                    if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
+
+                    const card = document.createElement("div");
+                    card.className = "order-card";
+                    card.innerHTML = `
+                        <div class="order-info">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 5px;">
+                                <h3>اسم المريض: ${data.username || data.name || "بدون اسم"}</h3>
+                                <span class="status-badge ${statusClass}">${status}</span>
+                            </div>
+                            <p><strong>رقم الهاتف:</strong> ${data.phone || data.mobile || "غير متوفر"}</p>
+                            <p><strong>التفاصيل والأعراض:</strong> ${data.details || data.symptoms || "لا توجد تفاصيل"}</p>
+                            <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
                         </div>
-                        <p><strong>التفاصيل:</strong> ${data.details || data.symptoms || "لا توجد تفاصيل"}</p>
-                        <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
-                    </div>
-                    <div class="order-actions">
-                        <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')"><i class="fa-solid fa-check"></i> قبول</button>
-                        <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
-                        <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
+                        <div class="order-actions">
+                            <button class="btn-action btn-accept" onclick="updateStatus('${docId}', 'مقبول / مؤكد')"><i class="fa-solid fa-check"></i> قبول</button>
+                            <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                            <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }, (error) => {
+                console.error("خطأ الفايربيس:", error);
+                container.innerHTML = `
+                    <div class="error-box">
+                        <strong>حدث خطأ تقني في المزامنة اللحظية:</strong><br>
+                        ${error.message}
                     </div>
                 `;
-                container.appendChild(card);
             });
-        }, (error) => {
-            console.error("خطأ الفايربيس:", error);
-            container.innerHTML = `
-                <div class="error-box">
-                    <strong>حدث خطأ تقني في المزامنة اللحظية:</strong><br>
-                    ${error.message}
-                </div>
-            `;
-        });
+        }
 
         window.updateStatus = async function(id, newStatus) {
             try {
@@ -161,7 +249,7 @@
         };
 
         window.deleteOrder = async function(id) {
-            if (confirm("حذف الحجز نهائياً؟")) {
+            if (confirm("هل تريد حذف الحجز نهائياً؟")) {
                 try {
                     await deleteDoc(doc(db, "appointments", id));
                 } catch (e) { alert("خطأ في الحذف: " + e.message); }
