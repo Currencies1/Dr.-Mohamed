@@ -10,14 +10,13 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen">
 
-    <!-- Navbar -->
     <header class="bg-slate-900 text-white py-5 shadow-lg">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-3 space-x-reverse">
                 <span class="bg-indigo-600 text-xs px-2.5 py-1 rounded-md font-bold tracking-wider">ADMIN</span>
                 <h1 class="text-xl font-bold">لوحة إدارة الحجوزات والعيادات</h1>
             </div>
-            <a href="index.html" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm transition border border-slate-700">واجهة الحجز</a>
+            <button onclick="requestAdminNotificationPermission()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">تفعيل إشعارات الطلبات 🔔</button>
         </div>
     </header>
 
@@ -31,7 +30,6 @@
                 <button onclick="clearAll()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-rose-200">مسح كافة البيانات</button>
             </div>
 
-            <!-- الجدول -->
             <div class="overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
@@ -46,7 +44,7 @@
                         </tr>
                     </thead>
                     <tbody id="appointmentsTable" class="divide-y divide-slate-100 text-sm">
-                        <!-- تُعبأ البيانات عبر JS -->
+                        <!-- تعبئة البيانات عبر JS -->
                     </tbody>
                 </table>
             </div>
@@ -54,6 +52,14 @@
     </main>
 
     <script>
+        function requestAdminNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") alert("تم تفعيل إشعارات الإدارة بنجاح!");
+                });
+            }
+        }
+
         function loadAppointments() {
             const table = document.getElementById('appointmentsTable');
             const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
@@ -102,7 +108,7 @@
                         </span>
                     </td>
                     <td class="p-4 space-x-1 space-x-reverse">
-                        <button onclick="toggleStatus(${index})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition">تغيير الحالة</button>
+                        <button onclick="toggleStatus(${index})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition">قبول / تغيير الحالة</button>
                         <button onclick="deleteAppointment(${index})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition">حذف</button>
                     </td>
                 </tr>
@@ -130,8 +136,24 @@
             }
         }
 
+        // فحص وجود طلب جديد وتنبيه الإدارة
+        setInterval(() => {
+            if (localStorage.getItem('hasNewBooking') === 'true') {
+                localStorage.removeItem('hasNewBooking');
+                loadAppointments();
+
+                if (Notification.permission === "granted") {
+                    new Notification("المركز الطبي - لوحة الإدارة", {
+                        body: "وصل طلب حجز طبي جديد الآن!",
+                        icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+                    });
+                } else {
+                    alert("🔔 هناك طلب حجز جديد وارد الآن!");
+                }
+            }
+        }, 2000);
+
         document.addEventListener('DOMContentLoaded', loadAppointments);
     </script>
 </body>
 </html>
-
