@@ -79,8 +79,23 @@
         }
 
         .order-info { margin-bottom: 15px; }
-        .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 5px; }
-        .order-info p { font-size: 14px; color: #475569; margin-bottom: 8px; line-height: 1.6; }
+        .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* تنسيق تفاصيل المريض داخل بطاقة الأدمن */
+        .patient-details-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            font-size: 13.5px;
+            color: #334155;
+            line-height: 1.8;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+        .patient-details-box span { font-weight: bold; color: #0f172a; }
         
         .queue-input-group {
             display: flex; align-items: center; gap: 10px; margin: 15px 0; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
@@ -212,18 +227,28 @@
                     const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
                     
                     let statusClass = "status-pending";
-                    if (status.includes("مقبول")) statusClass = "status-accepted";
+                    if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
                     if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
 
                     const card = document.createElement("div");
                     card.className = "order-card";
                     card.innerHTML = `
                         <div class="order-info">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 5px;">
-                                <h3>اسم المريض: ${data.username || data.name || "بدون اسم"}</h3>
+                            <h3>
+                                <span><i class="fa-solid fa-user" style="color:var(--primary); margin-left:6px;"></i> المريض: ${data.username || "بدون اسم"}</span>
                                 <span class="status-badge ${statusClass}">${status}</span>
+                            </h3>
+
+                            <!-- تفاصيل المريض كاملة لتعبئة المستند بدقة -->
+                            <div class="patient-details-box">
+                                <div>العمر: <span>${data.age || "غير متوفر"} سنة</span></div>
+                                <div>الإقامة: <span>${data.residence || "غير متوفر"}</span></div>
+                                <div>رقم الهاتف: <span dir="ltr">${data.phone || "غير متوفر"}</span></div>
+                                <div>نوع الزيارة: <span style="color: #0284c7;">${data.visitType || "عادي"}</span></div>
+                                <div>تاريخ الموعد: <span>${data.appointmentDate || "غير متوفر"}</span></div>
+                                <div>ساعة الحجز: <span>${data.bookingTime || "غير متوفر"}</span></div>
+                                <div style="grid-column: 1 / -1;">تفاصيل الأعراض: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
                             </div>
-                            <p>${data.details || data.symptoms || "لا توجد تفاصيل"}</p>
                             
                             <div class="queue-input-group">
                                 <label><i class="fa-solid fa-ticket"></i> تحديد رقم الدور للمريض:</label>
@@ -251,7 +276,7 @@
             });
         }
 
-        // دالة حفظ رقم الدور وتغيير الحالة إلى مقبول
+        // دالة حفظ رقم الدور وتغيير الحالة إلى مقبول (تحديث تلقائي فوري لصفحة المريض)
         window.acceptWithQueue = async function(id) {
             const queueInput = document.getElementById(`queue_${id}`).value.trim();
             if (!queueInput) {
