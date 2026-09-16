@@ -65,6 +65,24 @@
         .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 6px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-logout:hover { background: #fecaca; }
 
+        /* شريط البحث */
+        .search-box {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .search-box i { color: #94a3b8; font-size: 16px; }
+        .search-box input {
+            width: 100%; border: none; outline: none; font-size: 14.5px; background: transparent; color: var(--text-color);
+        }
+        .search-box input::placeholder { color: #94a3b8; }
+
         /* شريط التبويبات والفرز */
         .filter-tabs {
             display: grid;
@@ -201,6 +219,12 @@
             </div>
         </div>
 
+        <!-- شريط البحث السريع -->
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="ابحث باسم المريض، رقم الهاتف، رقم الأضبارة، أو البيانات...">
+        </div>
+
         <!-- أزرار الفرز والتبويبات -->
         <div class="filter-tabs">
             <button class="tab-btn active-all" id="tabAll" onclick="setFilter('all')">
@@ -242,6 +266,7 @@
         const container = document.getElementById("ordersContainer");
         let allAppointments = [];
         let currentFilter = 'all'; // الفلتر الافتراضي
+        let searchQuery = ''; // نص البحث
 
         if (localStorage.getItem("doctorLoggedIn") === "true") {
             showDashboard();
@@ -279,7 +304,6 @@
         window.setFilter = function(filterType) {
             currentFilter = filterType;
 
-            // إزالة الأنشطة القديمة وتطبيق النشط على الزر المحدد
             document.getElementById("tabAll").className = "tab-btn";
             document.getElementById("tabPending").className = "tab-btn";
             document.getElementById("tabAccepted").className = "tab-btn";
@@ -293,12 +317,27 @@
             renderFilteredAppointments();
         };
 
+        // دالة التعامل مع البحث
+        window.handleSearch = function() {
+            searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            renderFilteredAppointments();
+        };
+
         function loadAppointments() {
             onSnapshot(collection(db, "appointments"), (querySnapshot) => {
                 allAppointments = [];
                 
                 querySnapshot.forEach((item) => {
                     allAppointments.push({ id: item.id, ...item.data() });
+                });
+
+                // ترتيب الطلبات: الأحدث (الجديد) أولاً بناءً على تاريخ الحجز أو معرف المستند أو الوقت المتاح
+                allAppointments.sort((a, b) => {
+                    // إذا كان هناك حقل تاريخ/وقت مخزن بشكل منظم (يمكن الاعتماد على معرف المستند أو حقول أخرى مقارنة عكسية)
+                    const timeA = a.bookingTime || '';
+                    const timeB = b.bookingTime || '';
+                    // الترتيب التنازلي (الأحدث أولاً)
+                    return b.id.localeCompare(a.id);
                 });
 
                 updateCounters();
@@ -314,10 +353,10 @@
             });
         }
 
-        // تحديث أعداد العدادات في التبويبات
+        // تحديث أعداد العدادات في التبويبات (تأخذ بعين الاعتبار حالة الطلب فقط بغض النظر عن البحث)
         function updateCounters() {
             const countAll = allAppointments.length;
-            const countPending = allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").obs ? allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length : allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length;
+            const countPending = allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length;
             const countAccepted = allAppointments.filter(item => {
                 const st = item.status || "";
                 return st.includes("مقبول") || st.includes("مؤكد");
@@ -333,20 +372,41 @@
             document.getElementById("countRejected").innerText = countRejected;
         }
 
-        // عرض الحجوزات بناءً على الفلتر المختار
+        // عرض الحجوزات بناءً على الفلتر المختار ونص البحث
         function renderFilteredAppointments() {
             container.innerHTML = "";
 
             let filteredList = allAppointments.filter(item => {
                 const status = item.status || "قيد الانتظار";
-                if (currentFilter === 'pending') return status === "قيد الانتظار";
-                if (currentFilter === 'accepted') return status.includes("مقبول") || status.includes("مؤكد");
-                if (currentFilter === 'rejected') return status.includes("ملغي") || status.includes("مرفوض");
-                return true; // 'all'
+                
+                // فلترة التبويبات
+                let matchesTab = true;
+                if (currentFilter === 'pending') matchesTab = (status === "قيد الانتظار");
+                else if (currentFilter === 'accepted') matchesTab = (status.includes("مقبول") || status.includes("مؤكد"));
+                else if (currentFilter === 'rejected') matchesTab = (status.includes("ملغي") || status.includes("مرفوض"));
+
+                if (!matchesTab) return false;
+
+                // فلترة البحث (الاسم، الهاتف، الإقامة، رقم الأضبارة، تفاصيل الأعراض، إلخ)
+                if (searchQuery !== '') {
+                    const searchableText = `
+                        ${item.username || ''} 
+                        ${item.phone || ''} 
+                        ${item.residence || ''} 
+                        ${item.fileNumber || ''} 
+                        ${item.details || ''} 
+                        ${item.appointmentDate || ''}
+                        ${item.visitType || ''}
+                    `.toLowerCase();
+
+                    return searchableText.includes(searchQuery);
+                }
+
+                return true;
             });
 
             if (filteredList.length === 0) {
-                container.innerHTML = `<div class="no-data">لا توجد حجوزات في هذا القسم حالياً.</div>`;
+                container.innerHTML = `<div class="no-data">لا توجد نتائج مطابقة لبحثك أو في هذا القسم حالياً.</div>`;
                 return;
             }
 
