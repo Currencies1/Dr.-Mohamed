@@ -6,7 +6,7 @@
     <title>حجز موعد - عيادة الأمراض الداخلية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبة لتهيئة التقاط صورة للمستند -->
+    <!-- مكتبة التقاط صورة للمستند -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
@@ -418,15 +418,11 @@
             }
         });
 
-        // دالة توليد رمز معاملة ترتيبي (مزيج من أرقام وحروف)
+        // توليد رمز معاملة مكون من أرقام فقط
         function generateTransactionCode(isEmergency) {
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            let code = "";
-            for (let i = 0; i < 5; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            const prefix = isEmergency ? "EMG" : "NOR";
-            return `${prefix}-${Math.floor(100 + Math.random() * 900)}-${code}`;
+            const prefix = isEmergency ? "9" : "1"; // 9 للإسعاف، 1 للحالة العادية
+            const randomDigits = Math.floor(10000 + Math.random() * 90000); // 5 أرقام عشوائية
+            return `${prefix}${randomDigits}`;
         }
 
         window.sendOrder = async function() {
@@ -464,6 +460,7 @@
                 const docRef = await addDoc(collection(db, "appointments"), {
                     username: username,
                     age: age,
+                    residence: residence,
                     visitType: visitType,
                     isEmergency: isEmergency,
                     transactionCode: transactionCode,
@@ -498,8 +495,9 @@
                     const currentStatus = data.status;
                     const queueNum = data.queueNumber || "لم يتم تحديده بعد";
                     const isEmergency = data.isEmergency || false;
-                    const transCode = data.transactionCode || "NOR-100-X";
-                    const bookingTime = data.bookingTime || "الان";
+                    const transCode = data.transactionCode || "10000";
+                    const bookingTime = data.bookingTime || "الآن";
+                    const residence = data.residence || "غير متوفر";
 
                     if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
                         statusMsg.className = "success-msg";
@@ -518,12 +516,13 @@
                                 <div class="doc-body">
                                     <p>الاسم الكامل: <span>${data.username}</span></p>
                                     <p>العمر: <span>${data.age} سنة</span></p>
+                                    <p>الإقامة: <span>${residence}</span></p>
                                     <p>رقم الدور: <span style="color: #0284c7; font-size: 16px;">${queueNum}</span></p>
-                                    <p>ساعة الحجز: <span>${bookingTime}</span></p>
+                                    <p>ساعة الدور (الحجز): <span>${bookingTime}</span></p>
                                     <p>تاريخ الموعد: <span>${data.appointmentDate}</span></p>
-                                    <p>رمز المعاملة الترتيبي: <span style="letter-spacing: 1px; color: #7c2d12;">${transCode}</span></p>
+                                    <p>رمز المعاملة الرقمي: <span style="letter-spacing: 1px; color: #7c2d12; font-family: monospace;">${transCode}</span></p>
                                 </div>
-                                <div style="margin-top: 10px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px dashed #cbd5e1; pt: 5px;">
+                                <div style="margin-top: 10px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
                                     عيادة الأمراض الداخلية - د. محمد الأسماعيل | يرجى إبراز هذا المستند عند الدخول.
                                 </div>
                             </div>
@@ -556,7 +555,6 @@
             });
         }
 
-        // دالة التقاط صورة للمستند وتحميله تلقائياً لجهاز المريض
         window.downloadDocument = function() {
             const docElement = document.getElementById("patientDocumentCard");
             html2canvas(docElement, { scale: 2 }).then(canvas => {
