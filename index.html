@@ -471,7 +471,6 @@
                 const isEmergency = visitType === "حالة إعسافية طارئة";
                 const transactionCode = generateTransactionCode(isEmergency);
                 const now = new Date();
-                const bookingTime = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                 let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | الهاتف: ${phone} | النوع: ${visitType}`;
                 if (visitType === "مراجعة") {
@@ -484,14 +483,14 @@
                     age: age,
                     residence: residence,
                     visitType: visitType,
-                    fileNumber: fileNumber || "لا يوجد", // حفظ رقم الأضبارة في حقل مستقل
+                    fileNumber: fileNumber || "لا يوجد",
                     isEmergency: isEmergency,
                     transactionCode: transactionCode,
-                    bookingTime: bookingTime,
                     appointmentDate: appointmentDate,
                     details: formattedDetails,
                     status: "قيد الانتظار",
                     queueNumber: "قيد الصدور", 
+                    appointmentTime: "قيد الصدور", 
                     createdAt: now.toISOString()
                 });
 
@@ -516,13 +515,12 @@
                     const data = docSnap.data();
                     const currentStatus = data.status;
                     const queueNum = data.queueNumber || "لم يتم تحديده بعد";
+                    const appointmentTime = data.appointmentTime || "لم يتم تحديدها بعد";
                     const isEmergency = data.isEmergency || false;
                     const transCode = data.transactionCode || "10000";
-                    const bookingTime = data.bookingTime || "الآن";
                     const residence = data.residence || "غير متوفر";
                     const visitType = data.visitType || "مريض جديد";
                     const fileNumber = data.fileNumber || "لا يوجد";
-                    const queueTime = data.queueTime || new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                     if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
                         statusMsg.className = "success-msg flash-success";
@@ -545,8 +543,7 @@
                                     <p>حالة الزيارة: <span style="color: ${isEmergency ? '#ef4444' : '#0284c7'};">${visitType}</span></p>
                                     ${visitType === "مراجعة" ? `<p>رقم الأضبارة السابقة: <span style="color: #7c2d12;">${fileNumber}</span></p>` : ''}
                                     <p>رقم الدور: <span style="color: #0284c7; font-size: 16px;">${queueNum}</span></p>
-                                    <p>ساعة الدور (الإصدار): <span style="color: #059669; font-size: 15px;">${queueTime}</span></p>
-                                    <p>ساعة الحجز المبدئي: <span>${bookingTime}</span></p>
+                                    <p>ساعة الحضور (الموعد): <span style="color: #059669; font-size: 15px;">${appointmentTime}</span></p>
                                     <p>تاريخ الموعد: <span>${data.appointmentDate}</span></p>
                                     <p>رمز المعاملة الرقمي: <span style="letter-spacing: 1px; color: #7c2d12; font-family: monospace;">${transCode}</span></p>
                                 </div>
@@ -608,7 +605,7 @@
             document.getElementById("visitType").selectedIndex = 0;
             document.getElementById("fileNumberGroup").style.display = "none";
             document.getElementById("fileNumber").value = "";
-            document.getElementById("details").value = "";
+            document.getElementById("details").value.trim = "";
             document.getElementById("medicalSupplies").value = "";
         };
     </script>
