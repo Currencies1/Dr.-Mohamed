@@ -195,6 +195,31 @@
             padding-bottom: 4px;
         }
         .doc-body span { font-weight: bold; color: #0f172a; }
+
+        /* تنسيق صندوق ملاحظات الطبيب داخل المستند */
+        .doc-notes-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 12px;
+            text-align: right;
+        }
+        .doc-notes-box .notes-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #b45309;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .doc-notes-box .notes-content {
+            font-size: 13.5px;
+            color: #78350f;
+            font-weight: 600;
+            word-break: break-all;
+        }
         
         .doc-actions {
             margin-top: 15px;
@@ -491,6 +516,7 @@
                     status: "قيد الانتظار",
                     queueNumber: "قيد الصدور", 
                     appointmentTime: "قيد الصدور", 
+                    doctorNotes: "", // حقل ملاحظات الطبيب مبدئياً فارغ
                     createdAt: now.toISOString()
                 });
 
@@ -521,6 +547,7 @@
                     const residence = data.residence || "غير متوفر";
                     const visitType = data.visitType || "مريض جديد";
                     const fileNumber = data.fileNumber || "لا يوجد";
+                    const doctorNotes = data.doctorNotes ? data.doctorNotes.trim() : "";
 
                     if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
                         statusMsg.className = "success-msg flash-success";
@@ -546,6 +573,14 @@
                                     <p>ساعة الحضور (الموعد): <span style="color: #059669; font-size: 15px;">${appointmentTime}</span></p>
                                     <p>تاريخ الموعد: <span>${data.appointmentDate}</span></p>
                                     <p>رمز المعاملة الرقمي: <span style="letter-spacing: 1px; color: #7c2d12; font-family: monospace;">${transCode}</span></p>
+
+                                    <!-- سطر/صندوق ملاحظات الطبيب تظهر تلقائياً هنا إن وجدت -->
+                                    ${doctorNotes !== "" ? `
+                                        <div class="doc-notes-box">
+                                            <div class="notes-title"><i class="fa-solid fa-note-sticky"></i> ملاحظات وتوجيهات الطبيب:</div>
+                                            <div class="notes-content">${doctorNotes}</div>
+                                        </div>
+                                    ` : ''}
                                 </div>
                                 <div style="margin-top: 10px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
                                     عيادة الأمراض الداخلية - د. محمد الأسماعيل | يرجى إبراز هذا المستند عند الدخول.
@@ -605,7 +640,7 @@
             document.getElementById("visitType").selectedIndex = 0;
             document.getElementById("fileNumberGroup").style.display = "none";
             document.getElementById("fileNumber").value = "";
-            document.getElementById("details").value.trim = "";
+            document.getElementById("details").value = "";
             document.getElementById("medicalSupplies").value = "";
         };
     </script>
