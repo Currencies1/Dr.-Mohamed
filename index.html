@@ -31,6 +31,28 @@
             min-height: 100vh; 
             direction: rtl; 
             padding: 20px; 
+            transition: background 0.5s ease;
+        }
+
+        /* تأثيرات الوميض التلقائي للحالة */
+        @keyframes flashGreen {
+            0% { background: #d1fae5; }
+            50% { background: #6ee7b7; }
+            100% { background: #d1fae5; }
+        }
+
+        @keyframes flashRed {
+            0% { background: #fee2e2; }
+            50% { background: #fca5a5; }
+            100% { background: #fee2e2; }
+        }
+
+        .flash-success {
+            animation: flashGreen 0.8s ease-in-out infinite;
+        }
+
+        .flash-rejected {
+            animation: flashRed 0.8s ease-in-out infinite;
         }
 
         .container {
@@ -107,7 +129,6 @@
         }
         .btn-submit:hover { background: var(--primary-hover); }
         .btn-submit:active { transform: scale(0.98); }
-        .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
 
         #statusMsg { 
             margin-top: 20px; 
@@ -118,6 +139,7 @@
             border-radius: 10px; 
             display: none; 
             line-height: 1.6;
+            transition: all 0.3s ease;
         }
         .success-msg { background: #d1fae5; color: #065f46; border: 1px solid #10b981; display: block !important; }
         .error-msg { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; display: block !important; }
@@ -418,10 +440,9 @@
             }
         });
 
-        // توليد رمز معاملة مكون من أرقام فقط
         function generateTransactionCode(isEmergency) {
-            const prefix = isEmergency ? "9" : "1"; // 9 للإسعاف، 1 للحالة العادية
-            const randomDigits = Math.floor(10000 + Math.random() * 90000); // 5 أرقام عشوائية
+            const prefix = isEmergency ? "9" : "1";
+            const randomDigits = Math.floor(10000 + Math.random() * 90000);
             return `${prefix}${randomDigits}`;
         }
 
@@ -449,8 +470,6 @@
             try {
                 const isEmergency = visitType === "حالة إعسافية طارئة";
                 const transactionCode = generateTransactionCode(isEmergency);
-                
-                // جلب التوقيت والتاريخ الحالي لحظة ضغط زر الحجز تلقائياً
                 const now = new Date();
                 const bookingTime = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
@@ -467,7 +486,7 @@
                     visitType: visitType,
                     isEmergency: isEmergency,
                     transactionCode: transactionCode,
-                    bookingTime: bookingTime, // يتم تخزينه تلقائياً
+                    bookingTime: bookingTime,
                     appointmentDate: appointmentDate,
                     details: formattedDetails,
                     status: "قيد الانتظار",
@@ -476,7 +495,6 @@
                 });
 
                 localStorage.setItem("current_appointment_id", docRef.id);
-
                 lockScreenToWaiting();
                 monitorAppointment(docRef.id);
 
@@ -501,13 +519,16 @@
                     const transCode = data.transactionCode || "10000";
                     const bookingTime = data.bookingTime || "الآن";
                     const residence = data.residence || "غير متوفر";
+                    // ساعة الدور (إما وقت الاعتماد من قاعدة البيانات أو الوقت الحالي عند القبول)
+                    const queueTime = data.queueTime || new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                     if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
-                        statusMsg.className = "success-msg";
+                        // تطبيق فئة الوميض الأخضر
+                        statusMsg.className = "success-msg flash-success";
                         statusMsg.innerHTML = `
                             <div style="text-align: center; margin-bottom: 10px;">
                                 <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #10b981; display: inline-block; vertical-align: middle;"></i>
-                                <span style="font-size: 15px; font-weight: bold; color: #065f46;">مبروك! تم قبول وتأكيد طلبك. (التحميل إجباري للتعرف على دورك)</span>
+                                <span style="font-size: 15px; font-weight: bold; color: #065f46;">مبروك! تم قبول وتأكيد طلبك بنجاح.</span>
                             </div>
 
                             <!-- المستند الرقمي الرسمي للمريض -->
@@ -521,7 +542,8 @@
                                     <p>العمر: <span>${data.age} سنة</span></p>
                                     <p>الإقامة: <span>${residence}</span></p>
                                     <p>رقم الدور: <span style="color: #0284c7; font-size: 16px;">${queueNum}</span></p>
-                                    <p>ساعة الحجز (التلقائية): <span>${bookingTime}</span></p>
+                                    <p>ساعة الدور (الإصدار): <span style="color: #059669; font-size: 15px;">${queueTime}</span></p>
+                                    <p>ساعة الحجز المبدئي: <span>${bookingTime}</span></p>
                                     <p>تاريخ الموعد: <span>${data.appointmentDate}</span></p>
                                     <p>رمز المعاملة الرقمي: <span style="letter-spacing: 1px; color: #7c2d12; font-family: monospace;">${transCode}</span></p>
                                 </div>
@@ -540,7 +562,8 @@
                             </div>
                         `;
                     } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
-                        statusMsg.className = "rejected-msg";
+                        // تطبيق فئة الوميض الأحمر
+                        statusMsg.className = "rejected-msg flash-rejected";
                         statusMsg.innerHTML = `
                             <i class="fa-solid fa-circle-xmark" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
                             نعتذر منك، تم <b>رفض</b> طلب الحجز الحالي من قِبل الطبيب.<br><br>
@@ -574,6 +597,7 @@
             
             document.getElementById("formFieldsContainer").style.display = "block";
             document.getElementById("statusMsg").style.display = "none";
+            document.getElementById("statusMsg").className = "";
             document.getElementById("username").value = "";
             document.getElementById("age").value = "";
             document.getElementById("residence").value = "";
