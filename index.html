@@ -449,7 +449,10 @@
             try {
                 const isEmergency = visitType === "حالة إعسافية طارئة";
                 const transactionCode = generateTransactionCode(isEmergency);
-                const bookingTime = new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
+                
+                // جلب التوقيت والتاريخ الحالي لحظة ضغط زر الحجز تلقائياً
+                const now = new Date();
+                const bookingTime = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                 let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | الهاتف: ${phone} | النوع: ${visitType}`;
                 if (visitType === "مراجعة") {
@@ -464,12 +467,12 @@
                     visitType: visitType,
                     isEmergency: isEmergency,
                     transactionCode: transactionCode,
-                    bookingTime: bookingTime,
+                    bookingTime: bookingTime, // يتم تخزينه تلقائياً
                     appointmentDate: appointmentDate,
                     details: formattedDetails,
                     status: "قيد الانتظار",
                     queueNumber: "قيد الصدور", 
-                    createdAt: new Date().toISOString()
+                    createdAt: now.toISOString()
                 });
 
                 localStorage.setItem("current_appointment_id", docRef.id);
@@ -518,7 +521,7 @@
                                     <p>العمر: <span>${data.age} سنة</span></p>
                                     <p>الإقامة: <span>${residence}</span></p>
                                     <p>رقم الدور: <span style="color: #0284c7; font-size: 16px;">${queueNum}</span></p>
-                                    <p>ساعة الدور (الحجز): <span>${bookingTime}</span></p>
+                                    <p>ساعة الحجز (التلقائية): <span>${bookingTime}</span></p>
                                     <p>تاريخ الموعد: <span>${data.appointmentDate}</span></p>
                                     <p>رمز المعاملة الرقمي: <span style="letter-spacing: 1px; color: #7c2d12; font-family: monospace;">${transCode}</span></p>
                                 </div>
