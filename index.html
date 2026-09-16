@@ -484,6 +484,7 @@
                     age: age,
                     residence: residence,
                     visitType: visitType,
+                    fileNumber: fileNumber || "لا يوجد", // حفظ رقم الأضبارة في حقل مستقل
                     isEmergency: isEmergency,
                     transactionCode: transactionCode,
                     bookingTime: bookingTime,
@@ -519,11 +520,11 @@
                     const transCode = data.transactionCode || "10000";
                     const bookingTime = data.bookingTime || "الآن";
                     const residence = data.residence || "غير متوفر";
-                    // ساعة الدور (إما وقت الاعتماد من قاعدة البيانات أو الوقت الحالي عند القبول)
+                    const visitType = data.visitType || "مريض جديد";
+                    const fileNumber = data.fileNumber || "لا يوجد";
                     const queueTime = data.queueTime || new Date().toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                     if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
-                        // تطبيق فئة الوميض الأخضر
                         statusMsg.className = "success-msg flash-success";
                         statusMsg.innerHTML = `
                             <div style="text-align: center; margin-bottom: 10px;">
@@ -535,12 +536,14 @@
                             <div id="patientDocumentCard" class="patient-document ${isEmergency ? 'emergency-doc' : ''}">
                                 <div class="doc-header">
                                     <h3><i class="fa-solid fa-file-shield"></i> مستند إثبات الدور الرسمي</h3>
-                                    <span class="doc-badge">${isEmergency ? '🚨 حالة إسعافية طارئة' : '👤 مريض طبيعي عادي'}</span>
+                                    <span class="doc-badge">${isEmergency ? '🚨 حالة إسعافية طارئة' : visitType}</span>
                                 </div>
                                 <div class="doc-body">
                                     <p>الاسم الكامل: <span>${data.username}</span></p>
                                     <p>العمر: <span>${data.age} سنة</span></p>
                                     <p>الإقامة: <span>${residence}</span></p>
+                                    <p>حالة الزيارة: <span style="color: ${isEmergency ? '#ef4444' : '#0284c7'};">${visitType}</span></p>
+                                    ${visitType === "مراجعة" ? `<p>رقم الأضبارة السابقة: <span style="color: #7c2d12;">${fileNumber}</span></p>` : ''}
                                     <p>رقم الدور: <span style="color: #0284c7; font-size: 16px;">${queueNum}</span></p>
                                     <p>ساعة الدور (الإصدار): <span style="color: #059669; font-size: 15px;">${queueTime}</span></p>
                                     <p>ساعة الحجز المبدئي: <span>${bookingTime}</span></p>
@@ -562,7 +565,6 @@
                             </div>
                         `;
                     } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
-                        // تطبيق فئة الوميض الأحمر
                         statusMsg.className = "rejected-msg flash-rejected";
                         statusMsg.innerHTML = `
                             <i class="fa-solid fa-circle-xmark" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
