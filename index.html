@@ -270,14 +270,16 @@
 
                 <div class="section-title"><i class="fa-solid fa-file-medical"></i> الأعراض والمستلزمات الطبية المصاحبة</div>
                 
+                <!-- الحقل الأول أصبح اختيارياً -->
                 <div class="form-group">
-                    <label>وصف الأعراض أو سبب الزيارة <span class="required">*</span></label>
+                    <label>وصف الأعراض أو سبب الزيارة</label>
                     <div class="input-with-icon">
                         <i class="fa-solid fa-notes-medical" style="top: 25px;"></i>
-                        <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية..." required></textarea>
+                        <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية (اختياري)..."></textarea>
                     </div>
                 </div>
 
+                <!-- الحقل الثاني أصبح اختيارياً -->
                 <div class="form-group">
                     <label>المستلزمات، التقارير أو الأدوية السابقة (إن وجدت)</label>
                     <div class="input-with-icon">
@@ -367,14 +369,14 @@
             const appointmentDate = document.getElementById("appointmentDate").value;
             const visitType = document.getElementById("visitType").value;
             const fileNumber = document.getElementById("fileNumber").value.trim();
-            const details = document.getElementById("details").value.trim();
+            const details = document.getElementById("details").value.trim() || "لم يتم كتابة وصف للأعراض";
             const supplies = document.getElementById("medicalSupplies").value.trim() || "لا توجد مستلزمات مضافة";
             const statusMsg = document.getElementById("statusMsg");
 
-            // التحقق من تعبئة جميع الحقول الإجبارية (بما فيها رقم الأضبارة إذا كانت مراجعة)
-            if (!username || !age || !residence || !phone || !appointmentDate || !visitType || !details || (visitType === "مراجعة" && !fileNumber)) {
+            // التحقق من تعبئة الحقول الأساسية الإجبارية فقط (وإزالة إجبارية الحقلين الأخيرين)
+            if (!username || !age || !residence || !phone || !appointmentDate || !visitType || (visitType === "مراجعة" && !fileNumber)) {
                 statusMsg.className = "error-msg";
-                statusMsg.innerText = "الرجاء تعبئة جميع الحقول الإجبارية المطلوبة!";
+                statusMsg.innerText = "الرجاء تعبئة جميع الحقول الأساسية الإجبارية المطلوبة!";
                 return;
             }
 
