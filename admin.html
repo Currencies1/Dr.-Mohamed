@@ -12,6 +12,7 @@
             --primary: #0ea5e9;
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
             --bg-color: #f1f5f9;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -54,16 +55,59 @@
         .admin-header { 
             background: var(--card-bg); padding: 20px 25px; border-radius: 15px; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; 
-            justify-content: space-between; align-items: center; margin-bottom: 25px; 
+            justify-content: space-between; align-items: center; margin-bottom: 20px; 
             flex-wrap: wrap; gap: 15px;
         }
         .admin-header h1 { font-size: 18px; color: #0f172a; display: flex; align-items: center; gap: 10px; }
         .admin-header h1 i { color: var(--primary); }
         
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .badge-count { background: #e0f2fe; color: var(--primary); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 14px; }
         .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 6px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-logout:hover { background: #fecaca; }
+
+        /* شريط التبويبات والفرز */
+        .filter-tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+            color: #64748b;
+        }
+        .tab-btn span {
+            background: #f1f5f9;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #475569;
+        }
+        .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        
+        /* ألوان التبويبات النشطة */
+        .tab-btn.active-all { background: #e0f2fe; border-color: var(--primary); color: #0369a1; }
+        .tab-btn.active-all span { background: #bae6fd; color: #0369a1; }
+
+        .tab-btn.active-pending { background: #fef3c7; border-color: var(--warning); color: #b45309; }
+        .tab-btn.active-pending span { background: #fde68a; color: #b45309; }
+
+        .tab-btn.active-accepted { background: #d1fae5; border-color: var(--success); color: #065f46; }
+        .tab-btn.active-accepted span { background: #a7f3d0; color: #065f46; }
+
+        .tab-btn.active-rejected { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+        .tab-btn.active-rejected span { background: #fecaca; color: #991b1b; }
 
         .orders-grid { display: grid; gap: 15px; }
         
@@ -79,7 +123,7 @@
         }
 
         .order-info { margin-bottom: 15px; }
-        .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
         
         /* تفاصيل المريض */
         .patient-details-box {
@@ -97,7 +141,6 @@
         }
         .patient-details-box span { font-weight: bold; color: #0f172a; }
         
-        /* مجموعة إدخال الدور وساعة الحضور */
         .inputs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -154,9 +197,24 @@
         <div class="admin-header">
             <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات د. محمد إسماعيل</h1>
             <div class="header-left">
-                <div class="badge-count" id="orderCount">الطلبات: 0</div>
                 <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
             </div>
+        </div>
+
+        <!-- أزرار الفرز والتبويبات -->
+        <div class="filter-tabs">
+            <button class="tab-btn active-all" id="tabAll" onclick="setFilter('all')">
+                <i class="fa-solid fa-list-check"></i> جميع الطلبات <span id="countAll">0</span>
+            </button>
+            <button class="tab-btn" id="tabPending" onclick="setFilter('pending')">
+                <i class="fa-solid fa-clock-rotate-left"></i> قيد الانتظار <span id="countPending">0</span>
+            </button>
+            <button class="tab-btn" id="tabAccepted" onclick="setFilter('accepted')">
+                <i class="fa-solid fa-circle-check"></i> المؤكدة (المقبولة) <span id="countAccepted">0</span>
+            </button>
+            <button class="tab-btn" id="tabRejected" onclick="setFilter('rejected')">
+                <i class="fa-solid fa-circle-xmark"></i> المرفوضة / الملغاة <span id="countRejected">0</span>
+            </button>
         </div>
 
         <div id="ordersContainer" class="orders-grid">
@@ -182,7 +240,8 @@
         const db = getFirestore(app);
 
         const container = document.getElementById("ordersContainer");
-        const countBadge = document.getElementById("orderCount");
+        let allAppointments = [];
+        let currentFilter = 'all'; // الفلتر الافتراضي
 
         if (localStorage.getItem("doctorLoggedIn") === "true") {
             showDashboard();
@@ -216,71 +275,34 @@
             loadAppointments();
         }
 
+        // دالة لتغيير الفلتر عند الضغط على الأزرار
+        window.setFilter = function(filterType) {
+            currentFilter = filterType;
+
+            // إزالة الأنشطة القديمة وتطبيق النشط على الزر المحدد
+            document.getElementById("tabAll").className = "tab-btn";
+            document.getElementById("tabPending").className = "tab-btn";
+            document.getElementById("tabAccepted").className = "tab-btn";
+            document.getElementById("tabRejected").className = "tab-btn";
+
+            if (filterType === 'all') document.getElementById("tabAll").className = "tab-btn active-all";
+            if (filterType === 'pending') document.getElementById("tabPending").className = "tab-btn active-pending";
+            if (filterType === 'accepted') document.getElementById("tabAccepted").className = "tab-btn active-accepted";
+            if (filterType === 'rejected') document.getElementById("tabRejected").className = "tab-btn active-rejected";
+
+            renderFilteredAppointments();
+        };
+
         function loadAppointments() {
             onSnapshot(collection(db, "appointments"), (querySnapshot) => {
-                container.innerHTML = "";
+                allAppointments = [];
                 
-                if (querySnapshot.empty) {
-                    container.innerHTML = `<div class="no-data">لا توجد حجوزات جديدة حالياً في قاعدة البيانات.</div>`;
-                    countBadge.innerText = "الطلبات: 0";
-                    return;
-                }
-
-                countBadge.innerText = `الطلبات: ${querySnapshot.size}`;
-
                 querySnapshot.forEach((item) => {
-                    const data = item.data();
-                    const docId = item.id;
-                    const status = data.status || "قيد الانتظار";
-                    const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
-                    const currentTime = data.appointmentTime && data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
-                    
-                    let statusClass = "status-pending";
-                    if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
-                    if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
-
-                    const card = document.createElement("div");
-                    card.className = "order-card";
-                    card.innerHTML = `
-                        <div class="order-info">
-                            <h3>
-                                <span><i class="fa-solid fa-user" style="color:var(--primary); margin-left:6px;"></i> المريض: ${data.username || "بدون اسم"}</span>
-                                <span class="status-badge ${statusClass}">${status}</span>
-                            </h3>
-
-                            <!-- تفاصيل المريض كاملة -->
-                            <div class="patient-details-box">
-                                <div>العمر: <span>${data.age || "غير متوفر"} سنة</span></div>
-                                <div>الإقامة: <span>${data.residence || "غير متوفر"}</span></div>
-                                <div>رقم الهاتف: <span dir="ltr">${data.phone || "غير متوفر"}</span></div>
-                                <div>نوع الزيارة: <span style="color: #0284c7;">${data.visitType || "عادي"}</span></div>
-                                <div>تاريخ الموعد: <span>${data.appointmentDate || "غير متوفر"}</span></div>
-                                <div>توقيت طلب الحجز: <span>${data.bookingTime || "غير متوفر"}</span></div>
-                                <div style="grid-column: 1 / -1;">تفاصيل الأعراض: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
-                            </div>
-                            
-                            <!-- حقول إدخال الدور وساعة الحضور -->
-                            <div class="inputs-grid">
-                                <div class="queue-input-group">
-                                    <label><i class="fa-solid fa-ticket"></i> رقم الدور:</label>
-                                    <input type="text" id="queue_${docId}" value="${currentQueue}" placeholder="مثال: 1">
-                                </div>
-                                <div class="queue-input-group">
-                                    <label><i class="fa-regular fa-clock"></i> ساعة الحضور:</label>
-                                    <input type="text" id="time_${docId}" value="${currentTime}" placeholder="مثال: 10:30 صباحاً">
-                                </div>
-                            </div>
-
-                            <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
-                        </div>
-                        <div class="order-actions">
-                            <button class="btn-action btn-accept" onclick="acceptWithDetails('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور وساعة الحضور</button>
-                            <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
-                            <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
+                    allAppointments.push({ id: item.id, ...item.data() });
                 });
+
+                updateCounters();
+                renderFilteredAppointments();
             }, (error) => {
                 console.error("خطأ الفايربيس:", error);
                 container.innerHTML = `
@@ -292,7 +314,98 @@
             });
         }
 
-        // دالة حفظ رقم الدور وساعة الحضور وتغيير الحالة إلى مقبول (تحديث لحظي لصفحة المريض)
+        // تحديث أعداد العدادات في التبويبات
+        function updateCounters() {
+            const countAll = allAppointments.length;
+            const countPending = allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").obs ? allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length : allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length;
+            const countAccepted = allAppointments.filter(item => {
+                const st = item.status || "";
+                return st.includes("مقبول") || st.includes("مؤكد");
+            }).length;
+            const countRejected = allAppointments.filter(item => {
+                const st = item.status || "";
+                return st.includes("ملغي") || st.includes("مرفوض");
+            }).length;
+
+            document.getElementById("countAll").innerText = countAll;
+            document.getElementById("countPending").innerText = countPending;
+            document.getElementById("countAccepted").innerText = countAccepted;
+            document.getElementById("countRejected").innerText = countRejected;
+        }
+
+        // عرض الحجوزات بناءً على الفلتر المختار
+        function renderFilteredAppointments() {
+            container.innerHTML = "";
+
+            let filteredList = allAppointments.filter(item => {
+                const status = item.status || "قيد الانتظار";
+                if (currentFilter === 'pending') return status === "قيد الانتظار";
+                if (currentFilter === 'accepted') return status.includes("مقبول") || status.includes("مؤكد");
+                if (currentFilter === 'rejected') return status.includes("ملغي") || status.includes("مرفوض");
+                return true; // 'all'
+            });
+
+            if (filteredList.length === 0) {
+                container.innerHTML = `<div class="no-data">لا توجد حجوزات في هذا القسم حالياً.</div>`;
+                return;
+            }
+
+            filteredList.forEach((data) => {
+                const docId = data.id;
+                const status = data.status || "قيد الانتظار";
+                const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
+                const currentTime = data.appointmentTime && data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
+                
+                let statusClass = "status-pending";
+                if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
+                if (status.includes("ملغي") || status.includes("مرفوض")) statusClass = "status-rejected";
+
+                const card = document.createElement("div");
+                card.className = "order-card";
+                card.innerHTML = `
+                    <div class="order-info">
+                        <h3>
+                            <span><i class="fa-solid fa-user" style="color:var(--primary); margin-left:6px;"></i> المريض: ${data.username || "بدون اسم"}</span>
+                            <span class="status-badge ${statusClass}">${status}</span>
+                        </h3>
+
+                        <!-- تفاصيل المريض كاملة -->
+                        <div class="patient-details-box">
+                            <div>العمر: <span>${data.age || "غير متوفر"} سنة</span></div>
+                            <div>الإقامة: <span>${data.residence || "غير متوفر"}</span></div>
+                            <div>رقم الهاتف: <span dir="ltr">${data.phone || "غير متوفر"}</span></div>
+                            <div>نوع الزيارة: <span style="color: #0284c7;">${data.visitType || "عادي"}</span></div>
+                            ${data.fileNumber && data.fileNumber !== "لا يوجد" ? `<div>رقم الأضبارة: <span style="color: #7c2d12;">${data.fileNumber}</span></div>` : ''}
+                            <div>تاريخ الموعد: <span>${data.appointmentDate || "غير متوفر"}</span></div>
+                            <div>توقيت طلب الحجز: <span>${data.bookingTime || "غير متوفر"}</span></div>
+                            <div style="grid-column: 1 / -1;">تفاصيل الأعراض: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
+                        </div>
+                        
+                        <!-- حقول إدخال الدور وساعة الحضور -->
+                        <div class="inputs-grid">
+                            <div class="queue-input-group">
+                                <label><i class="fa-solid fa-ticket"></i> رقم الدور:</label>
+                                <input type="text" id="queue_${docId}" value="${currentQueue}" placeholder="مثال: 1">
+                            </div>
+                            <div class="queue-input-group">
+                                <label><i class="fa-regular fa-clock"></i> ساعة الحضور:</label>
+                                <input type="text" id="time_${docId}" value="${currentTime}" placeholder="مثال: 10:30 صباحاً">
+                            </div>
+                        </div>
+
+                        <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
+                    </div>
+                    <div class="order-actions">
+                        <button class="btn-action btn-accept" onclick="acceptWithDetails('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور وساعة الحضور</button>
+                        <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                        <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // دالة حفظ رقم الدور وساعة الحضور وتغيير الحالة إلى مقبول
         window.acceptWithDetails = async function(id) {
             const queueInput = document.getElementById(`queue_${id}`).value.trim();
             const timeInput = document.getElementById(`time_${id}`).value.trim();
@@ -303,10 +416,14 @@
             }
 
             try {
+                const now = new Date();
+                const queueTime = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
                 await updateDoc(doc(db, "appointments", id), { 
                     status: "مقبول / مؤكد",
                     queueNumber: queueInput,
-                    appointmentTime: timeInput
+                    appointmentTime: timeInput,
+                    queueTime: queueTime
                 });
             } catch (e) { 
                 alert("خطأ في التحديث: " + e.message); 
