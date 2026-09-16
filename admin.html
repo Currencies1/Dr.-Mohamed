@@ -100,7 +100,6 @@
         .modal-card h3 { font-size: 18px; color: #0f172a; margin-bottom: 5px; }
         .modal-card p { font-size: 12.5px; color: #64748b; margin-bottom: 15px; line-height: 1.5; }
         
-        /* تصميم كرت الباركود المعروض */
         .qr-card-container {
             background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px;
             padding: 20px; display: inline-block; margin-bottom: 15px;
@@ -201,6 +200,19 @@
             padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; width: 110px; text-align: center; font-weight: bold; font-size: 14px; outline: none; background: #fff;
         }
 
+        /* تنسيق خانة الملاحظات الجديدة */
+        .notes-input-group {
+            background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; margin-bottom: 15px;
+        }
+        .notes-input-group label {
+            font-size: 13px; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+        }
+        .notes-input-group textarea {
+            width: 100%; border: 1px solid #fcd34d; border-radius: 8px; padding: 8px 12px; font-size: 13.5px;
+            outline: none; background: #fff; resize: vertical; min-height: 60px; font-family: 'Cairo', sans-serif;
+        }
+        .notes-input-group textarea:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15); }
+
         .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap; align-items: center; }
         
         .btn-action { 
@@ -244,7 +256,6 @@
             <h3><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> باركود حجز العيادة</h3>
             <p>قم بتصوير الكود بكاميرا الهاتف للانتقال الفوري إلى لوحة الحجز الخاصة بالمريض.</p>
             
-            <!-- إطار الباركود مع اسم الدكتور وتخصصه تحته -->
             <div class="qr-card-container">
                 <div id="qrcode"></div>
                 <div class="doctor-qr-info">
@@ -266,7 +277,6 @@
         <div class="admin-header">
             <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات د. محمد إسماعيل</h1>
             <div class="header-left">
-                <!-- زر الباركود المضاف -->
                 <button class="btn-barcode-nav" onclick="openBarcodeModal()">
                     <i class="fa-solid fa-qrcode"></i> باركود العيادة
                 </button>
@@ -325,6 +335,7 @@
         let currentFilter = 'all';
         let searchQuery = '';
         let qrInitialized = false;
+        let previousCount = null; // لتتبع عدد الطلبات الجديدة من أجل التنبيهات
 
         if (localStorage.getItem("doctorLoggedIn") === "true") {
             showDashboard();
@@ -355,7 +366,30 @@
         function showDashboard() {
             document.getElementById("loginOverlay").style.display = "none";
             document.getElementById("adminDashboard").style.display = "block";
+            requestNotificationPermission();
             loadAppointments();
+        }
+
+        // طلب صلاحيات الإشعارات المتصفح
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        }
+
+        // دالة تشغيل التنبيه الصوتي والإشعارات عند وصول حجز جديد
+        function triggerNewBookingAlert(message) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("تنبيه حجز جديد - د. محمد إسماعيل", {
+                    body: message,
+                    icon: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-doctor.svg"
+                });
+            }
+            // تشغيل صوت تنبيه قصير
+            try {
+                const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+                audio.play().catch(e => console.log("الصوت محظور من المتصفح لحين التفاعل"));
+            } catch(e) {}
         }
 
         window.openBarcodeModal = function() {
@@ -419,14 +453,23 @@
         };
 
         function loadAppointments() {
+            // المزامنة اللحظية عبر Firebase onSnapshot
             onSnapshot(collection(db, "appointments"), (querySnapshot) => {
-                allAppointments = [];
+                let newAppointmentsList = [];
                 querySnapshot.forEach((item) => {
-                    allAppointments.push({ id: item.id, ...item.data() });
+                    newAppointmentsList.push({ id: item.id, ...item.data() });
                 });
 
-                allAppointments.sort((a, b) => b.id.localeCompare(a.id));
+                newAppointmentsList.sort((a, b) => b.id.localeCompare(a.id));
 
+                // التحقق من وجود طلبات جديدة لتفعيل الإشعار التلقائي
+                if (previousCount !== null && newAppointmentsList.length > previousCount) {
+                    const latest = newAppointmentsList[0];
+                    triggerNewBookingAlert(`تم استلام طلب حجز جديد للمريض: ${latest.username || 'بدون اسم'}`);
+                }
+                previousCount = newAppointmentsList.length;
+
+                allAppointments = newAppointmentsList;
                 updateCounters();
                 renderFilteredAppointments();
             }, (error) => {
@@ -498,6 +541,7 @@
                 const status = data.status || "قيد الانتظار";
                 const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
                 const currentTime = data.appointmentTime && data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
+                const currentNotes = data.doctorNotes || "";
                 
                 let statusClass = "status-pending";
                 if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
@@ -523,6 +567,7 @@
                             <div style="grid-column: 1 / -1;">تفاصيل الأعراض: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
                         </div>
                         
+                        <!-- حقول إدخال الدور وساعة الحضور -->
                         <div class="inputs-grid">
                             <div class="queue-input-group">
                                 <label><i class="fa-solid fa-ticket"></i> رقم الدور:</label>
@@ -534,10 +579,16 @@
                             </div>
                         </div>
 
+                        <!-- خانة ملاحظات الطبيب الجديدة تظهر في صفحة المريض -->
+                        <div class="notes-input-group">
+                            <label><i class="fa-solid fa-note-sticky"></i> ملاحظات الطبيب (تظهر مباشرة في صفحة المريض):</label>
+                            <textarea id="notes_${docId}" placeholder="اكتب التعليمات أو الملاحظات الطبية للمريض هنا...">${currentNotes}</textarea>
+                        </div>
+
                         <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
                     </div>
                     <div class="order-actions">
-                        <button class="btn-action btn-accept" onclick="acceptWithDetails('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور وساعة الحضور</button>
+                        <button class="btn-action btn-accept" onclick="acceptWithDetails('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور وساعة الحضور والملاحظات</button>
                         <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
                         <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
                     </div>
@@ -546,9 +597,11 @@
             });
         }
 
+        // دالة حفظ القبول مع الملاحظات وتحديثها فورياً في قاعدة البيانات لتظهر عند المريض
         window.acceptWithDetails = async function(id) {
             const queueInput = document.getElementById(`queue_${id}`).value.trim();
             const timeInput = document.getElementById(`time_${id}`).value.trim();
+            const notesInput = document.getElementById(`notes_${id}`).value.trim();
             
             if (!queueInput || !timeInput) {
                 alert("الرجاء إدخال كل من (رقم الدور) و(ساعة الحضور) للمريض قبل الضغط على قبول!");
@@ -563,8 +616,10 @@
                     status: "مقبول / مؤكد",
                     queueNumber: queueInput,
                     appointmentTime: timeInput,
-                    queueTime: queueTime
+                    queueTime: queueTime,
+                    doctorNotes: notesInput
                 });
+                alert("تم تحديث وحفظ بيانات المريض والملاحظات بنجاح!");
             } catch (e) { 
                 alert("خطأ في التحديث: " + e.message); 
             }
