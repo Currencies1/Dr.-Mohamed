@@ -81,7 +81,7 @@
         .order-info { margin-bottom: 15px; }
         .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* تنسيق تفاصيل المريض داخل بطاقة الأدمن */
+        /* تفاصيل المريض */
         .patient-details-box {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -97,12 +97,20 @@
         }
         .patient-details-box span { font-weight: bold; color: #0f172a; }
         
-        .queue-input-group {
-            display: flex; align-items: center; gap: 10px; margin: 15px 0; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
+        /* مجموعة إدخال الدور وساعة الحضور */
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
         }
-        .queue-input-group label { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+
+        .queue-input-group {
+            display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
+        }
+        .queue-input-group label { font-size: 13px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; }
         .queue-input-group input {
-            padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; width: 90px; text-align: center; font-weight: bold; font-size: 15px; outline: none;
+            padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; width: 110px; text-align: center; font-weight: bold; font-size: 14px; outline: none; background: #fff;
         }
 
         .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap; align-items: center; }
@@ -225,6 +233,7 @@
                     const docId = item.id;
                     const status = data.status || "قيد الانتظار";
                     const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
+                    const currentTime = data.appointmentTime && data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
                     
                     let statusClass = "status-pending";
                     if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
@@ -239,26 +248,33 @@
                                 <span class="status-badge ${statusClass}">${status}</span>
                             </h3>
 
-                            <!-- تفاصيل المريض كاملة لتعبئة المستند بدقة -->
+                            <!-- تفاصيل المريض كاملة -->
                             <div class="patient-details-box">
                                 <div>العمر: <span>${data.age || "غير متوفر"} سنة</span></div>
                                 <div>الإقامة: <span>${data.residence || "غير متوفر"}</span></div>
                                 <div>رقم الهاتف: <span dir="ltr">${data.phone || "غير متوفر"}</span></div>
                                 <div>نوع الزيارة: <span style="color: #0284c7;">${data.visitType || "عادي"}</span></div>
                                 <div>تاريخ الموعد: <span>${data.appointmentDate || "غير متوفر"}</span></div>
-                                <div>ساعة الحجز: <span>${data.bookingTime || "غير متوفر"}</span></div>
+                                <div>توقيت طلب الحجز: <span>${data.bookingTime || "غير متوفر"}</span></div>
                                 <div style="grid-column: 1 / -1;">تفاصيل الأعراض: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
                             </div>
                             
-                            <div class="queue-input-group">
-                                <label><i class="fa-solid fa-ticket"></i> تحديد رقم الدور للمريض:</label>
-                                <input type="text" id="queue_${docId}" value="${currentQueue}" placeholder="مثال: 1">
+                            <!-- حقول إدخال الدور وساعة الحضور -->
+                            <div class="inputs-grid">
+                                <div class="queue-input-group">
+                                    <label><i class="fa-solid fa-ticket"></i> رقم الدور:</label>
+                                    <input type="text" id="queue_${docId}" value="${currentQueue}" placeholder="مثال: 1">
+                                </div>
+                                <div class="queue-input-group">
+                                    <label><i class="fa-regular fa-clock"></i> ساعة الحضور:</label>
+                                    <input type="text" id="time_${docId}" value="${currentTime}" placeholder="مثال: 10:30 صباحاً">
+                                </div>
                             </div>
 
                             <div style="font-size: 11px; color: #94a3b8;">معرف الطلب: ${docId}</div>
                         </div>
                         <div class="order-actions">
-                            <button class="btn-action btn-accept" onclick="acceptWithQueue('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور</button>
+                            <button class="btn-action btn-accept" onclick="acceptWithDetails('${docId}')"><i class="fa-solid fa-check"></i> قبول وتحديد الدور وساعة الحضور</button>
                             <button class="btn-action btn-reject" onclick="updateStatus('${docId}', 'ملغي / مرفوض')"><i class="fa-solid fa-xmark"></i> رفض</button>
                             <button class="btn-action" style="background:#fee2e2; color:#991b1b; margin-right:auto;" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> حذف</button>
                         </div>
@@ -276,18 +292,21 @@
             });
         }
 
-        // دالة حفظ رقم الدور وتغيير الحالة إلى مقبول (تحديث تلقائي فوري لصفحة المريض)
-        window.acceptWithQueue = async function(id) {
+        // دالة حفظ رقم الدور وساعة الحضور وتغيير الحالة إلى مقبول (تحديث لحظي لصفحة المريض)
+        window.acceptWithDetails = async function(id) {
             const queueInput = document.getElementById(`queue_${id}`).value.trim();
-            if (!queueInput) {
-                alert("الرجاء إدخال رقم الدور للمريض قبل الضغط على قبول!");
+            const timeInput = document.getElementById(`time_${id}`).value.trim();
+            
+            if (!queueInput || !timeInput) {
+                alert("الرجاء إدخال كل من (رقم الدور) و(ساعة الحضور) للمريض قبل الضغط على قبول!");
                 return;
             }
 
             try {
                 await updateDoc(doc(db, "appointments", id), { 
                     status: "مقبول / مؤكد",
-                    queueNumber: queueInput
+                    queueNumber: queueInput,
+                    appointmentTime: timeInput
                 });
             } catch (e) { 
                 alert("خطأ في التحديث: " + e.message); 
