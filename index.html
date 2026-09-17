@@ -72,7 +72,7 @@
 
         .form-header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-header .icon-box {
@@ -106,17 +106,41 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin: 12px 0 15px 0;
+            margin: 10px 0 10px 0;
             box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
         }
 
         .clinic-location-badge i { color: var(--primary); font-size: 16px; }
 
-        .form-header p {
-            color: #64748b;
+        /* شريط أوقات الدوام الجميل والواضح */
+        .clinic-hours-banner {
+            background: linear-gradient(135deg, #f8fafc 100%, #f1f5f9 0%);
+            border: 1.5px solid #cbd5e1;
+            border-right: 4px solid var(--primary);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            text-align: right;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .clinic-hours-banner .hours-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .clinic-hours-banner .hours-title i { color: #f59e0b; font-size: 15px; }
+        .clinic-hours-banner .hours-details {
             font-size: 13px;
-            margin-top: 5px;
-            line-height: 1.5;
+            color: #334155;
+            line-height: 1.6;
+        }
+        .clinic-hours-banner .hours-details span {
+            color: #0284c7;
+            font-weight: 700;
         }
 
         /* رسالة إغلاق العيادة */
@@ -501,14 +525,24 @@
                 <i class="fa-solid fa-location-dot"></i>
                 <span>موقع العيادة: معرة النعمان - شارع البريد بجانب مجمع الشفاء</span>
             </div>
-            <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
         </div>
 
-        <!-- رسالة إغلاق العيادة -->
+        <!-- إشعار أوقات دوام العيادة الجميل والواضح -->
+        <div class="clinic-hours-banner">
+            <div class="hours-title">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                أوقات الدوام الرسمي للعيادة
+            </div>
+            <div class="hours-details">
+                العيادة متاحة على مدار الأسبوع من الساعة <span>11 صباحاً</span> حتى <span>3 عصراً</span>، ومن الساعة <span>7 مساءً</span> حتى <span>11 ليلاً</span>، ما عدا يوم الجمعة من الساعة <span>5 مساءً</span> حتى <span>11 ليلاً</span>.
+            </div>
+        </div>
+
+        <!-- رسالة إغلاق العيادة (تتغير تلقائياً من لوحة تحكم الطبيب) -->
         <div id="clinicClosedNotice">
             <i class="fa-solid fa-door-closed"></i>
             <h3>العيادة مغلقة حالياً</h3>
-            <p id="closedMessageText">نعتذر منك، العيادة مغلقة حالياً. أوقات الدوام الرسمي: من الساعة 9 صباحاً حتى 3 عصراً ومن الساعة 5 مساءً حتى 11 ليلاً.</p>
+            <p id="closedMessageText">نعتذر منك، العيادة مغلقة حالياً من قبل الطبيب. يرجى المحاولة في أوقات الدوام الرسمي.</p>
         </div>
 
         <div id="formFieldsContainer">
@@ -719,7 +753,6 @@
         }
     };
 
-    // دالة ضغط الصور تلقائياً لتلائم قاعدة البيانات من كاميرا الهاتف
     window.previewReport = function() {
         const input = document.getElementById("medicalReport");
         const preview = document.getElementById("reportPreview");
@@ -736,8 +769,6 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-
-                    // تصغير أبعاد الصورة إذا كانت كبيرة جداً (الحد الأقصى للعرض أو الارتفاع 1000 بكسل)
                     const MAX_DIMENSION = 1000;
                     if (width > height) {
                         if (width > MAX_DIMENSION) {
@@ -756,7 +787,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // تحويل الصورة إلى صيغة JPEG بجودة 0.7 لتصغير الحجم بشكل كبير وقبوله في القاعدة
                     base64ReportImage = canvas.toDataURL('image/jpeg', 0.7);
 
                     preview.style.display = "flex";
@@ -976,7 +1006,8 @@
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
         document.getElementById("medicalReport").value = "";
-        document.getElementById("reportPreview").style.display, document.getElementById("reportStatusIndicator").style.display = "none";
+        document.getElementById("reportPreview").style.display = "none";
+        document.getElementById("reportStatusIndicator").style.display = "none";
         base64ReportImage = "";
     };
 </script>
