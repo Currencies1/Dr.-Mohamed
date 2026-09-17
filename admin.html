@@ -100,7 +100,7 @@
 
         /* لوحة التحكم الرئيسية */
         .admin-container {
-            max-width: 950px;
+            max-width: 1000px;
             width: 100%;
             margin: 0 auto;
             display: none;
@@ -149,7 +149,7 @@
             flex-wrap: wrap;
         }
 
-        /* زر النسخ الاحتياطي Excel الجديد */
+        /* أزرار الرأس */
         .btn-backup {
             background: #f0fdf4;
             color: #15803d;
@@ -167,30 +167,31 @@
         }
         .btn-backup:hover { background: #16a34a; color: #ffffff; border-color: #16a34a; }
 
-        /* زر جرس الإشعارات العائم بالرأس */
+        /* زر جرس الإشعارات المحدث والمتناسق بالرأس */
         .notification-bell {
             position: relative;
-            background: #f1f5f9;
-            border: 1px solid var(--border-color);
-            color: #334155;
-            padding: 9px 14px;
+            background: #eff6ff;
+            border: 1px solid #bae6fd;
+            color: var(--primary);
+            padding: 9px 16px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 14.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             transition: all 0.2s;
         }
-        .notification-bell:hover { background: #e2e8f0; }
+        .notification-bell:hover { background: var(--primary); color: #ffffff; }
         .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
             background: var(--danger);
             color: white;
             font-size: 11px;
             font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 50%;
-            display: none;
+            padding: 2px 7px;
+            border-radius: 10px;
+            display: inline-block;
             animation: pulse-badge 1.5s infinite;
         }
         @keyframes pulse-badge {
@@ -199,7 +200,6 @@
             100% { transform: scale(1); }
         }
 
-        /* زر الباركود الجديد */
         .btn-barcode {
             background: #eff6ff;
             color: #0284c7;
@@ -255,7 +255,6 @@
             gap: 15px;
         }
 
-        /* صندوق البحث المتقدم الجديد */
         .search-box-wrapper {
             position: relative;
             width: 100%;
@@ -322,7 +321,6 @@
             color: white;
         }
 
-        /* زر حالة العيادة */
         .clinic-status-toggle {
             display: flex;
             align-items: center;
@@ -353,8 +351,45 @@
             border: 1.5px solid #ef4444;
         }
 
-        /* شبكة عرض الطلبات */
-        .requests-grid {
+        /* تنسيق أقسام الفترات (صباحي / مسائي) */
+        .periods-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        .period-section {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .period-header {
+            padding: 16px 22px;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .morning-section .period-header {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            color: #b45309;
+            border-bottom-color: #fde68a;
+        }
+
+        .evening-section .period-header {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            color: #3730a3;
+            border-bottom-color: #c7d2fe;
+        }
+
+        .period-body {
+            padding: 20px;
             display: grid;
             grid-template-columns: 1fr;
             gap: 18px;
@@ -371,7 +406,6 @@
         }
         .request-card:hover { box-shadow: var(--shadow-md); }
 
-        /* تمييز خاص للطلبات الجديدة الواردة */
         .request-card.new-incoming {
             border: 2px dashed var(--primary);
             background: linear-gradient(0deg, #f0f9ff 0%, #ffffff 100%);
@@ -499,15 +533,13 @@
         .no-requests {
             text-align: center;
             background: white;
-            padding: 50px 20px;
+            padding: 30px 20px;
             border-radius: var(--radius-lg);
             color: var(--text-muted);
-            font-size: 15px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
+            font-size: 14px;
         }
 
-        /* نافذة منبثقة للتقارير والباركود */
+        /* النوافذ المنبثقة */
         .custom-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);
@@ -580,13 +612,11 @@
         <div class="admin-header">
             <h2><i class="fa-solid fa-stethoscope"></i> عيادة الأمراض الداخلية - لوحة الإدارة</h2>
             <div class="header-actions">
-                <!-- زر النسخ الاحتياطي Excel الجديد -->
                 <button onclick="downloadExcelBackup()" class="btn-backup"><i class="fa-solid fa-file-excel"></i> نسخة احتياطية</button>
-                <!-- زر عرض الباركود -->
                 <button onclick="openBarcodeModal()" class="btn-barcode"><i class="fa-solid fa-qrcode"></i> باركود الموقع</button>
-                <!-- زر الإشعارات -->
+                <!-- زر جرس الإشعارات المتناسق مع العداد -->
                 <div class="notification-bell" title="الطلبات الجديدة غير المكتملة">
-                    <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-bell"></i> الإشعارات 
                     <span id="notifBadge" class="notification-badge">0</span>
                 </div>
                 <button onclick="logoutAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
@@ -595,14 +625,12 @@
 
         <!-- شريط التحكم بالعيادة والفلترة والبحث -->
         <div class="control-bar">
-            <!-- شريط البحث السريع في الحجوزات -->
             <div class="search-box-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="searchInput" placeholder="ابحث باسم المريض، رقم الأضبارة، أو رمز المعاملة..." oninput="filterAppointments()">
             </div>
 
             <div class="control-bar-top">
-                <!-- أزرار الفلترة المتضمنة للفترات والعدادات -->
                 <div class="filter-buttons">
                     <button class="filter-btn active" onclick="setFilter('all', this)">
                         الكل <span id="count-all" class="count-badge">0</span>
@@ -613,12 +641,6 @@
                     <button class="filter-btn" onclick="setFilter('إسعاف', this)">
                         🚨 الإسعاف <span id="count-emergency" class="count-badge">0</span>
                     </button>
-                    <button class="filter-btn" onclick="setFilter('صباحي', this)">
-                        ☀️ صباحي <span id="count-morning" class="count-badge">0</span>
-                    </button>
-                    <button class="filter-btn" onclick="setFilter('مسائي', this)">
-                        🌙 مسائي <span id="count-evening" class="count-badge">0</span>
-                    </button>
                     <button class="filter-btn" onclick="setFilter('مؤكد', this)">
                         المؤكد <span id="count-accepted" class="count-badge">0</span>
                     </button>
@@ -627,7 +649,6 @@
                     </button>
                 </div>
 
-                <!-- زر حالة العيادة -->
                 <div class="clinic-status-toggle">
                     <button id="clinicStatusBtn" class="btn-toggle-clinic clinic-open" onclick="toggleClinicStatus()">
                         <i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة
@@ -636,10 +657,28 @@
             </div>
         </div>
 
-        <div id="requestsContainer" class="requests-grid">
-            <div class="no-requests">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 26px; margin-bottom: 12px; display: block; color: var(--primary);"></i>
-                جاري تحميل بيانات المراجعة الطبية...
+        <!-- الأقسام المنفصلة للفترة الصباحية والفترة المسائية -->
+        <div class="periods-container">
+            <!-- قسم الفترة الصباحية -->
+            <div class="period-section morning-section">
+                <div class="period-header">
+                    <span><i class="fa-solid fa-sun" style="margin-left: 8px;"></i> الفترة الصباحية</span>
+                    <span id="morning-count-badge" class="badge-type" style="background:#fde68a; color:#b45309;">0 حجز</span>
+                </div>
+                <div id="morningContainer" class="period-body">
+                    <div class="no-requests">جاري تحميل حجوزات الفترة الصباحية...</div>
+                </div>
+            </div>
+
+            <!-- قسم الفترة المسائية -->
+            <div class="period-section evening-section">
+                <div class="period-header">
+                    <span><i class="fa-solid fa-moon" style="margin-left: 8px;"></i> الفترة المسائية</span>
+                    <span id="evening-count-badge" class="badge-type" style="background:#c7d2fe; color:#3730a3;">0 حجز</span>
+                </div>
+                <div id="eveningContainer" class="period-body">
+                    <div class="no-requests">جاري تحميل حجوزات الفترة المسائية...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -662,7 +701,7 @@
         </div>
     </div>
 
-    <!-- صوت تنبيه جرس رنان وجميل -->
+    <!-- صوت تنبيه جرس رنان -->
     <audio id="notificationSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
     <script type="module">
@@ -705,7 +744,6 @@
             }, { once: true });
         });
 
-        // دالة تصدير النسخة الاحتياطية كملف Excel بصيغة XLS
         window.downloadExcelBackup = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "appointments"));
@@ -714,23 +752,8 @@
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    let dateStr = "";
-                    if (data.createdAt && data.createdAt.toDate) {
-                        dateStr = data.createdAt.toDate().toLocaleString('ar-EG');
-                    } else {
-                        dateStr = "غير متوفر";
-                    }
-
-                    const name = (data.username || "").replace(/\t/g, " ");
-                    const age = data.age || "";
-                    const residence = (data.residence || "").replace(/\t/g, " ");
-                    const sessionPeriod = (data.sessionPeriod || "غير محدد").replace(/\t/g, " ");
-                    const visitType = (data.visitType || "").replace(/\t/g, " ");
-                    const fileNo = (data.fileNumber || "لا يوجد").replace(/\t/g, " ");
-                    const queueNo = (data.queueNumber || "").replace(/\t/g, " ");
-                    const status = (data.status || "").replace(/\t/g, " ");
-
-                    excelContent += `${name}\t${age}\t${residence}\t${sessionPeriod}\t${visitType}\t${fileNo}\t${queueNo}\t${status}\t${dateStr}\n`;
+                    let dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString('ar-EG') : "غير متوفر";
+                    excelContent += `${data.username || ""}\t${data.age || ""}\t${data.residence || ""}\t${data.sessionPeriod || ""}\t${data.visitType || ""}\t${data.fileNumber || ""}\t${data.queueNumber || ""}\t${data.status || ""}\t${dateStr}\n`;
                 });
 
                 const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
@@ -743,7 +766,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch (error) {
-                console.error("خطأ أثناء تصدير النسخة الاحتياطية:", error);
+                console.error("خطأ:", error);
                 alert("حدث خطأ أثناء تحميل النسخة الاحتياطية.");
             }
         };
@@ -766,9 +789,7 @@
             setTimeout(() => {
                 const qrImg = document.querySelector("#qrcodeContainer img");
                 const downloadBtn = document.getElementById("downloadQrBtn");
-                if (qrImg && downloadBtn) {
-                    downloadBtn.href = qrImg.src;
-                }
+                if (qrImg && downloadBtn) downloadBtn.href = qrImg.src;
             }, 300);
         };
 
@@ -821,11 +842,7 @@
             const statusRef = doc(db, "settings", "clinic_status");
             onSnapshot(statusRef, (docSnap) => {
                 const btn = document.getElementById("clinicStatusBtn");
-                if (docSnap.exists()) {
-                    isClinicOpen = docSnap.data().isOpen;
-                } else {
-                    isClinicOpen = true;
-                }
+                isClinicOpen = docSnap.exists() ? docSnap.data().isOpen : true;
 
                 if (isClinicOpen) {
                     btn.className = "btn-toggle-clinic clinic-open";
@@ -842,11 +859,10 @@
             try {
                 await setDoc(doc(db, "settings", "clinic_status"), {
                     isOpen: newStatus,
-                    closedMessage: "نعتذر منك، العيادة مغلقة حالياً. أوقات الدوام الرسمي: من الساعة 9 صباحاً حتى 3 عصراً ومن الساعة 5 مساءً حتى 11 ليلاً."
+                    closedMessage: "نعتذر منك، العيادة مغلقة حالياً."
                 }, { merge: true });
             } catch (error) {
-                console.error("خطأ في تغيير حالة العيادة:", error);
-                alert("فشل تحديث حالة العيادة!");
+                console.error("خطأ:", error);
             }
         };
 
@@ -862,20 +878,13 @@
                 let tallyAll = allFetchedDocs.length;
                 let tallyPending = 0;
                 let tallyEmergency = 0;
-                let tallyMorning = 0;
-                let tallyEvening = 0;
                 let tallyAccepted = 0;
                 let tallyRejected = 0;
 
                 allFetchedDocs.forEach(data => {
                     const status = data.status || "قيد الانتظار";
-                    const isEmergency = data.isEmergency || false;
-                    const period = data.sessionPeriod || "";
-
                     if (status === "قيد الانتظار") tallyPending++;
-                    if (isEmergency) tallyEmergency++;
-                    if (period === "صباحي") tallyMorning++;
-                    if (period === "مسائي") tallyEvening++;
+                    if (data.isEmergency) tallyEmergency++;
                     if (status.includes("مقبول")) tallyAccepted++;
                     if (status.includes("مرفوض")) tallyRejected++;
                 });
@@ -883,24 +892,17 @@
                 document.getElementById("count-all").innerText = tallyAll;
                 document.getElementById("count-pending").innerText = tallyPending;
                 document.getElementById("count-emergency").innerText = tallyEmergency;
-                document.getElementById("count-morning").innerText = tallyMorning;
-                document.getElementById("count-evening").innerText = tallyEvening;
                 document.getElementById("count-accepted").innerText = tallyAccepted;
                 document.getElementById("count-rejected").innerText = tallyRejected;
 
                 const notifBadge = document.getElementById("notifBadge");
-                if (tallyPending > 0) {
-                    notifBadge.style.display = "inline-block";
-                    notifBadge.innerText = tallyPending;
-                } else {
-                    notifBadge.style.display = "none";
-                }
+                notifBadge.innerText = tallyPending;
 
                 if (previousTotalCount !== null && tallyAll > previousTotalCount) {
                     const sound = document.getElementById("notificationSound");
                     if (sound) {
                         sound.currentTime = 0;
-                        sound.play().catch(e => console.log("تعذر تشغيل الصوت تلقائياً:", e));
+                        sound.play().catch(e => console.log(e));
                     }
                 }
                 previousTotalCount = tallyAll;
@@ -914,35 +916,32 @@
             let dateObj = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
             if (isNaN(dateObj.getTime())) return 'غير متوفر';
             return dateObj.toLocaleString('ar-EG', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: true
             });
         }
 
         function renderAppointments(docsArray) {
-            const container = document.getElementById("requestsContainer");
+            const morningContainer = document.getElementById("morningContainer");
+            const eveningContainer = document.getElementById("eveningContainer");
             const searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
             
-            let html = "";
-            let count = 0;
+            let morningHtml = "";
+            let eveningHtml = "";
+            let morningCount = 0;
+            let eveningCount = 0;
 
             docsArray.forEach((data) => {
                 const id = data.id;
                 const isEmergency = data.isEmergency || false;
                 const status = data.status || "قيد الانتظار";
-                const period = data.sessionPeriod || "";
+                const period = data.sessionPeriod || "صباحي";
                 const username = (data.username || "").toLowerCase();
                 const fileNumber = (data.fileNumber || "").toLowerCase();
                 const transactionCode = (data.transactionCode || "").toLowerCase();
 
                 if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
                 if (currentFilter === 'إسعاف' && !isEmergency) return;
-                if (currentFilter === 'صباحي' && period !== "صباحي") return;
-                if (currentFilter === 'مسائي' && period !== "مسائي") return;
                 if (currentFilter === 'مؤكد' && !status.includes("مقبول")) return;
                 if (currentFilter === 'مرفوض' && !status.includes("مرفوض")) return;
 
@@ -950,7 +949,6 @@
                     return;
                 }
 
-                count++;
                 const isNew = status === "قيد الانتظار";
                 const formattedTime = formatBookingDateTime(data.createdAt);
 
@@ -959,25 +957,20 @@
                     reportBtnHtml = `<button onclick="showReportModal('${data.reportImage}')" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-weight:700;"><i class="fa-solid fa-image"></i> عرض التقرير الطبي المرفق</button>`;
                 }
 
-                html += `
+                const cardTemplate = `
                     <div class="request-card ${isEmergency ? 'emergency' : ''} ${isNew ? 'new-incoming' : ''}" id="card-${id}">
                         <div class="card-top">
                             <span class="patient-name">
                                 <i class="fa-solid fa-user-circle"></i> ${data.username}
                                 ${isNew ? '<span class="new-tag">طلب جديد 🔔</span>' : ''}
                             </span>
-                            <div style="display:flex;gap:6px;align-items:center;">
-                                <span class="badge-type" style="background:${period === 'صباحي' ? '#fef3c7' : '#e0e7ff'};color:${period === 'صباحي' ? '#d97706' : '#4338ca'};">
-                                    ${period === 'صباحي' ? '☀️ فترة صباحية' : (period === 'مسائي' ? '🌙 فترة مسائية' : 'فترة غير محددة')}
-                                </span>
-                                <span class="badge-type">${isEmergency ? '🚨 حالة إسعافية طارئة' : data.visitType}</span>
-                            </div>
+                            <span class="badge-type">${isEmergency ? '🚨 حالة إسعافية' : data.visitType}</span>
                         </div>
                         <div class="card-body">
-                            <p><i class="fa-regular fa-clock" style="color: var(--primary); margin-left: 5px;"></i> وقت وتاريخ الإرسال: <span style="color: var(--primary-dark);">${formattedTime}</span></p>
+                            <p><i class="fa-regular fa-clock" style="color: var(--primary); margin-left: 5px;"></i> وقت الإرسال: <span style="color: var(--primary-dark);">${formattedTime}</span></p>
                             <p>العمر: <span>${data.age} سنة</span> | الإقامة: <span>${data.residence}</span></p>
                             <p>رقم الأضبارة: <span>${data.fileNumber}</span></p>
-                            <p>رمز المعاملة الرقمي: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
+                            <p>رمز المعاملة: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
                             <p style="margin-top: 8px;">التفاصيل: <span>${data.details}</span></p>
                             ${reportBtnHtml}
                             <p style="margin-top: 8px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? 'var(--warning)' : (status.includes('مقبول') ? 'var(--success)' : 'var(--danger)')}">${status}</b></p>
@@ -990,53 +983,91 @@
                             </div>
                             <div class="admin-input-group">
                                 <label>ملاحظات وتوجيهات الطبيب (اختياري)</label>
-                                <textarea id="notes-${id}" placeholder="اكتب أي تعليمات أو أدوية موصوفة للمريض..." rows="2">${data.doctorNotes || ''}</textarea>
+                                <textarea id="notes-${id}" placeholder="تعليمات أو أدوية..." rows="2">${data.doctorNotes || ''}</textarea>
                             </div>
                             <div class="card-actions">
-                                <button onclick="updateStatus('${id}', 'مقبول')" class="btn-action btn-accept">
-                                    <i class="fa-solid fa-check-circle"></i> قبول وتثبيت الدور وإرسال للمريض
+                                <button onclick="updateStatus('${id}', '${period}')" class="btn-action btn-accept">
+                                    <i class="fa-solid fa-check-circle"></i> قبول وتثبيت الدور
                                 </button>
-                                <button onclick="updateStatus('${id}', 'مرفوض')" class="btn-action btn-reject" title="رفض الطلب">
+                                <button onclick="updateStatusReject('${id}')" class="btn-action btn-reject">
                                     <i class="fa-solid fa-ban"></i> رفض
                                 </button>
-                                <button onclick="deleteRequest('${id}')" class="btn-action btn-delete-record" title="حذف السجل نهائياً">
+                                <button onclick="deleteRequest('${id}')" class="btn-action btn-delete-record" title="حذف السجل">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 `;
+
+                if (period === 'مسائي') {
+                    eveningHtml += cardTemplate;
+                    eveningCount++;
+                } else {
+                    morningHtml += cardTemplate;
+                    morningCount++;
+                }
             });
 
-            if (count === 0) {
-                container.innerHTML = `<div class="no-requests"><i class="fa-solid fa-filter-circle-xmark" style="font-size: 32px; margin-bottom: 12px; display: block; color: var(--text-muted);"></i> لا توجد نتائج مطابقة لعملية البحث أو الفلتر الحالي.</div>`;
-            } else {
-                container.innerHTML = html;
-            }
+            document.getElementById("morning-count-badge").innerText = `${morningCount} حجز`;
+            document.getElementById("evening-count-badge").innerText = `${eveningCount} حجز`;
+
+            morningContainer.innerHTML = morningCount > 0 ? morningHtml : `<div class="no-requests">لا توجد حجوزات في الفترة الصباحية مطابقة.</div>`;
+            eveningContainer.innerHTML = eveningCount > 0 ? eveningHtml : `<div class="no-requests">لا توجد حجوزات في الفترة المسائية مطابقة.</div>`;
         }
 
-        window.updateStatus = async function(docId, newStatus) {
+        // دالة قبول الطلب مع التحقق من عدم تكرار رقم الدور في نفس الفترة
+        window.updateStatus = async function(docId, period) {
             const queueInput = document.getElementById(`queue-${docId}`);
             const notesInput = document.getElementById(`notes-${docId}`);
 
             let queueNumber = queueInput ? queueInput.value.trim() : "";
             let doctorNotes = notesInput ? notesInput.value.trim() : "";
 
-            if (newStatus === "مقبول" && !queueNumber) {
+            if (!queueNumber) {
                 alert("الرجاء إدخال رقم الدور للمريض قبل القبول!");
+                return;
+            }
+
+            // التحقق البرمجي من عدم تكرار رقم الدور لنفس الفترة النشطة
+            const isDuplicate = allFetchedDocs.some(docItem => {
+                return docItem.id !== docId && 
+                       docItem.sessionPeriod === period && 
+                       docItem.queueNumber === queueNumber && 
+                       docItem.status && docItem.status.includes("مقبول");
+            });
+
+            if (isDuplicate) {
+                alert(`⚠️ تنبيه: رقم الدور (${queueNumber}) مستخدم بالفعل لمريض آخر في الفترة (${period === 'صباحي' ? 'الصباحية' : 'المسائية'}). لا يمكن تكرار نفس رقم الدور حتى يتم حذف الحجز الأول أو تعديله.`);
                 return;
             }
 
             try {
                 const docRef = doc(db, "appointments", docId);
                 await updateDoc(docRef, {
-                    status: newStatus === "مقبول" ? "مقبول ومؤكد" : "مرفوض وملغي",
-                    queueNumber: newStatus === "مقبول" ? queueNumber : "ملغي",
+                    status: "مقبول ومؤكد",
+                    queueNumber: queueNumber,
+                    doctorNotes: doctorNotes
+                });
+                alert("تم قبول الحجز وتثبيت رقم الدور بنجاح!");
+            } catch (error) {
+                console.error("خطأ:", error);
+                alert("فشل تحديث حالة الطلب!");
+            }
+        };
+
+        window.updateStatusReject = async function(docId) {
+            const notesInput = document.getElementById(`notes-${docId}`);
+            let doctorNotes = notesInput ? notesInput.value.trim() : "";
+            try {
+                const docRef = doc(db, "appointments", docId);
+                await updateDoc(docRef, {
+                    status: "مرفوض وملغي",
+                    queueNumber: "ملغي",
                     doctorNotes: doctorNotes
                 });
             } catch (error) {
-                console.error("خطأ في التحديث:", error);
-                alert("فشل تحديث حالة الطلب!");
+                console.error("خطأ:", error);
             }
         };
 
