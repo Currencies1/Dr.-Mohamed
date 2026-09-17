@@ -81,7 +81,6 @@
         .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 13.5px; }
         .btn-logout:hover { background: #fecaca; }
 
-        /* لوحة التحكم في حالة الرابط (إيقاف/تشغيل) */
         .clinic-control-card {
             background: var(--card-bg); padding: 20px 25px; border-radius: 14px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
@@ -91,9 +90,7 @@
         .clinic-control-info p { font-size: 12.5px; color: #64748b; }
         
         .switch-container { display: flex; align-items: center; gap: 10px; }
-        .switch {
-            position: relative; display: inline-block; width: 54px; height: 28px;
-        }
+        .switch { position: relative; display: inline-block; width: 54px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
@@ -190,17 +187,12 @@
         }
         .patient-details-box span { font-weight: bold; color: #0f172a; }
         
-        /* تصميم معاينة صورة التقرير الطبي المرفق */
         .report-view-box {
             background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 10px; padding: 12px; margin-bottom: 15px;
             display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
         }
         .report-view-box span { font-size: 13px; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 6px; }
-        .report-thumbnail {
-            max-height: 70px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s;
-        }
-        .report-thumbnail:hover { opacity: 0.85; transform: scale(1.02); }
-
+        
         .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 15px 0; }
         .queue-input-group {
             display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
@@ -226,9 +218,7 @@
         .status-rejected { background: #fee2e2; color: #991b1b; }
 
         .no-data { text-align: center; padding: 40px; color: #64748b; font-size: 14px; background: var(--card-bg); border-radius: 14px; }
-        .error-box { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6; }
-
-        /* نافذة منبثقة لعرض الصورة بحجم كبير */
+        
         #imageModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             display: none; justify-content: center; align-items: center; z-index: 11000; padding: 20px;
@@ -251,7 +241,6 @@
         </div>
     </div>
 
-    <!-- نافذة عرض صورة التقرير بالحجم الكامل -->
     <div id="imageModal" onclick="this.style.display='none'">
         <img id="fullImagePreview" src="" alt="التقرير الطبي">
     </div>
@@ -288,11 +277,10 @@
             </div>
         </div>
 
-        <!-- بطاقة التحكم في تفعيل / إيقاف رابط الحجز -->
         <div class="clinic-control-card">
             <div class="clinic-control-info">
                 <h3><i class="fa-solid fa-power-off" style="color:var(--primary);"></i> حالة استقبال الحجوزات الإلكترونية</h3>
-                <p>قم بإيقاف الرابط مؤقتاً في حال امتلاء المواعيد أو إغلاق العيادة، ليظهر للمرضى رسالة توضيحية جميلة.</p>
+                <p>قم بإيقاف الرابط مؤقتاً في حال امتلاء المواعيد أو إغلاق العيادة.</p>
             </div>
             <div class="switch-container">
                 <span id="statusToggleText" class="status-text-toggle" style="color: var(--success);">الرابط متاح ومفعل</span>
@@ -386,7 +374,6 @@
             loadAppointments();
         }
 
-        // قراءة حالة إيقاف/تفعيل الرابط من فايربيس
         async function checkSystemSettings() {
             try {
                 const settingDoc = await getDoc(doc(db, "settings", "clinic_status"));
@@ -399,15 +386,13 @@
                     toggleText.innerText = isOpen ? "الرابط متاح ومفعل" : "الرابط متوقف حالياً";
                     toggleText.style.color = isOpen ? "var(--success)" : "var(--danger)";
                 } else {
-                    // الافتراضي مفتوح
                     toggleSwitch.checked = true;
                 }
             } catch(e) {
-                console.error("خطأ في جلب الإعدادات:", e);
+                console.log("تنبيه حول إعدادات الموقع: تأكد من ضبط قواعد الأمان في فايربيس للسماح بالقراءة والكتابة في مجموعة settings.");
             }
         }
 
-        // تحديث حالة إيقاف الرابط في فايربيس
         window.toggleBookingStatus = async function(checkbox) {
             const isOpen = checkbox.checked;
             const toggleText = document.getElementById("statusToggleText");
@@ -417,7 +402,10 @@
             try {
                 await setDoc(doc(db, "settings", "clinic_status"), { isOpen: isOpen }, { merge: true });
             } catch(e) {
-                alert("حدث خطأ أثناء حفظ حالة الرابط: " + e.message);
+                alert("حدث خطأ أثناء حفظ حالة الرابط:\nتأكد من تعديل قواعد الأمان (Firestore Rules) في منصة Firebase لتسمح بالقراءة والكتابة للجميع مؤقتاً:\nallow read, write: if true;");
+                checkbox.checked = !isOpen; // التراجع في حال الخطأ
+                toggleText.innerText = checkbox.checked ? "الرابط متاح ومفعل" : "الرابط متوقف حالياً";
+                toggleText.style.color = checkbox.checked ? "var(--success)" : "var(--danger)";
             }
         };
 
@@ -570,7 +558,9 @@
                 const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
                 const currentTime = data.appointmentTime && data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
                 const currentNotes = data.doctorNotes || "";
-                const reportImage = data.reportImageBase64 || "";
+                
+                // دعم الحقلين لملاءمة قاعدة البيانات (reportImageBase64 أو reportImage)
+                const reportImage = data.reportImageBase64 || data.reportImage || "";
                 
                 let statusClass = "status-pending";
                 if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
@@ -588,16 +578,17 @@
                         <div class="patient-details-box">
                             <div>العمر: <span>${data.age || "غير متوفر"} سنة</span></div>
                             <div>الإقامة: <span>${data.residence || "غير متوفر"}</span></div>
+                            <div>رقم الهاتف: <span dir="ltr">${data.phone || "غير متوفر"}</span></div>
                             <div>نوع الزيارة: <span style="color: #0284c7;">${data.visitType || "عادي"}</span></div>
                             ${data.fileNumber && data.fileNumber !== "لا يوجد" ? `<div>رقم الأضبارة: <span style="color: #7c2d12;">${data.fileNumber}</span></div>` : ''}
+                            <div>تاريخ الموعد: <span>${data.appointmentDate || "غير متوفر"}</span></div>
                             <div style="grid-column: 1 / -1;">تفاصيل الحالة: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
                         </div>
 
-                        <!-- عرض صورة التقرير الطبي إن وجدت -->
                         ${reportImage ? `
                             <div class="report-view-box">
                                 <span><i class="fa-solid fa-file-medical"></i> التقرير الطبي المرفق:</span>
-                                <img src="${reportImage}" class="reportthumbnail" onclick="openImageModal('${reportImage}')" title="اضغط لتكبير الصورة" style="max-height: 60px; border-radius: 6px; cursor: pointer; border: 1px solid #cbd5e1;">
+                                <img src="${reportImage}" onclick="openImageModal('${reportImage}')" title="اضغط لتكبير الصورة" style="max-height: 60px; border-radius: 6px; cursor: pointer; border: 1px solid #cbd5e1;">
                             </div>
                         ` : `
                             <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;"><i class="fa-solid fa-circle-info"></i> لم يتم إرفاق تقرير طبي مع هذا الطلب.</div>
