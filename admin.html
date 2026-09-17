@@ -230,57 +230,6 @@
         }
         .btn-logout:hover { background: #dc2626; color: #ffffff; border-color: #dc2626; }
 
-        /* شريط التوجيه العلوي السريع للفترات */
-        .quick-routing-bar {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 1.5px solid #bae6fd;
-            padding: 15px 20px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .quick-routing-bar span {
-            font-weight: 800;
-            font-size: 14px;
-            color: #0369a1;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .quick-routing-controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .quick-select {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #7dd3fc;
-            background: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            color: #0369a1;
-            outline: none;
-        }
-        .btn-quick-route {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Cairo';
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        .btn-quick-route:hover { background: var(--primary-dark); }
-
         .control-bar {
             background: var(--card-bg);
             padding: 18px 22px;
@@ -665,18 +614,6 @@
             </div>
         </div>
 
-        <!-- شريط النماذج السريعة في أعلى القائمة (توجيه الفترات) -->
-        <div class="quick-routing-bar">
-            <span><i class="fa-solid fa-sliders"></i> توجيه وتعديل فترات الحجوزات الجماعي:</span>
-            <div class="quick-routing-controls">
-                <select id="globalTargetPeriod" class="quick-select">
-                    <option value="صباحي">الفترة الصباحية</option>
-                    <option value="مسائي">الفترة المسائية</option>
-                </select>
-                <button onclick="applyGlobalPeriodShift()" class="btn-quick-route">تطبيق الفترة المحددة على الكل</button>
-            </div>
-        </div>
-
         <div class="control-bar">
             <div class="search-box-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -1007,7 +944,6 @@
             let morningCount = 0;
             let eveningCount = 0;
 
-            // إظهار القسمين افتراضياً حسب الفلتر العام
             if (currentFilter === 'مسائي') {
                 morningSectionWrapper.style.display = 'none';
                 eveningSectionWrapper.style.display = 'block';
@@ -1035,7 +971,6 @@
                 const fileNumber = (data.fileNumber || "").toLowerCase();
                 const transactionCode = (data.transactionCode || "").toLowerCase();
 
-                // تطبيق الفلاتر
                 if (currentFilter === 'صباحي' && period !== 'صباحي') return;
                 if (currentFilter === 'مسائي' && period !== 'مسائي') return;
                 if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
@@ -1057,20 +992,19 @@
                 const cardTemplate = `
                     <div class="request-card ${isEmergency ? 'emergency' : ''} ${isNew ? 'new-incoming' : ''}" id="card-${id}">
                         <div class="card-top">
-                            <span class="patient-name">
+                            <span class="patient-name" contenteditable="true" onblur="updateField('${id}', 'username', this.innerText)" title="انقر لتحرير النص">
                                 <i class="fa-solid fa-user-circle"></i> ${data.username}
                                 ${isNew ? '<span class="new-tag">طلب جديد 🔔</span>' : ''}
                             </span>
-                            <span class="badge-type">${isEmergency ? '🚨 حالة إسعافية' : data.visitType}</span>
+                            <span class="badge-type" contenteditable="true" onblur="updateField('${id}', 'visitType', this.innerText)" title="انقر لتحرير نوع الزيارة">${isEmergency ? '🚨 حالة إسعافية' : data.visitType}</span>
                         </div>
                         <div class="card-body">
                             <p><i class="fa-regular fa-clock" style="color: var(--primary); margin-left: 5px;"></i> وقت الإرسال: <span style="color: var(--primary-dark);">${formattedTime}</span></p>
-                            <p>العمر: <span>${data.age} سنة</span> | الإقامة: <span>${data.residence}</span></p>
-                            <p>رقم الأضبارة: <span>${data.fileNumber}</span></p>
+                            <p>العمر: <span contenteditable="true" onblur="updateField('${id}', 'age', this.innerText)" title="انقر للتعديل">${data.age}</span> سنة | الإقامة: <span contenteditable="true" onblur="updateField('${id}', 'residence', this.innerText)" title="انقر للتعديل">${data.residence}</span></p>
+                            <p>رقم الأضبارة: <span contenteditable="true" onblur="updateField('${id}', 'fileNumber', this.innerText)" title="انقر لتعديل أو إضافة رقم الأضبارة">${data.fileNumber || 'غير متوفر (انقر للإضافة)'}</span></p>
                             <p>رمز المعاملة: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
                             <p>فترة الحجز المختارة: <b style="color: ${period === 'مسائي' ? '#3730a3' : '#b45309'}">${data.sessionPeriod || period}</b></p>
                             
-                            <!-- نموذج تعديل الفترة مباشرة من بطاقة المريض -->
                             <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
                                 <label style="font-size: 12px; font-weight: 700; color: #475569;">تغيير الفترة:</label>
                                 <select onchange="updateCardPeriod('${id}', this.value)" style="width: auto; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 6px;">
@@ -1079,14 +1013,14 @@
                                 </select>
                             </div>
 
-                            <p style="margin-top: 8px;">التفاصيل: <span>${data.details}</span></p>
+                            <p style="margin-top: 8px;">التفاصيل: <span contenteditable="true" onblur="updateField('${id}', 'details', this.innerText)" title="انقر لتعديل التفاصيل">${data.details}</span></p>
                             ${reportBtnHtml}
                             <p style="margin-top: 8px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? 'var(--warning)' : (status.includes('مقبول') ? 'var(--success)' : 'var(--danger)')}">${status}</b></p>
                         </div>
 
                         <div class="admin-controls-box">
                             <div class="admin-input-group">
-                                <label>رقم الدور الرسمي</label>
+                                <label>رقم الدور الرسمي (اختياري)</label>
                                 <input type="text" id="queue-${id}" placeholder="مثال: أ-1" value="${data.queueNumber !== 'قيد الصدور' ? data.queueNumber : ''}">
                             </div>
                             <div class="admin-input-group">
@@ -1124,6 +1058,18 @@
             eveningContainer.innerHTML = eveningCount > 0 ? eveningHtml : `<div class="no-requests">لا توجد حجوزات في الفترة المسائية مطابقة.</div>`;
         }
 
+        // دالة تحديث أي حقل نصي مباشرة عند تحريره من اللوحة
+        window.updateField = async function(docId, fieldName, newValue) {
+            try {
+                const docRef = doc(db, "appointments", docId);
+                await updateDoc(docRef, {
+                    [fieldName]: newValue.trim()
+                });
+            } catch (error) {
+                console.error("خطأ في التحديث المباشر للنص:", error);
+            }
+        };
+
         window.updateCardPeriod = async function(docId, newPeriod) {
             try {
                 const docRef = doc(db, "appointments", docId);
@@ -1136,46 +1082,29 @@
             }
         };
 
-        window.applyGlobalPeriodShift = async function() {
-            const targetPeriod = document.getElementById("globalTargetPeriod").value;
-            if (confirm(`هل أنت متأكد من نقل وتحديث كافة الحجوزات الظاهرة لتكون في الفترة (${targetPeriod})؟`)) {
-                try {
-                    for (let docItem of allFetchedDocs) {
-                        const docRef = doc(db, "appointments", docItem.id);
-                        await updateDoc(docRef, { sessionPeriod: targetPeriod });
-                    }
-                    alert("تم تحديث الفترات بنجاح!");
-                } catch (error) {
-                    console.error("خطأ:", error);
-                }
-            }
-        };
-
         window.updateStatus = async function(docId, period) {
             const queueInput = document.getElementById(`queue-${docId}`);
             const notesInput = document.getElementById(`notes-${docId}`);
 
-            let queueNumber = queueInput ? queueInput.value.trim() : "";
+            // رقم الدور أصبح اختيارياً (إن لم يُكتب يتم اعتباره "بدون رقم" أو "متابعة مباشرة")
+            let queueNumber = queueInput ? queueInput.value.trim() : "بدون رقم";
             let doctorNotes = notesInput ? notesInput.value.trim() : "";
 
-            if (!queueNumber) {
-                alert("الرجاء إدخال رقم الدور للمريض قبل القبول!");
-                return;
-            }
+            if (queueNumber !== "" && queueNumber !== "بدون رقم") {
+                const isDuplicate = allFetchedDocs.some(docItem => {
+                    let rawP = docItem.sessionPeriod ? String(docItem.sessionPeriod).trim().toLowerCase() : "";
+                    let itemPeriod = (rawP.includes("مساء") || rawP.includes("evening") || rawP.includes("مسائية")) ? "مسائي" : "صباحي";
+                    
+                    return docItem.id !== docId && 
+                           itemPeriod === period && 
+                           docItem.queueNumber === queueNumber && 
+                           docItem.status && docItem.status.includes("مقبول");
+                });
 
-            const isDuplicate = allFetchedDocs.some(docItem => {
-                let rawP = docItem.sessionPeriod ? String(docItem.sessionPeriod).trim().toLowerCase() : "";
-                let itemPeriod = (rawP.includes("مساء") || rawP.includes("evening") || rawP.includes("مسائية")) ? "مسائي" : "صباحي";
-                
-                return docItem.id !== docId && 
-                       itemPeriod === period && 
-                       docItem.queueNumber === queueNumber && 
-                       docItem.status && docItem.status.includes("مقبول");
-            });
-
-            if (isDuplicate) {
-                alert(`⚠️ تنبيه: رقم الدور (${queueNumber}) مستخدم بالفعل لمريض آخر في الفترة (${period === 'صباحي' ? 'الصباحية' : 'المسائية'}). لا يمكن تكرار نفس رقم الدور حتى يتم حذف الحجز الأول أو تعديله.`);
-                return;
+                if (isDuplicate) {
+                    alert(`⚠️ تنبيه: رقم الدور (${queueNumber}) مستخدم بالفعل لمريض آخر في الفترة (${period === 'صباحي' ? 'الصباحية' : 'المسائية'}).`);
+                    return;
+                }
             }
 
             try {
@@ -1185,7 +1114,7 @@
                     queueNumber: queueNumber,
                     doctorNotes: doctorNotes
                 });
-                alert("تم قبول الحجز وتثبيت رقم الدور بنجاح!");
+                alert("تم قبول الحجز بنجاح!");
             } catch (error) {
                 console.error("خطأ:", error);
                 alert("فشل تحديث حالة الطلب!");
@@ -1218,7 +1147,6 @@
         };
 
         window.showReportModal = function(imgSrc) {
-            document.getElementById("modalReportImg").src, imgSrc;
             document.getElementById("modalReportImg").src = imgSrc;
             document.getElementById("reportModal").style.display = "flex";
         };
