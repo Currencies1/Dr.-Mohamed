@@ -201,28 +201,61 @@
             border-color: var(--primary);
         }
 
-        /* زر إغلاق وفتح العيادة */
+        /* ========================================== */
+        /* تصميم الزر الجديد الأنيق والواضح لحالة العيادة */
+        /* ========================================== */
         .clinic-status-toggle {
             display: flex;
             align-items: center;
-            gap: 10px;
         }
 
         .btn-toggle-clinic {
-            padding: 9px 18px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
             font-weight: 700;
-            font-size: 13.5px;
+            font-size: 14px;
             cursor: pointer;
-            border: none;
             font-family: 'Cairo';
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            outline: none;
         }
-        .clinic-open { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
-        .clinic-closed { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+
+        /* حالة العيادة: مفتوحة (تصميم أخضر هادئ وبارز) */
+        .btn-toggle-clinic.clinic-open {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #065f46;
+            border: 1.5px solid #10b981;
+        }
+        .btn-toggle-clinic.clinic-open:hover {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.2);
+            transform: translateY(-1px);
+        }
+        .btn-toggle-clinic.clinic-open i {
+            color: #059669;
+            font-size: 16px;
+        }
+
+        /* حالة العيادة: مغلقة (تصميم أحمر تحذيري وواضح) */
+        .btn-toggle-clinic.clinic-closed {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #991b1b;
+            border: 1.5px solid #ef4444;
+        }
+        .btn-toggle-clinic.clinic-closed:hover {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            box-shadow: 0 6px 15px rgba(239, 68, 68, 0.2);
+            transform: translateY(-1px);
+        }
+        .btn-toggle-clinic.clinic-closed i {
+            color: #dc2626;
+            font-size: 16px;
+        }
+        /* ========================================== */
 
         /* شبكة عرض الطلبات */
         .requests-grid {
@@ -416,7 +449,7 @@
                 <button class="filter-btn" onclick="setFilter('مرفوض', this)">المرفوض</button>
             </div>
 
-            <!-- زر تسكير / فتح الموقع -->
+            <!-- زر إغلاق وفتح العيادة (بالتصميم الجديد الأنيق) -->
             <div class="clinic-status-toggle">
                 <button id="clinicStatusBtn" class="btn-toggle-clinic clinic-open" onclick="toggleClinicStatus()">
                     <i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة لاستقبال الحجوزات
@@ -517,7 +550,7 @@
                     btn.innerHTML = `<i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة لاستقبال الحجوزات`;
                 } else {
                     btn.className = "btn-toggle-clinic clinic-closed";
-                    btn.innerHTML = `<i class="fa-solid fa-door-closed"></i> حالة العيادة: مغلقة (الدوام: 9ص-3ع ومن 5م-11ل)`;
+                    btn.innerHTML = `<i class="fa-solid fa-door-closed"></i> حالة العيادة: مغلقة حالياً (اضغط للفتح)`;
                 }
             });
         }
@@ -539,7 +572,6 @@
         // تحميل الحجوزات مع ترتيبها تصاعدياً (من سجل أولاً / الأولوية للأقدم)
         function loadAppointmentsRealtime() {
             const container = document.getElementById("requestsContainer");
-            // الترتيب تصاعدي createdAt: asc لضمان أولوية من سجل أولاً
             const q = query(collection(db, "appointments"), orderBy("createdAt", "asc"));
             
             unsubscribeOrders = onSnapshot(q, (snapshot) => {
@@ -557,7 +589,6 @@
                     const isEmergency = data.isEmergency || false;
                     const status = data.status || "قيد الانتظار";
 
-                    // تطبيق الفلترة حسب الأزرار المحددة
                     if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
                     if (currentFilter === 'إسعاف' && !isEmergency) return;
                     if (currentFilter === 'مؤكد' && !status.includes("مقبول")) return;
