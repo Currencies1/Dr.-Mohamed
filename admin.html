@@ -71,7 +71,6 @@
             gap: 15px;
         }
 
-        /* تصميم زر التبديل (Switch) لإيقاف وتشغيل الموقع */
         .site-toggle-wrapper {
             display: flex;
             align-items: center;
@@ -241,7 +240,6 @@
         .btn-view { background: var(--primary); color: white; }
         .btn-edit { background: #64748b; color: white; }
 
-        /* نافذة منبثقة (Modal) لإدارة الحجز وعرض التقرير */
         .modal {
             display: none;
             position: fixed;
@@ -332,7 +330,6 @@
     <div class="admin-header">
         <h1><i class="fa-solid fa-user-doctor"></i> لوحة إدارة عيادة د. محمد الأسماعيل</h1>
         <div class="header-actions">
-            <!-- زر إيقاف وتشغيل الموقع -->
             <div class="site-toggle-wrapper">
                 <span id="siteStatusText" style="font-size: 13px; font-weight: bold;">حالة الموقع:</span>
                 <label class="switch">
@@ -390,7 +387,6 @@
     </div>
 </div>
 
-<!-- نافذة إدارة الطلب المنسدلة -->
 <div id="manageModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -450,7 +446,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // جلب حالة الموقع عند التحميل
     async function checkSiteStatus() {
         try {
             const statusRef = doc(db, "settings", "siteStatus");
@@ -463,7 +458,6 @@
                 toggle.checked = isOpen;
                 statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
             } else {
-                // الافتراضي مفتوح إذا لم تقم بإنشائه بعد
                 toggle.checked = true;
                 statusText.innerText = "الموقع: (مفتوح)";
             }
@@ -472,7 +466,6 @@
         }
     }
 
-    // تبديل وحفظ حالة الموقع في فايربيس
     window.toggleSiteStatus = async function() {
         const toggle = document.getElementById("siteToggle");
         const statusText = document.getElementById("siteStatusText");
@@ -483,8 +476,9 @@
             await setDoc(statusRef, { isOpen: isOpen }, { merge: true });
             statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
         } catch (e) {
-            console.error("خطأ في تحديث حالة الموقع:", e);
-            alert("حدث خطأ أثناء تغيير حالة الموقع.");
+            console.error("خطأ تفصيلي:", e);
+            alert("فشل التحديث. تأكد من ضبط قواعد الأمان (Firestore Rules) لتسمح بالقراءة والكتابة.");
+            toggle.checked = !isOpen; 
         }
     };
 
@@ -563,7 +557,6 @@
         }
     }
 
-    // موافقة سريعة بضغطة زر واحدة
     window.quickAccept = async function(docId) {
         try {
             const docRef = doc(db, "appointments", docId);
@@ -575,12 +568,10 @@
         }
     };
 
-    // فتح التقرير مباشرة من زر العرض المنفصل
     window.openReportModal = async function(docId) {
         openManageModal(docId);
     };
 
-    // فتح نافذة الإدارة المتقدمة للطلب وتعبئة بياناته
     window.openManageModal = async function(docId) {
         document.getElementById("selectedDocId").value = docId;
         const modal = document.getElementById("manageModal");
@@ -618,7 +609,6 @@
         document.getElementById("manageModal").style.display = "none";
     };
 
-    // حفظ التحديثات وإرسالها لتحديث شاشة المريض بشكل حي
     window.saveAppointmentUpdate = async function() {
         const docId = document.getElementById("selectedDocId").value;
         const status = document.getElementById("modalStatus").value;
