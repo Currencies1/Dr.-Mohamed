@@ -3,25 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل دخول الأدمن - عيادة الأمراض الداخلية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>لوحة التحكم الاحترافية - عيادة الأمراض الداخلية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
             --primary: #0284c7;
+            --primary-dark: #0369a1;
             --success: #10b981;
             --danger: #ef4444;
-            --bg-color: #f1f5f9;
+            --warning: #f59e0b;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text-color: #1e293b;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        
         body { 
             background: var(--bg-color); 
-            color: var(--text-color); 
-            padding: 20px; 
+            color: var(--text-main); 
+            padding: 24px; 
             direction: rtl; 
             min-height: 100vh;
             display: flex;
@@ -30,278 +39,351 @@
         }
 
         /* نافذة تسجيل الدخول */
+        .login-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .login-card {
             background: var(--card-bg);
             width: 100%;
-            max-width: 400px;
-            padding: 35px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            max-width: 420px;
+            padding: 40px 35px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
             text-align: center;
+            animation: fadeIn 0.4s ease-in-out;
         }
+
         .login-card .icon-box {
-            width: 70px; height: 70px; background: #e0f2fe; color: var(--primary);
+            width: 75px; height: 75px; 
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); 
+            color: var(--primary);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 28px; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
+            font-size: 30px; margin: 0 auto 20px; 
+            box-shadow: 0 8px 16px rgba(2, 132, 199, 0.15);
         }
-        .login-card h2 { font-size: 20px; color: #0f172a; margin-bottom: 20px; }
+
+        .login-card h2 { font-size: 22px; color: var(--text-main); margin-bottom: 8px; font-weight: 800; }
+        .login-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; }
         
-        .form-group { margin-bottom: 15px; text-align: right; }
+        .form-group { margin-bottom: 18px; text-align: right; }
         .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #334155; }
         .input-with-icon { position: relative; }
-        .input-with-icon i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .input-with-icon i { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; }
         
-        input, textarea { 
-            width: 100%; padding: 12px 16px 12px 45px; border: 1.5px solid #cbd5e1; 
-            border-radius: 10px; font-size: 14px; outline: none; background: #fff; transition: all 0.3s; color: #1e293b;
+        input, textarea, select { 
+            width: 100%; padding: 13px 16px 13px 45px; border: 1.5px solid var(--border-color); 
+            border-radius: var(--radius-md); font-size: 14px; outline: none; background: #fff; 
+            transition: all 0.25s ease; color: var(--text-main);
         }
-        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12); }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1); background: #fff; }
 
         .btn-login {
-            background: var(--primary); color: white; border: none; padding: 14px; 
-            border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; 
-            font-size: 16px; transition: background 0.3s; margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
+            color: white; border: none; padding: 14px; 
+            border-radius: var(--radius-md); cursor: pointer; font-weight: 700; width: 100%; 
+            font-size: 15px; transition: all 0.3s; margin-top: 10px;
+            box-shadow: 0 6px 15px rgba(2, 132, 199, 0.25);
         }
-        .btn-login:hover { background: #0369a1; }
+        .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35); }
         
         .login-error {
-            background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 8px;
-            font-size: 13px; margin-top: 15px; display: none; font-weight: bold;
+            background: #fef2f2; color: #b91c1c; padding: 12px; border-radius: var(--radius-md);
+            font-size: 13px; margin-top: 15px; display: none; font-weight: 700;
+            border: 1px solid #fecaca;
         }
 
         /* لوحة التحكم الرئيسية */
         .admin-container {
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             margin: 0 auto;
             display: none;
             align-self: flex-start;
+            animation: fadeIn 0.4s ease-in-out;
         }
 
         .admin-header {
             background: var(--card-bg);
-            padding: 20px 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 20px 28px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 3px solid var(--primary);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        .admin-header::before {
+            content: ''; position: absolute; right: 0; top: 0; height: 100%; width: 5px; background: var(--primary);
         }
 
         .admin-header h2 {
-            font-size: 18px;
-            color: #0f172a;
+            font-size: 20px;
+            color: var(--text-main);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 800;
         }
-        .admin-header h2 i { color: var(--primary); }
+        .admin-header h2 i { 
+            color: var(--primary); 
+            background: #e0f2fe; 
+            padding: 10px; 
+            border-radius: 10px; 
+            font-size: 18px;
+        }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
 
         .stats-badge {
-            background: #e0f2fe;
+            background: #f0f9ff;
             color: #0369a1;
-            padding: 8px 15px;
+            padding: 8px 16px;
             border-radius: 8px;
-            font-weight: bold;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 13.5px;
+            border: 1px solid #bae6fd;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn-logout {
-            background: #fee2e2; color: #991b1b; border: none; padding: 8px 14px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; font-size: 13px;
-            display: flex; align-items: center; gap: 6px;
+            background: #fef2f2; 
+            color: #dc2626; 
+            border: 1px solid #fecaca; 
+            padding: 8px 16px;
+            border-radius: 8px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            font-family: 'Cairo'; 
+            font-size: 13.5px;
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            transition: all 0.2s;
         }
-        .btn-logout:hover { background: #fecaca; }
+        .btn-logout:hover { 
+            background: #dc2626; 
+            color: #ffffff; 
+            border-color: #dc2626;
+        }
 
         /* شبكة عرض الطلبات */
         .requests-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 16px;
+            gap: 18px;
         }
 
         .request-card {
             background: var(--card-bg);
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
             position: relative;
-            transition: all 0.3s;
+            transition: all 0.25s ease;
+        }
+        .request-card:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .request-card.emergency {
             border: 2px solid var(--danger);
-            background: #fff5f5;
+            background: linear-gradient(0deg, #fff5f5 0%, #ffffff 100%);
         }
 
         .card-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 10px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
         }
 
         .patient-name {
             font-size: 17px;
-            font-weight: bold;
-            color: #0f172a;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .patient-name i { color: var(--primary); font-size: 15px; }
 
         .badge-type {
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 6px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 700;
             background: #e0f2fe;
             color: #0369a1;
         }
         .request-card.emergency .badge-type {
             background: #fee2e2;
-            color: #991b1b;
+            color: #b91c1c;
         }
 
         .card-body {
             font-size: 14px;
             color: #334155;
             line-height: 1.8;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
-        .card-body p { margin-bottom: 4px; }
-        .card-body span { font-weight: bold; color: #0f172a; }
+        .card-body p { margin-bottom: 5px; }
+        .card-body span { font-weight: 700; color: var(--text-main); }
 
         /* حقول إدخال الأدمن للقبول */
         .admin-controls-box {
             background: #f8fafc;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .admin-input-group {
             width: 100%;
         }
         .admin-input-group label {
-            font-size: 11.5px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 700;
             color: #475569;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             display: block;
         }
         .admin-input-group input, .admin-input-group textarea {
-            padding: 8px 12px;
-            font-size: 13px;
+            padding: 9px 14px;
+            font-size: 13.5px;
+            background: #ffffff;
         }
 
         .card-actions {
             display: flex;
             gap: 10px;
             align-items: center;
-            margin-top: 5px;
+            margin-top: 4px;
         }
 
         .btn-action {
-            padding: 10px 16px;
+            padding: 11px 18px;
             border-radius: 8px;
             border: none;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             font-family: 'Cairo';
-            font-size: 13px;
+            font-size: 13.5px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 8px;
             color: white;
+            transition: all 0.2s;
         }
 
-        .btn-accept { background: var(--success); flex: 1; justify-content: center; }
-        .btn-accept:hover { background: #059669; }
+        .btn-accept { background: var(--success); flex: 1; }
+        .btn-accept:hover { background: #059669; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
 
-        .btn-reject { background: var(--danger); }
-        .btn-reject:hover { background: #dc2626; }
+        .btn-reject { background: var(--danger); min-width: 100px; }
+        .btn-reject:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+
+        .btn-delete-record { background: #64748b; width: 44px; padding: 0; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .btn-delete-record:hover { background: #475569; }
 
         .no-requests {
             text-align: center;
             background: white;
-            padding: 40px;
-            border-radius: 14px;
-            color: #64748b;
-            font-size: 16px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            padding: 50px 20px;
+            border-radius: var(--radius-lg);
+            color: var(--text-muted);
+            font-size: 15px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         /* نافذة منبثقة لمعاينة التقرير الطبي */
         #reportModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; align-items: center;
-            justify-content: center; z-index: 2000; padding: 20px;
+            background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
         }
-        #reportModal img { max-width: 100%; max-height: 90vh; border-radius: 10px; border: 3px solid white; }
+        #reportModal img { 
+            max-width: 100%; max-height: 85vh; border-radius: 12px; 
+            border: 3px solid white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); 
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
     <!-- قسم تسجيل الدخول -->
-    <div class="login-card" id="loginSection">
-        <div class="icon-box"><i class="fa-solid fa-lock"></i></div>
-        <h2>دخول لوحة التحكم</h2>
-        
-        <div class="form-group">
-            <label>البريد الإلكتروني</label>
-            <div class="input-with-icon">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="adminEmail" placeholder="Mohamed@gmail.com">
+    <div class="login-wrapper" id="loginSection">
+        <div class="login-card">
+            <div class="icon-box"><i class="fa-solid fa-user-doctor"></i></div>
+            <h2>لوحة تحكم الطبيب</h2>
+            <p>قم بتسجيل الدخول لإدارة مواعيد وطلبات المرضى</p>
+            
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="adminEmail" placeholder="Mohamed@gmail.com">
+                </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>كلمة المرور</label>
-            <div class="input-with-icon">
-                <i class="fa-solid fa-key"></i>
-                <input type="password" id="adminPassword" placeholder="••••••••">
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="adminPassword" placeholder="••••••••">
+                </div>
             </div>
-        </div>
 
-        <button type="button" class="btn-login" onclick="checkLogin()">تسجيل الدخول</button>
-        <div id="loginError" class="login-error">البريد الإلكتروني أو كلمة المرور غير صحيحة!</div>
+            <button type="button" class="btn-login" onclick="checkLogin()">دخول للنظام</button>
+            <div id="loginError" class="login-error">البريد الإلكتروني أو كلمة المرور غير صحيحة!</div>
+        </div>
     </div>
 
     <!-- لوحة التحكم -->
     <div class="admin-container" id="adminContainer">
         <div class="admin-header">
-            <h2><i class="fa-solid fa-user-doctor"></i> لوحة تحكم الطبيب</h2>
+            <h2><i class="fa-solid fa-stethoscope"></i> عيادة الأمراض الداخلية - لوحة الإدارة</h2>
             <div class="header-actions">
-                <div class="stats-badge" id="requestsCount">الطلبات المعلقة: 0</div>
-                <button onclick="logoutAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+                <div class="stats-badge" id="requestsCount"><i class="fa-solid fa-clock-rotate-left"></i> الطلبات المعلقة: 0</div>
+                <button onclick="logoutAdmin()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
             </div>
         </div>
 
         <div id="requestsContainer" class="requests-grid">
             <div class="no-requests">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
-                جاري تحميل طلبات المرضى...
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 26px; margin-bottom: 12px; display: block; color: var(--primary);"></i>
+                جاري تحميل بيانات المراجعة الطبية...
             </div>
         </div>
     </div>
 
     <!-- نافذة عرض صورة التقرير الطبي -->
     <div id="reportModal" onclick="closeReportModal()">
-        <img id="modalReportImg" src="" alt="التقرير الطبي">
+        <img id="modalReportImg" src="" alt="التقرير الطبي المرفق">
     </div>
 
     <!-- جلب مكتبات Firebase والسكريبت -->
@@ -354,7 +436,7 @@
             localStorage.removeItem("admin_logged_in");
             if (unsubscribeOrders) unsubscribeOrders();
             document.getElementById("adminContainer").style.display = "none";
-            document.getElementById("loginSection").style.display = "block";
+            document.getElementById("loginSection").style.display = "flex";
             document.getElementById("adminEmail").value = "";
             document.getElementById("adminPassword").value = "";
         };
@@ -370,8 +452,8 @@
                 let pendingCount = 0;
 
                 if (snapshot.empty) {
-                    container.innerHTML = `<div class="no-requests"><i class="fa-solid fa-inbox" style="font-size: 30px; margin-bottom: 10px; display: block;"></i> لا توجد أي طلبات حجز حالياً.</div>`;
-                    countBadge.innerText = "الطلبات المعلقة: 0";
+                    container.innerHTML = `<div class="no-requests"><i class="fa-solid fa-inbox" style="font-size: 32px; margin-bottom: 12px; display: block; color: var(--text-muted);"></i> لا توجد أي طلبات حجز أو مراجعة حالياً.</div>`;
+                    countBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> الطلبات المعلقة: 0`;
                     return;
                 }
 
@@ -388,22 +470,35 @@
                     // التحقق من وجود صورة تقرير مرفقة
                     let reportBtnHtml = "";
                     if (data.reportImage && data.reportImage.trim() !== "") {
-                        reportBtnHtml = `<button onclick="showReportModal('${data.reportImage}')" style="background:#0284c7;color:white;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin-top:6px;display:inline-flex;align-items:center;gap:5px;"><i class="fa-solid fa-image"></i> عرض التقرير الطبي المرفق</button>`;
+                        reportBtnHtml = `<button onclick="showReportModal('${data.reportImage}')" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-weight:700;"><i class="fa-solid fa-image"></i> عرض التقرير الطبي المرفق</button>`;
+                    } else {
+                        reportBtnHtml = `<p style="margin-top: 8px; color: var(--text-muted); font-size: 13px;"><i class="fa-solid fa-circle-info"></i> لم يتم إرفاق صورة تقرير (اختياري)</p>`;
+                    }
+
+                    // معالجة عرض وقت/تاريخ إصدار الحجز للمستند بدل ساعة الحضور
+                    let issuedTimeStr = "غير متوفر";
+                    if (data.createdAt) {
+                        try {
+                            const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                            issuedTimeStr = dateObj.toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' });
+                        } catch(e) {
+                            issuedTimeStr = "قيد التحديث";
+                        }
                     }
 
                     html += `
                         <div class="request-card ${isEmergency ? 'emergency' : ''}" id="card-${id}">
                             <div class="card-top">
-                                <span class="patient-name"><i class="fa-solid fa-user"></i> ${data.username}</span>
+                                <span class="patient-name"><i class="fa-solid fa-user-circle"></i> ${data.username}</span>
                                 <span class="badge-type">${isEmergency ? '🚨 حالة إسعافية طارئة' : data.visitType}</span>
                             </div>
                             <div class="card-body">
                                 <p>العمر: <span>${data.age} سنة</span> | الإقامة: <span>${data.residence}</span></p>
-                                <p>رقم الهاتف / الأضبارة: <span>${data.fileNumber}</span></p>
-                                <p>رمز المعاملة الرقمي: <span style="font-family: monospace; color: #7c2d12;">${data.transactionCode || 'N/A'}</span></p>
-                                <p style="margin-top: 6px;">التفاصيل والأعراض: <span>${data.details}</span></p>
+                                <p>رقم الهاتف (بالرمز الدولي): <span style="direction: ltr; display: inline-block;">${data.fileNumber}</span></p>
+                                <p>رمز المعاملة الرقمي: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
+                                <p>ساعة وتاريخ إصدار الحجز للمستند: <span style="color: var(--primary);">${issuedTimeStr}</span></p>
                                 ${reportBtnHtml}
-                                <p style="margin-top: 6px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? '#d97706' : (status.includes('مقبول') ? '#059669' : '#dc2626')}">${status}</b></p>
+                                <p style="margin-top: 8px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? 'var(--warning)' : (status.includes('مقبول') ? 'var(--success)' : 'var(--danger)')}">${status}</b></p>
                             </div>
 
                             <div class="admin-controls-box">
@@ -413,17 +508,17 @@
                                 </div>
                                 <div class="admin-input-group">
                                     <label>ملاحظات وتوجيهات الطبيب (اختياري)</label>
-                                    <textarea id="notes-${id}" placeholder="اكتب أي تعليمات للمريض..." rows="2">${data.doctorNotes || ''}</textarea>
+                                    <textarea id="notes-${id}" placeholder="اكتب أي تعليمات أو أدوية موصوفة للمريض..." rows="2">${data.doctorNotes || ''}</textarea>
                                 </div>
                                 <div class="card-actions">
                                     <button onclick="updateStatus('${id}', 'مقبول')" class="btn-action btn-accept">
-                                        <i class="fa-solid fa-check"></i> قبول وتثبيت الدور وإرسال للمريض
+                                        <i class="fa-solid fa-check-circle"></i> قبول وتثبيت الدور وإرسال للمريض
                                     </button>
                                     <button onclick="updateStatus('${id}', 'مرفوض')" class="btn-action btn-reject" title="رفض الطلب">
-                                        <i class="fa-solid fa-xmark"></i> رفض
+                                        <i class="fa-solid fa-ban"></i> رفض
                                     </button>
-                                    <button onclick="deleteRequest('${id}')" style="background: #64748b;" class="btn-action" title="حذف الطلب نهائياً">
-                                        <i class="fa-solid fa-trash"></i>
+                                    <button onclick="deleteRequest('${id}')" class="btn-action btn-delete-record" title="حذف السجل نهائياً">
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
                             </div>
@@ -432,7 +527,7 @@
                 });
 
                 container.innerHTML = html;
-                countBadge.innerText = `الطلبات المعلقة: ${pendingCount}`;
+                countBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> الطلبات المعلقة: ${pendingCount}`;
             });
         }
 
@@ -463,7 +558,7 @@
         };
 
         window.deleteRequest = async function(docId) {
-            if (confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
+            if (confirm("هل أنت متأكد من حذف هذا السجل نهائياً من قاعدة البيانات؟")) {
                 try {
                     await deleteDoc(doc(db, "appointments", docId));
                 } catch (error) {
