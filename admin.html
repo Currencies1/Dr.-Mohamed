@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الدكتور محمد إسماعيل - عيادة الأمراض الداخلية</title>
     
-    <!-- أيقونات وتثبيت تطبيق لوحة التحكم -->
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3774/3774299.png">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3774/3774299.png">
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبة توليد الباركود (QR Code) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
@@ -31,7 +29,6 @@
 
         .container { max-width: 1000px; margin: 0 auto; }
         
-        /* شاشة تسجيل الدخول */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.85); display: flex; justify-content: center;
@@ -61,7 +58,6 @@
         .login-card button:hover { background: #0284c7; }
         .login-error { color: var(--danger); font-size: 13px; margin-top: 10px; display: none; }
 
-        /* لوحة التحكم الرئيسية */
         #adminDashboard { display: none; }
         
         .admin-header { 
@@ -85,7 +81,32 @@
         .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 13.5px; }
         .btn-logout:hover { background: #fecaca; }
 
-        /* نافذة منبثقة (Modal) للباركود */
+        /* لوحة التحكم في حالة الرابط (إيقاف/تشغيل) */
+        .clinic-control-card {
+            background: var(--card-bg); padding: 20px 25px; border-radius: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
+            margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+        }
+        .clinic-control-info h3 { font-size: 15px; color: #0f172a; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .clinic-control-info p { font-size: 12.5px; color: #64748b; }
+        
+        .switch-container { display: flex; align-items: center; gap: 10px; }
+        .switch {
+            position: relative; display: inline-block; width: 54px; height: 28px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .status-text-toggle { font-weight: 700; font-size: 13.5px; }
+
         #barcodeModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.75); display: none; justify-content: center;
@@ -112,13 +133,9 @@
         
         .qr-card-container {
             background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px;
-            padding: 20px; display: inline-block; margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); width: 100%; max-width: 280px;
+            padding: 20px; display: inline-block; margin-bottom: 15px; width: 100%; max-width: 280px;
         }
-        #qrcode {
-            background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 12px;
-            border: 1px solid #e2e8f0;
-        }
+        #qrcode { background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 12px; border: 1px solid #e2e8f0; }
         #qrcode img, #qrcode canvas { display: block; margin: 0 auto; border-radius: 4px; }
 
         .doctor-qr-info h4 { font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 3px; }
@@ -136,19 +153,14 @@
         }
         .btn-download-qr:hover { background: #0284c7; }
 
-        /* شريط البحث */
         .search-box {
             background: var(--card-bg); padding: 15px 20px; border-radius: 14px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
             margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
         }
         .search-box i { color: #94a3b8; font-size: 16px; }
-        .search-box input {
-            width: 100%; border: none; outline: none; font-size: 14.5px; background: transparent; color: var(--text-color);
-        }
-        .search-box input::placeholder { color: #94a3b8; }
+        .search-box input { width: 100%; border: none; outline: none; font-size: 14.5px; background: transparent; color: var(--text-color); }
 
-        /* شريط التبويبات والفرز */
         .filter-tabs {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 10px; margin-bottom: 20px;
@@ -156,39 +168,19 @@
         .tab-btn {
             background: var(--card-bg); border: 2px solid var(--border-color);
             padding: 12px 15px; border-radius: 12px; font-weight: 700; font-size: 13.5px;
-            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px;
-            transition: all 0.2s ease; color: #64748b;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; color: #64748b;
         }
-        .tab-btn span {
-            background: #f1f5f9; padding: 2px 10px; border-radius: 20px; font-size: 12px; color: #475569;
-        }
-        .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
-        
+        .tab-btn span { background: #f1f5f9; padding: 2px 10px; border-radius: 20px; font-size: 12px; color: #475569; }
         .tab-btn.active-all { background: #e0f2fe; border-color: var(--primary); color: #0369a1; }
-        .tab-btn.active-all span { background: #bae6fd; color: #0369a1; }
-
         .tab-btn.active-pending { background: #fef3c7; border-color: var(--warning); color: #b45309; }
-        .tab-btn.active-pending span { background: #fde68a; color: #b45309; }
-
         .tab-btn.active-accepted { background: #d1fae5; border-color: var(--success); color: #065f46; }
-        .tab-btn.active-accepted span { background: #a7f3d0; color: #065f46; }
-
         .tab-btn.active-rejected { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
-        .tab-btn.active-rejected span { background: #fecaca; color: #991b1b; }
 
         .orders-grid { display: grid; gap: 15px; }
-        
         .order-card { 
             background: var(--card-bg); border-radius: 14px; padding: 20px; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color);
-            animation: fadeIn 0.3s ease-in-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .order-info { margin-bottom: 15px; }
         .order-info h3 { font-size: 16px; color: #0f172a; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;}
         
         .patient-details-box {
@@ -198,41 +190,35 @@
         }
         .patient-details-box span { font-weight: bold; color: #0f172a; }
         
-        .inputs-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 15px 0;
+        /* تصميم معاينة صورة التقرير الطبي المرفق */
+        .report-view-box {
+            background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 10px; padding: 12px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
         }
+        .report-view-box span { font-size: 13px; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 6px; }
+        .report-thumbnail {
+            max-height: 70px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s;
+        }
+        .report-thumbnail:hover { opacity: 0.85; transform: scale(1.02); }
 
+        .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 15px 0; }
         .queue-input-group {
             display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);
         }
         .queue-input-group label { font-size: 13px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; }
-        .queue-input-group input {
-            padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; width: 110px; text-align: center; font-weight: bold; font-size: 14px; outline: none; background: #fff;
-        }
+        .queue-input-group input { padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; width: 110px; text-align: center; font-weight: bold; font-size: 14px; outline: none; background: #fff; }
 
-        .notes-input-group {
-            background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; margin-bottom: 15px;
-        }
-        .notes-input-group label {
-            font-size: 13px; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
-        }
+        .notes-input-group { background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+        .notes-input-group label { font-size: 13px; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
         .notes-input-group textarea {
             width: 100%; border: 1px solid #fcd34d; border-radius: 8px; padding: 8px 12px; font-size: 13.5px;
             outline: none; background: #fff; resize: vertical; min-height: 60px; font-family: 'Cairo', sans-serif;
         }
-        .notes-input-group textarea:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15); }
 
         .order-actions { display: flex; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap; align-items: center; }
-        
-        .btn-action { 
-            padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; 
-            cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; 
-        }
+        .btn-action { padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; }
         .btn-accept { background: #d1fae5; color: #065f46; }
-        .btn-accept:hover { background: #a7f3d0; }
-        
         .btn-reject { background: #fee2e2; color: #991b1b; }
-        .btn-reject:hover { background: #fecaca; }
 
         .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
         .status-pending { background: #fef3c7; color: #d97706; }
@@ -240,12 +226,18 @@
         .status-rejected { background: #fee2e2; color: #991b1b; }
 
         .no-data { text-align: center; padding: 40px; color: #64748b; font-size: 14px; background: var(--card-bg); border-radius: 14px; }
-        .error-box { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6; word-break: break-all; }
+        .error-box { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; font-size: 13px; line-height: 1.6; }
+
+        /* نافذة منبثقة لعرض الصورة بحجم كبير */
+        #imageModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
+            display: none; justify-content: center; align-items: center; z-index: 11000; padding: 20px;
+        }
+        #imageModal img { max-width: 90%; max-height: 90%; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-    <!-- نافذة تسجيل الدخول -->
     <div id="loginOverlay">
         <div class="login-card">
             <div class="doctor-avatar-login"><i class="fa-solid fa-user-doctor"></i></div>
@@ -259,13 +251,16 @@
         </div>
     </div>
 
-    <!-- نافذة منبثقة (مستعرض الباركود للعيادة) -->
+    <!-- نافذة عرض صورة التقرير بالحجم الكامل -->
+    <div id="imageModal" onclick="this.style.display='none'">
+        <img id="fullImagePreview" src="" alt="التقرير الطبي">
+    </div>
+
     <div id="barcodeModal">
         <div class="modal-card">
             <button class="close-modal" onclick="closeBarcodeModal()"><i class="fa-solid fa-xmark"></i></button>
             <h3><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> باركود حجز العيادة</h3>
             <p>قم بتصوير الكود بكاميرا الهاتف للانتقال الفوري إلى لوحة الحجز الخاصة بالمريض.</p>
-            
             <div class="qr-card-container">
                 <div id="qrcode"></div>
                 <div class="doctor-qr-info">
@@ -273,16 +268,13 @@
                     <span>استشاري الأمراض الداخلية</span>
                 </div>
             </div>
-            
             <div class="modal-url">https://dr-mohamed.onrender.com/</div>
-            
             <button class="btn-download-qr" onclick="downloadQRCode()">
                 <i class="fa-solid fa-download"></i> تحميل صورة الباركود (للطباعة)
             </button>
         </div>
     </div>
 
-    <!-- لوحة التحكم المحمية -->
     <div id="adminDashboard" class="container">
         <div class="admin-header">
             <h1><i class="fa-solid fa-user-doctor"></i> لوحة طلبات حجوزات د. محمد إسماعيل</h1>
@@ -296,13 +288,26 @@
             </div>
         </div>
 
-        <!-- شريط البحث السريع -->
+        <!-- بطاقة التحكم في تفعيل / إيقاف رابط الحجز -->
+        <div class="clinic-control-card">
+            <div class="clinic-control-info">
+                <h3><i class="fa-solid fa-power-off" style="color:var(--primary);"></i> حالة استقبال الحجوزات الإلكترونية</h3>
+                <p>قم بإيقاف الرابط مؤقتاً في حال امتلاء المواعيد أو إغلاق العيادة، ليظهر للمرضى رسالة توضيحية جميلة.</p>
+            </div>
+            <div class="switch-container">
+                <span id="statusToggleText" class="status-text-toggle" style="color: var(--success);">الرابط متاح ومفعل</span>
+                <label class="switch">
+                    <input type="checkbox" id="bookingToggleSwitch" onchange="toggleBookingStatus(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="searchInput" oninput="handleSearch()" placeholder="ابحث باسم المريض، رقم الهاتف، رقم الأضبارة، أو البيانات...">
         </div>
 
-        <!-- أزرار الفرز والتبويبات -->
         <div class="filter-tabs">
             <button class="tab-btn active-all" id="tabAll" onclick="setFilter('all')">
                 <i class="fa-solid fa-list-check"></i> جميع الطلبات <span id="countAll">0</span>
@@ -325,7 +330,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, updateDoc, doc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
@@ -376,9 +381,45 @@
         function showDashboard() {
             document.getElementById("loginOverlay").style.display = "none";
             document.getElementById("adminDashboard").style.display = "block";
+            checkSystemSettings();
             requestNotificationPermission();
             loadAppointments();
         }
+
+        // قراءة حالة إيقاف/تفعيل الرابط من فايربيس
+        async function checkSystemSettings() {
+            try {
+                const settingDoc = await getDoc(doc(db, "settings", "clinic_status"));
+                const toggleSwitch = document.getElementById("bookingToggleSwitch");
+                const toggleText = document.getElementById("statusToggleText");
+
+                if (settingDoc.exists()) {
+                    const isOpen = settingDoc.data().isOpen;
+                    toggleSwitch.checked = isOpen;
+                    toggleText.innerText = isOpen ? "الرابط متاح ومفعل" : "الرابط متوقف حالياً";
+                    toggleText.style.color = isOpen ? "var(--success)" : "var(--danger)";
+                } else {
+                    // الافتراضي مفتوح
+                    toggleSwitch.checked = true;
+                }
+            } catch(e) {
+                console.error("خطأ في جلب الإعدادات:", e);
+            }
+        }
+
+        // تحديث حالة إيقاف الرابط في فايربيس
+        window.toggleBookingStatus = async function(checkbox) {
+            const isOpen = checkbox.checked;
+            const toggleText = document.getElementById("statusToggleText");
+            toggleText.innerText = isOpen ? "الرابط متاح ومفعل" : "الرابط متوقف حالياً";
+            toggleText.style.color = isOpen ? "var(--success)" : "var(--danger)";
+
+            try {
+                await setDoc(doc(db, "settings", "clinic_status"), { isOpen: isOpen }, { merge: true });
+            } catch(e) {
+                alert("حدث خطأ أثناء حفظ حالة الرابط: " + e.message);
+            }
+        };
 
         function requestNotificationPermission() {
             if ("Notification" in window && Notification.permission !== "granted") {
@@ -395,7 +436,7 @@
             }
             try {
                 const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-                audio.play().catch(e => console.log("الصوت محظور من المتصفح لحين التفاعل"));
+                audio.play().catch(e => {});
             } catch(e) {}
         }
 
@@ -440,7 +481,6 @@
 
         window.setFilter = function(filterType) {
             currentFilter = filterType;
-
             document.getElementById("tabAll").className = "tab-btn";
             document.getElementById("tabPending").className = "tab-btn";
             document.getElementById("tabAccepted").className = "tab-btn";
@@ -479,39 +519,32 @@
                 renderFilteredAppointments();
             }, (error) => {
                 console.error("خطأ الفايربيس:", error);
-                container.innerHTML = `
-                    <div class="error-box">
-                        <strong>حدث خطأ تقني في المزامنة اللحظية:</strong><br>
-                        ${error.message}
-                    </div>
-                `;
             });
         }
 
         function updateCounters() {
-            const countAll = allAppointments.length;
-            const countPending = allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length;
-            const countAccepted = allAppointments.filter(item => {
+            document.getElementById("countAll").innerText = allAppointments.length;
+            document.getElementById("countPending").innerText = allAppointments.filter(item => (item.status || "قيد الانتظار") === "قيد الانتظار").length;
+            document.getElementById("countAccepted").innerText = allAppointments.filter(item => {
                 const st = item.status || "";
                 return st.includes("مقبول") || st.includes("مؤكد");
             }).length;
-            const countRejected = allAppointments.filter(item => {
+            document.getElementById("countRejected").innerText = allAppointments.filter(item => {
                 const st = item.status || "";
                 return st.includes("ملغي") || st.includes("مرفوض");
             }).length;
-
-            document.getElementById("countAll").innerText = countAll;
-            document.getElementById("countPending").innerText = countPending;
-            document.getElementById("countAccepted").innerText = countAccepted;
-            document.getElementById("countRejected").innerText = countRejected;
         }
+
+        window.openImageModal = function(imgSrc) {
+            document.getElementById("fullImagePreview").src = imgSrc;
+            document.getElementById("imageModal").style.display = "flex";
+        };
 
         function renderFilteredAppointments() {
             container.innerHTML = "";
 
             let filteredList = allAppointments.filter(item => {
                 const status = item.status || "قيد الانتظار";
-                
                 let matchesTab = true;
                 if (currentFilter === 'pending') matchesTab = (status === "قيد الانتظار");
                 else if (currentFilter === 'accepted') matchesTab = (status.includes("مقبول") || status.includes("مؤكد"));
@@ -520,19 +553,9 @@
                 if (!matchesTab) return false;
 
                 if (searchQuery !== '') {
-                    const searchableText = `
-                        ${item.username || ''} 
-                        ${item.phone || ''} 
-                        ${item.residence || ''} 
-                        ${item.fileNumber || ''} 
-                        ${item.details || ''} 
-                        ${item.appointmentDate || ''}
-                        ${item.visitType || ''}
-                    `.toLowerCase();
-
+                    const searchableText = `${item.username || ''} ${item.phone || ''} ${item.residence || ''} ${item.fileNumber || ''} ${item.details || ''} ${item.visitType || ''}`.toLowerCase();
                     return searchableText.includes(searchQuery);
                 }
-
                 return true;
             });
 
@@ -547,6 +570,7 @@
                 const currentQueue = data.queueNumber && data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
                 const currentTime = data.appointmentTime && data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
                 const currentNotes = data.doctorNotes || "";
+                const reportImage = data.reportImageBase64 || "";
                 
                 let statusClass = "status-pending";
                 if (status.includes("مقبول") || status.includes("مؤكد")) statusClass = "status-accepted";
@@ -564,13 +588,20 @@
                         <div class="patient-details-box">
                             <div>العمر: <span>${data.age || "غير متوفر"} سنة</span></div>
                             <div>الإقامة: <span>${data.residence || "غير متوفر"}</span></div>
-                            <div>رقم الهاتف: <span dir="ltr">${data.phone || "غير متوفر"}</span></div>
                             <div>نوع الزيارة: <span style="color: #0284c7;">${data.visitType || "عادي"}</span></div>
                             ${data.fileNumber && data.fileNumber !== "لا يوجد" ? `<div>رقم الأضبارة: <span style="color: #7c2d12;">${data.fileNumber}</span></div>` : ''}
-                            <div>تاريخ الموعد: <span>${data.appointmentDate || "غير متوفر"}</span></div>
-                            <div>توقيت طلب الحجز: <span>${data.bookingTime || "غير متوفر"}</span></div>
-                            <div style="grid-column: 1 / -1;">تفاصيل الأعراض: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
+                            <div style="grid-column: 1 / -1;">تفاصيل الحالة: <span style="font-weight:normal; color:#475569;">${data.details || "لا توجد تفاصيل"}</span></div>
                         </div>
+
+                        <!-- عرض صورة التقرير الطبي إن وجدت -->
+                        ${reportImage ? `
+                            <div class="report-view-box">
+                                <span><i class="fa-solid fa-file-medical"></i> التقرير الطبي المرفق:</span>
+                                <img src="${reportImage}" class="reportthumbnail" onclick="openImageModal('${reportImage}')" title="اضغط لتكبير الصورة" style="max-height: 60px; border-radius: 6px; cursor: pointer; border: 1px solid #cbd5e1;">
+                            </div>
+                        ` : `
+                            <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;"><i class="fa-solid fa-circle-info"></i> لم يتم إرفاق تقرير طبي مع هذا الطلب.</div>
+                        `}
                         
                         <div class="inputs-grid">
                             <div class="queue-input-group">
