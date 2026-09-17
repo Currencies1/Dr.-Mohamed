@@ -177,7 +177,7 @@
 
         input[type="file"] { padding: 10px 45px 10px 10px; cursor: pointer; }
 
-        /* زر فتح إطار التقارير الطبية المنبثق */
+        /* زر فتح إطار التقارير الطبية المنبثق الاحترافي */
         .btn-open-report-modal {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border: 1.5px dashed #22c55e;
@@ -273,6 +273,19 @@
             padding: 12px;
             border-radius: 10px;
             border-right: 3px solid #22c55e;
+        }
+
+        .size-warning-badge {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #b45309;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .report-preview {
@@ -567,7 +580,7 @@
                 <button type="button" class="btn-open-report-modal" onclick="openReportModal()">
                     <span style="display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-paperclip" style="color: #16a34a;"></i> 
-                        إرسال صورة التقرير الطبي <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري)</span>
+                        إرسال صورة التقرير الطبي <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري - متاح حتى 20 ميغابايت)</span>
                     </span>
                     <span id="reportStatusIndicator" class="report-status-indicator" style="display: none;">تم الإدراج ✓</span>
                 </button>
@@ -603,15 +616,20 @@
         <div class="report-modal-body">
             <p class="notice-text">
                 <i class="fa-solid fa-circle-info" style="color: #16a34a; margin-left: 5px;"></i>
-                <b>إرسال صورة التقرير الطبي اختياري وليس إجباري.</b> إذا توفرت تقارير طبية أو أدوية سابقة، يمكنك إرفاق صورتها هنا لتسهيل التشخيص على الطبيب.
+                <b>إرسال صورة التقرير الطبي اختياري.</b> يمكنك إرفاق أي صورة تقرير طبي أو روشتة أدوية بأي حجم مفتوح من 1 كيلو بايت ولغاية 20 ميغابايت.
             </p>
 
             <div class="form-group" style="margin-bottom: 0;">
-                <label>اختر صورة التقرير من الجهاز</label>
+                <label>اختر صورة التقرير من الجهاز (مفتوح الحجم حتى 20MB)</label>
                 <div class="input-with-icon">
                     <i class="fa-solid fa-camera"></i>
                     <input type="file" id="medicalReport" accept="image/*" onchange="previewReport()">
                 </div>
+            </div>
+
+            <div class="size-warning-badge">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>ملاحظة: تم إلغاء القيود تماماً، يمكنك رفع الصور بدقة عالية جداً حتى 20MB.</span>
             </div>
 
             <div id="reportPreview" class="report-preview">
@@ -708,9 +726,22 @@
         const preview = document.getElementById("reportPreview");
         const indicator = document.getElementById("reportStatusIndicator");
         const fileNameText = document.getElementById("reportFileNameText");
+        const statusMsg = document.getElementById("statusMsg");
 
         if (input.files && input.files.length > 0) {
             const file = input.files[0];
+            const fileSizeMB = file.size / (1024 * 1024);
+
+            // التحقق من الحد الأقصى (20 ميجابايت) والحد الأدنى المفتوح
+            if (fileSizeMB > 20) {
+                alert("حجم الصورة كبير جداً. الحد الأقصى المسموح به هو 20 ميجابايت.");
+                input.value = "";
+                preview.style.display = "none";
+                base64ReportImage = "";
+                indicator.style.display = "none";
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 base64ReportImage = e.target.result;
@@ -718,7 +749,7 @@
             reader.readAsDataURL(file);
 
             preview.style.display = "flex";
-            fileNameText.innerHTML = `تم اختيار التقرير: <b>${file.name}</b>`;
+            fileNameText.innerHTML = `تم اختيار التقرير: <b>${file.name}</b> (${fileSizeMB.toFixed(2)} MB)`;
             indicator.style.display = "inline-block";
         } else {
             preview.style.display = "none";
@@ -771,7 +802,7 @@
         }
 
         statusMsg.className = "loading-msg";
-        statusMsg.innerText = "جاري إرسال حجزك للعيادة...";
+        statusMsg.innerText = "جاري إرسال حجزك للعيادة ومعالجة المرفقات الكبيرة...";
 
         try {
             const isEmergency = visitType === "حالة إعسافية طارئة";
@@ -812,7 +843,7 @@
         } catch (error) {
             console.error("خطأ في الإرسال:", error);
             statusMsg.className = "error-msg";
-            statusMsg.innerText = "فشل إرسال الحجز! تحقق من اتصال الإنترنت.";
+            statusMsg.innerText = "فشل إرسال الحجز! قد يكون حجم الصورة كبيراً جداً على قاعدة البيانات، حاول تصغيرها قليلاً أو تحقق من الاتصال.";
         }
     };
 
@@ -923,7 +954,7 @@
         const statusMsg = document.getElementById("statusMsg");
         statusMsg.style.display = "none";
         statusMsg.className = "";
-        document.getElementById("username").value = " ";
+        document.getElementById("username").value = "";
         document.getElementById("age").value = "";
         document.getElementById("residence").value = "";
         document.getElementById("visitType").selectedIndex = 0;
