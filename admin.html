@@ -458,6 +458,8 @@
                 toggle.checked = isOpen;
                 statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
             } else {
+                // إنشاء المستند تلقائياً إذا لم يكن موجوداً
+                await setDoc(statusRef, { isOpen: true });
                 toggle.checked = true;
                 statusText.innerText = "الموقع: (مفتوح)";
             }
@@ -477,7 +479,7 @@
             statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
         } catch (e) {
             console.error("خطأ تفصيلي:", e);
-            alert("فشل التحديث. تأكد من ضبط قواعد الأمان (Firestore Rules) لتسمح بالقراءة والكتابة.");
+            alert("حدث خطأ أثناء حفظ حالة الموقع. تأكد من اتصال الإنترنت وقواعد الأمان.");
             toggle.checked = !isOpen; 
         }
     };
