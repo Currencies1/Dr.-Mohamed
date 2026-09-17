@@ -6,6 +6,8 @@
     <title>لوحة التحكم الاحترافية - عيادة الأمراض الداخلية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة توليد الباركود -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         :root {
@@ -117,6 +119,8 @@
             border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .admin-header::before {
             content: ''; position: absolute; right: 0; top: 0; height: 100%; width: 5px; background: var(--primary);
@@ -141,7 +145,8 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         /* زر جرس الإشعارات العائم بالرأس */
@@ -176,6 +181,24 @@
             100% { transform: scale(1); }
         }
 
+        /* زر الباركود الجديد */
+        .btn-barcode {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Cairo';
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-barcode:hover { background: #16a34a; color: #ffffff; border-color: #16a34a; }
+
         .btn-logout {
             background: #fef2f2; 
             color: #dc2626; 
@@ -193,19 +216,53 @@
         }
         .btn-logout:hover { background: #dc2626; color: #ffffff; border-color: #dc2626; }
 
-        /* شريط التحكم وحالة العيادة */
+        /* شريط التحكم وحالة العيادة والبحث */
         .control-bar {
             background: var(--card-bg);
-            padding: 16px 22px;
+            padding: 18px 22px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border-color);
             margin-bottom: 20px;
             display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-bar-top {
+            display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+        }
+
+        /* صندوق البحث المتقدم الجديد */
+        .search-box-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .search-box-wrapper i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+        .search-box-wrapper input {
+            width: 100%;
+            padding: 11px 16px 11px 45px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            font-size: 13.5px;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+        .search-box-wrapper input:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
         }
 
         /* أزرار الفلترة مع العدادات */
@@ -328,6 +385,8 @@
             margin-bottom: 14px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .patient-name {
@@ -391,6 +450,7 @@
             gap: 10px;
             align-items: center;
             margin-top: 4px;
+            flex-wrap: wrap;
         }
 
         .btn-action {
@@ -409,10 +469,10 @@
             transition: all 0.2s;
         }
 
-        .btn-accept { background: var(--success); flex: 1; }
+        .btn-accept { background: var(--success); flex: 1; min-width: 180px; }
         .btn-accept:hover { background: #059669; }
 
-        .btn-reject { background: var(--danger); min-width: 100px; }
+        .btn-reject { background: var(--danger); min-width: 90px; }
         .btn-reject:hover { background: #dc2626; }
 
         .btn-delete-record { background: #64748b; width: 44px; padding: 0; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
@@ -429,11 +489,38 @@
             border: 1px solid var(--border-color);
         }
 
-        #reportModal {
+        /* نافذة منبثقة للتقارير والباركود */
+        .custom-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);
             display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
         }
+        .modal-content-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+        .modal-content-card h3 { font-size: 18px; margin-bottom: 15px; color: var(--text-main); font-weight: 800; }
+        #qrcodeContainer { display: flex; justify-content: center; margin: 15px 0; background: #fff; padding: 10px; border-radius: 8px; }
+        #qrcodeContainer img { margin: 0 auto; }
+        .btn-close-modal {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            font-family: 'Cairo';
+        }
+
         #reportModal img { 
             max-width: 100%; max-height: 85vh; border-radius: 12px; 
             border: 3px solid white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); 
@@ -475,6 +562,8 @@
         <div class="admin-header">
             <h2><i class="fa-solid fa-stethoscope"></i> عيادة الأمراض الداخلية - لوحة الإدارة</h2>
             <div class="header-actions">
+                <!-- زر عرض الباركود -->
+                <button onclick="openBarcodeModal()" class="btn-barcode"><i class="fa-solid fa-qrcode"></i> باركود الموقع</button>
                 <!-- زر الإشعارات -->
                 <div class="notification-bell" title="الطلبات الجديدة غير المكتملة">
                     <i class="fa-solid fa-bell"></i>
@@ -484,32 +573,40 @@
             </div>
         </div>
 
-        <!-- شريط التحكم بالعيادة والفلترة مع العدادات -->
+        <!-- شريط التحكم بالعيادة والفلترة والبحث -->
         <div class="control-bar">
-            <!-- أزرار الفلترة المتضمنة للعدادات -->
-            <div class="filter-buttons">
-                <button class="filter-btn active" onclick="setFilter('all', this)">
-                    الكل <span id="count-all" class="count-badge">0</span>
-                </button>
-                <button class="filter-btn" onclick="setFilter('قيد الانتظار', this)">
-                    قيد الانتظار <span id="count-pending" class="count-badge">0</span>
-                </button>
-                <button class="filter-btn" onclick="setFilter('إسعاف', this)">
-                    🚨 الإسعاف <span id="count-emergency" class="count-badge">0</span>
-                </button>
-                <button class="filter-btn" onclick="setFilter('مؤكد', this)">
-                    المؤكد <span id="count-accepted" class="count-badge">0</span>
-                </button>
-                <button class="filter-btn" onclick="setFilter('مرفوض', this)">
-                    المرفوض <span id="count-rejected" class="count-badge">0</span>
-                </button>
+            <!-- شريط البحث السريع في الحجوزات -->
+            <div class="search-box-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="ابحث باسم المريض، رقم الأضبارة، أو رمز المعاملة..." oninput="filterAppointments()">
             </div>
 
-            <!-- زر حالة العيادة -->
-            <div class="clinic-status-toggle">
-                <button id="clinicStatusBtn" class="btn-toggle-clinic clinic-open" onclick="toggleClinicStatus()">
-                    <i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة لاستقبال الحجوزات
-                </button>
+            <div class="control-bar-top">
+                <!-- أزرار الفلترة المتضمنة للعدادات -->
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="setFilter('all', this)">
+                        الكل <span id="count-all" class="count-badge">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="setFilter('قيد الانتظار', this)">
+                        قيد الانتظار <span id="count-pending" class="count-badge">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="setFilter('إسعاف', this)">
+                        🚨 الإسعاف <span id="count-emergency" class="count-badge">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="setFilter('مؤكد', this)">
+                        المؤكد <span id="count-accepted" class="count-badge">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="setFilter('مرفوض', this)">
+                        المرفوض <span id="count-rejected" class="count-badge">0</span>
+                    </button>
+                </div>
+
+                <!-- زر حالة العيادة -->
+                <div class="clinic-status-toggle">
+                    <button id="clinicStatusBtn" class="btn-toggle-clinic clinic-open" onclick="toggleClinicStatus()">
+                        <i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -522,8 +619,21 @@
     </div>
 
     <!-- نافذة عرض التقرير -->
-    <div id="reportModal" onclick="closeReportModal()">
+    <div id="reportModal" class="custom-modal" onclick="closeReportModal()">
         <img id="modalReportImg" src="" alt="التقرير الطبي المرفق">
+    </div>
+
+    <!-- نافذة عرض وتحميل الباركود -->
+    <div id="barcodeModal" class="custom-modal">
+        <div class="modal-content-card">
+            <h3>باركود رابط الحجز للعيادة</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">قم بمسح الكود عبر الهاتف لفتح موقع الحجز مباشرة</p>
+            <div id="qrcodeContainer"></div>
+            <a id="downloadQrBtn" class="btn-action btn-accept" style="margin-top: 10px; width: 100%; text-decoration: none; justify-content: center;" download="clinic-barcode.png">
+                <i class="fa-solid fa-download"></i> تحميل صورة الباركود
+            </a>
+            <button onclick="closeBarcodeModal()" class="btn-close-modal">إغلاق</button>
+        </div>
     </div>
 
     <!-- صوت تنبيه خفيف عند وصول حجز جديد -->
@@ -549,13 +659,45 @@
         let unsubscribeOrders = null;
         let currentFilter = 'all';
         let isClinicOpen = true;
-        let previousTotalCount = null; // لتتبع الطلبات الجديدة وإطلاق الإشعارات
+        let previousTotalCount = null;
+        let allFetchedDocs = []; // لحفظ البيانات وإجراء البحث المحلي السريع
 
         window.addEventListener("DOMContentLoaded", () => {
             if (localStorage.getItem("admin_logged_in") === "true") {
                 showAdminDashboard();
             }
+            initBarcodeGenerator();
         });
+
+        // توليد الباركود للرابط المطلوب
+        function initBarcodeGenerator() {
+            const container = document.getElementById("qrcodeContainer");
+            container.innerHTML = "";
+            new QRCode(container, {
+                text: "https://dr-mohamed.onrender.com/",
+                width: 180,
+                height: 180,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        window.openBarcodeModal = function() {
+            document.getElementById("barcodeModal").style.display = "flex";
+            // تجهيز رابط التحميل لصورة الباركود بعد توليدها
+            setTimeout(() => {
+                const qrImg = document.querySelector("#qrcodeContainer img");
+                const downloadBtn = document.getElementById("downloadQrBtn");
+                if (qrImg && downloadBtn) {
+                    downloadBtn.href = qrImg.src;
+                }
+            }, 300);
+        };
+
+        window.closeBarcodeModal = function() {
+            document.getElementById("barcodeModal").style.display = "none";
+        };
 
         window.checkLogin = function() {
             const emailInput = document.getElementById("adminEmail").value.trim();
@@ -591,7 +733,11 @@
             currentFilter = filterType;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
-            loadAppointmentsRealtime();
+            renderAppointments(allFetchedDocs);
+        };
+
+        window.filterAppointments = function() {
+            renderAppointments(allFetchedDocs);
         };
 
         function checkClinicStatusRealtime() {
@@ -606,10 +752,10 @@
 
                 if (isClinicOpen) {
                     btn.className = "btn-toggle-clinic clinic-open";
-                    btn.innerHTML = `<i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة لاستقبال الحجوزات`;
+                    btn.innerHTML = `<i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة`;
                 } else {
                     btn.className = "btn-toggle-clinic clinic-closed";
-                    btn.innerHTML = `<i class="fa-solid fa-door-closed"></i> حالة العيادة: مغلقة حالياً (اضغط للفتح)`;
+                    btn.innerHTML = `<i class="fa-solid fa-door-closed"></i> حالة العيادة: مغلقة`;
                 }
             });
         }
@@ -627,30 +773,23 @@
             }
         };
 
-        // دالة تحميل الحجوزات وحساب العدادات وإطلاق التنبيهات للطلبات الجديدة
         function loadAppointmentsRealtime() {
-            const container = document.getElementById("requestsContainer");
             const q = query(collection(db, "appointments"), orderBy("createdAt", "asc"));
             
             unsubscribeOrders = onSnapshot(q, (snapshot) => {
-                let html = "";
-                let count = 0;
+                allFetchedDocs = [];
+                snapshot.forEach((docSnap) => {
+                    allFetchedDocs.push({ id: docSnap.id, ...docSnap.data() });
+                });
 
-                // عدادات التصنيفات
-                let tallyAll = 0;
+                // تحديث العدادات العامة في واجهة الفلترة
+                let tallyAll = allFetchedDocs.length;
                 let tallyPending = 0;
                 let tallyEmergency = 0;
                 let tallyAccepted = 0;
                 let tallyRejected = 0;
 
-                const docsArray = [];
-                snapshot.forEach((docSnap) => {
-                    docsArray.push({ id: docSnap.id, ...docSnap.data() });
-                });
-
-                // حساب العدادات بدقة لكل الأقسام
-                docsArray.forEach(data => {
-                    tallyAll++;
+                allFetchedDocs.forEach(data => {
                     const status = data.status || "قيد الانتظار";
                     const isEmergency = data.isEmergency || false;
 
@@ -660,14 +799,12 @@
                     if (status.includes("مرفوض")) tallyRejected++;
                 });
 
-                // تحديث واجهة الأزرار بالأعداد الحية
                 document.getElementById("count-all").innerText = tallyAll;
                 document.getElementById("count-pending").innerText = tallyPending;
                 document.getElementById("count-emergency").innerText = tallyEmergency;
                 document.getElementById("count-accepted").innerText = tallyAccepted;
                 document.getElementById("count-rejected").innerText = tallyRejected;
 
-                // تحديث عداد الإشعارات العلوي للطلبات الجديدة (قيد الانتظار)
                 const notifBadge = document.getElementById("notifBadge");
                 if (tallyPending > 0) {
                     notifBadge.style.display = "inline-block";
@@ -676,88 +813,99 @@
                     notifBadge.style.display = "none";
                 }
 
-                // فحص إذا وصل طلب جديد لإصدار تنبيه بصري/صوتي للطبيب
                 if (previousTotalCount !== null && tallyAll > previousTotalCount) {
                     const sound = document.getElementById("notificationSound");
-                    if (sound) sound.play().catch(e => console.log("التنبيه الصوتي يحتاج تفاعل مستخدم مسبق", e));
+                    if (sound) sound.play().catch(e => console.log("التنبيه الصوتي يحتاج تفاعل مستخدم", e));
                 }
                 previousTotalCount = tallyAll;
 
-                if (docsArray.length === 0) {
-                    container.innerHTML = `<div class="no-requests"><i class="fa-solid fa-inbox" style="font-size: 32px; margin-bottom: 12px; display: block; color: var(--text-muted);"></i> لا توجد أي طلبات حجز أو مراجعة حالياً.</div>`;
+                renderAppointments(allFetchedDocs);
+            });
+        }
+
+        // دالة عرض وتصفية وبحث الطلبات بناءً على الحالة وحقل البحث المكتوب
+        function renderAppointments(docsArray) {
+            const container = document.getElementById("requestsContainer");
+            const searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            
+            let html = "";
+            let count = 0;
+
+            docsArray.forEach((data) => {
+                const id = data.id;
+                const isEmergency = data.isEmergency || false;
+                const status = data.status || "قيد الانتظار";
+                const username = (data.username || "").toLowerCase();
+                const fileNumber = (data.fileNumber || "").toLowerCase();
+                const transactionCode = (data.transactionCode || "").toLowerCase();
+
+                // فلترة الأقسام
+                if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
+                if (currentFilter === 'إسعاف' && !isEmergency) return;
+                if (currentFilter === 'مؤكد' && !status.includes("مقبول")) return;
+                if (currentFilter === 'مرفوض' && !status.includes("مرفوض")) return;
+
+                // فلترة البحث النصي (اسم المريض، رقم الأضبارة، أو رمز المعاملة)
+                if (searchQuery !== "" && !username.includes(searchQuery) && !fileNumber.includes(searchQuery) && !transactionCode.includes(searchQuery)) {
                     return;
                 }
 
-                // فلترة وعرض البطاقات حسب القسم النشط حالياً
-                docsArray.forEach((data) => {
-                    const id = data.id;
-                    const isEmergency = data.isEmergency || false;
-                    const status = data.status || "قيد الانتظار";
+                count++;
+                const isNew = status === "قيد الانتظار";
 
-                    if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
-                    if (currentFilter === 'إسعاف' && !isEmergency) return;
-                    if (currentFilter === 'مؤكد' && !status.includes("مقبول")) return;
-                    if (currentFilter === 'مرفوض' && !status.includes("مرفوض")) return;
+                let reportBtnHtml = "";
+                if (data.reportImage && data.reportImage.trim() !== "") {
+                    reportBtnHtml = `<button onclick="showReportModal('${data.reportImage}')" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-weight:700;"><i class="fa-solid fa-image"></i> عرض التقرير الطبي المرفق</button>`;
+                }
 
-                    count++;
+                html += `
+                    <div class="request-card ${isEmergency ? 'emergency' : ''} ${isNew ? 'new-incoming' : ''}" id="card-${id}">
+                        <div class="card-top">
+                            <span class="patient-name">
+                                <i class="fa-solid fa-user-circle"></i> ${data.username}
+                                ${isNew ? '<span class="new-tag">طلب جديد 🔔</span>' : ''}
+                            </span>
+                            <span class="badge-type">${isEmergency ? '🚨 حالة إسعافية طارئة' : data.visitType}</span>
+                        </div>
+                        <div class="card-body">
+                            <p>العمر: <span>${data.age} سنة</span> | الإقامة: <span>${data.residence}</span></p>
+                            <p>رقم الأضبارة: <span>${data.fileNumber}</span></p>
+                            <p>رمز المعاملة الرقمي: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
+                            <p style="margin-top: 8px;">التفاصيل: <span>${data.details}</span></p>
+                            ${reportBtnHtml}
+                            <p style="margin-top: 8px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? 'var(--warning)' : (status.includes('مقبول') ? 'var(--success)' : 'var(--danger)')}">${status}</b></p>
+                        </div>
 
-                    // تمييز ما إذا كان الطلب جديداً وغير معالج بعد
-                    const isNew = status === "قيد الانتظار";
-
-                    let reportBtnHtml = "";
-                    if (data.reportImage && data.reportImage.trim() !== "") {
-                        reportBtnHtml = `<button onclick="showReportModal('${data.reportImage}')" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-weight:700;"><i class="fa-solid fa-image"></i> عرض التقرير الطبي المرفق</button>`;
-                    }
-
-                    html += `
-                        <div class="request-card ${isEmergency ? 'emergency' : ''} ${isNew ? 'new-incoming' : ''}" id="card-${id}">
-                            <div class="card-top">
-                                <span class="patient-name">
-                                    <i class="fa-solid fa-user-circle"></i> ${data.username}
-                                    ${isNew ? '<span class="new-tag">طلب جديد 🔔</span>' : ''}
-                                </span>
-                                <span class="badge-type">${isEmergency ? '🚨 حالة إسعافية طارئة' : data.visitType}</span>
+                        <div class="admin-controls-box">
+                            <div class="admin-input-group">
+                                <label>رقم الدور الرسمي</label>
+                                <input type="text" id="queue-${id}" placeholder="مثال: أ-1" value="${data.queueNumber !== 'قيد الصدور' ? data.queueNumber : ''}">
                             </div>
-                            <div class="card-body">
-                                <p>العمر: <span>${data.age} سنة</span> | الإقامة: <span>${data.residence}</span></p>
-                                <p>رقم الأضبارة: <span>${data.fileNumber}</span></p>
-                                <p>رمز المعاملة الرقمي: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
-                                <p style="margin-top: 8px;">التفاصيل: <span>${data.details}</span></p>
-                                ${reportBtnHtml}
-                                <p style="margin-top: 8px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? 'var(--warning)' : (status.includes('مقبول') ? 'var(--success)' : 'var(--danger)')}">${status}</b></p>
+                            <div class="admin-input-group">
+                                <label>ملاحظات وتوجيهات الطبيب (اختياري)</label>
+                                <textarea id="notes-${id}" placeholder="اكتب أي تعليمات أو أدوية موصوفة للمريض..." rows="2">${data.doctorNotes || ''}</textarea>
                             </div>
-
-                            <div class="admin-controls-box">
-                                <div class="admin-input-group">
-                                    <label>رقم الدور الرسمي</label>
-                                    <input type="text" id="queue-${id}" placeholder="مثال: أ-1" value="${data.queueNumber !== 'قيد الصدور' ? data.queueNumber : ''}">
-                                </div>
-                                <div class="admin-input-group">
-                                    <label>ملاحظات وتوجيهات الطبيب (اختياري)</label>
-                                    <textarea id="notes-${id}" placeholder="اكتب أي تعليمات أو أدوية موصوفة للمريض..." rows="2">${data.doctorNotes || ''}</textarea>
-                                </div>
-                                <div class="card-actions">
-                                    <button onclick="updateStatus('${id}', 'مقبول')" class="btn-action btn-accept">
-                                        <i class="fa-solid fa-check-circle"></i> قبول وتثبيت الدور وإرسال للمريض
-                                    </button>
-                                    <button onclick="updateStatus('${id}', 'مرفوض')" class="btn-action btn-reject" title="رفض الطلب">
-                                        <i class="fa-solid fa-ban"></i> رفض
-                                    </button>
-                                    <button onclick="deleteRequest('${id}')" class="btn-action btn-delete-record" title="حذف السجل نهائياً">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
+                            <div class="card-actions">
+                                <button onclick="updateStatus('${id}', 'مقبول')" class="btn-action btn-accept">
+                                    <i class="fa-solid fa-check-circle"></i> قبول وتثبيت الدور وإرسال للمريض
+                                </button>
+                                <button onclick="updateStatus('${id}', 'مرفوض')" class="btn-action btn-reject" title="رفض الطلب">
+                                    <i class="fa-solid fa-ban"></i> رفض
+                                </button>
+                                <button onclick="deleteRequest('${id}')" class="btn-action btn-delete-record" title="حذف السجل نهائياً">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
                             </div>
                         </div>
-                    `;
-                });
-
-                if (count === 0) {
-                    container.innerHTML = `<div class="no-requests"><i class="fa-solid fa-filter-circle-xmark" style="font-size: 32px; margin-bottom: 12px; display: block; color: var(--text-muted);"></i> لا توجد طلبات مطابقة لهذا الفلتر حالياً.</div>`;
-                } else {
-                    container.innerHTML = html;
-                }
+                    </div>
+                `;
             });
+
+            if (count === 0) {
+                container.innerHTML = `<div class="no-requests"><i class="fa-solid fa-filter-circle-xmark" style="font-size: 32px; margin-bottom: 12px; display: block; color: var(--text-muted);"></i> لا توجد نتائج مطابقة لعملية البحث أو الفلتر الحالي.</div>`;
+            } else {
+                container.innerHTML = html;
+            }
         }
 
         window.updateStatus = async function(docId, newStatus) {
