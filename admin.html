@@ -636,8 +636,8 @@
         </div>
     </div>
 
-    <!-- صوت تنبيه خفيف عند وصول حجز جديد -->
-    <audio id="notificationSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <!-- صوت تنبيه جرس رنان وجميل (رابط صوتي موثوق وخارجي) -->
+    <audio id="notificationSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -660,16 +660,26 @@
         let currentFilter = 'all';
         let isClinicOpen = true;
         let previousTotalCount = null;
-        let allFetchedDocs = []; // لحفظ البيانات وإجراء البحث المحلي السريع
+        let allFetchedDocs = []; 
 
         window.addEventListener("DOMContentLoaded", () => {
             if (localStorage.getItem("admin_logged_in") === "true") {
                 showAdminDashboard();
             }
             initBarcodeGenerator();
+
+            // تفعيل نظام تشغيل الصوت في المتصفح عند أول تفاعل للمستخدم (تجاوز سياسة المتصفح الآمنة)
+            document.body.addEventListener('click', () => {
+                const sound = document.getElementById("notificationSound");
+                if (sound) {
+                    sound.play().then(() => {
+                        sound.pause();
+                        sound.currentTime = 0;
+                    }).catch(() => {});
+                }
+            }, { once: true });
         });
 
-        // توليد الباركود للرابط المطلوب
         function initBarcodeGenerator() {
             const container = document.getElementById("qrcodeContainer");
             container.innerHTML = "";
@@ -811,9 +821,13 @@
                     notifBadge.style.display = "none";
                 }
 
+                // إصلاح وتشغيل صوت الإشعار فوراً عند إضافة حجز جديد
                 if (previousTotalCount !== null && tallyAll > previousTotalCount) {
                     const sound = document.getElementById("notificationSound");
-                    if (sound) sound.play().catch(e => console.log("التنبيه الصوتي يحتاج تفاعل مستخدم", e));
+                    if (sound) {
+                        sound.currentTime = 0;
+                        sound.play().catch(e => console.log("تعذر تشغيل الصوت تلقائياً:", e));
+                    }
                 }
                 previousTotalCount = tallyAll;
 
@@ -821,21 +835,10 @@
             });
         }
 
-        // دالة مساعدة لتنسيق وتوليد نص التاريخ والوقت بشكل جميل
         function formatBookingDateTime(createdAt) {
             if (!createdAt) return 'غير متوفر';
-            
-            let dateObj;
-            // فحص نوع البيانات الواردة من Firebase (إما كائـن Timestamp أو كاتب نصي/رقمي)
-            if (createdAt.toDate) {
-                dateObj = createdAt.toDate();
-            } else {
-                dateObj = new Date(createdAt);
-            }
-
+            let dateObj = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
             if (isNaN(dateObj.getTime())) return 'غير متوفر';
-
-            // استخدام خيارات التنسيق باللغة العربية
             return dateObj.toLocaleString('ar-EG', {
                 year: 'numeric',
                 month: 'short',
@@ -846,7 +849,6 @@
             });
         }
 
-        // دالة عرض وتصفية وبحث الطلبات بناءً على الحالة وحقل البحث المكتوب
         function renderAppointments(docsArray) {
             const container = document.getElementById("requestsContainer");
             const searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
@@ -862,13 +864,11 @@
                 const fileNumber = (data.fileNumber || "").toLowerCase();
                 const transactionCode = (data.transactionCode || "").toLowerCase();
 
-                // فلترة الأقسام
                 if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
                 if (currentFilter === 'إسعاف' && !isEmergency) return;
                 if (currentFilter === 'مؤكد' && !status.includes("مقبول")) return;
                 if (currentFilter === 'مرفوض' && !status.includes("مرفوض")) return;
 
-                // فلترة البحث النصي (اسم المريض، رقم الأضبارة، أو رمز المعاملة)
                 if (searchQuery !== "" && !username.includes(searchQuery) && !fileNumber.includes(searchQuery) && !transactionCode.includes(searchQuery)) {
                     return;
                 }
