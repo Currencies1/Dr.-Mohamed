@@ -40,7 +40,6 @@
             justify-content: center;
         }
 
-        /* نافذة تسجيل الدخول */
         .login-wrapper {
             width: 100%;
             display: flex;
@@ -98,7 +97,6 @@
             border: 1px solid #fecaca;
         }
 
-        /* لوحة التحكم الرئيسية */
         .admin-container {
             max-width: 1000px;
             width: 100%;
@@ -927,9 +925,8 @@
                 const isEmergency = data.isEmergency || false;
                 const status = data.status || "قيد الانتظار";
                 
-                // تحسين الفحص الدقيق لفترة الحجز للتأكد من فرزها بشكل صحيح
                 let rawPeriod = data.sessionPeriod ? String(data.sessionPeriod).trim().toLowerCase() : "";
-                let period = "صباحي"; // القيمة الافتراضية
+                let period = "صباحي";
                 
                 if (rawPeriod.includes("مساء") || rawPeriod.includes("evening") || rawPeriod.includes("مسائية")) {
                     period = "مسائي";
