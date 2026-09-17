@@ -198,7 +198,7 @@
             box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
         }
 
-        input[type="file"] { padding: 10px 45px 10px 10px; cursor: pointer; }
+        input[type="file"] { display: none; }
 
         .btn-open-report-modal {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
@@ -296,6 +296,43 @@
             border-right: 3px solid #22c55e;
         }
 
+        /* أزرار اختيار مصدر الصورة (كاميرا أو أستوديو) */
+        .upload-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .upload-option-btn {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Cairo';
+            font-weight: 700;
+            font-size: 13.5px;
+            color: #334155;
+            text-decoration: none;
+        }
+        .upload-option-btn i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        .upload-option-btn:hover {
+            background: #f0f9ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+        }
+
         .size-warning-badge {
             background: #fffbeb;
             border: 1px solid #fde68a;
@@ -303,7 +340,7 @@
             padding: 8px 12px;
             border-radius: 8px;
             font-size: 12px;
-            margin-top: 10px;
+            margin-top: 15px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -332,7 +369,7 @@
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px;
             font-family: 'Cairo';
             transition: background 0.2s;
         }
@@ -660,7 +697,7 @@
                 <button type="button" class="btn-open-report-modal" onclick="openReportModal()">
                     <span style="display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-paperclip" style="color: #16a34a;"></i> 
-                        إرسال صورة التقرير الطبي <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري - تقبل صور الكاميرا تلقائياً)</span>
+                        إرسال صورة التقرير الطبي أو الأدوية <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري)</span>
                     </span>
                     <span id="reportStatusIndicator" class="report-status-indicator" style="display: none;">تم الإدراج ✓</span>
                 </button>
@@ -698,6 +735,7 @@
     </div>
 </div>
 
+<!-- النافذة المنسدلة لإرفاق التقرير مع خيارين (كاميرا مباشرة أو الأستوديو) -->
 <div id="reportModalOverlay" class="report-modal-overlay">
     <div class="report-modal-card">
         <div class="report-modal-header">
@@ -707,20 +745,30 @@
         <div class="report-modal-body">
             <p class="notice-text">
                 <i class="fa-solid fa-circle-info" style="color: #16a34a; margin-left: 5px;"></i>
-                <b>إرسال صورة التقرير الطبي اختياري.</b> يمكنك التقاط صورة مباشرة بكاميرا الهاتف أو اختيارها من الاستوديو، وسيتم ضغطها وتجهيزها تلقائياً.
+                <b>إرسال صورة التقرير الطبي اختياري.</b> يرجى اختيار طريقة الإدراج المناسبة لك (التصوير بالكاميرا مباشرة أو اختيار صورة محفوظة مسبقاً من الاستوديو).
             </p>
 
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>اختر أو التقط صورة التقرير (من الكاميرا أو الاستوديو)</label>
-                <div class="input-with-icon">
-                    <i class="fa-solid fa-camera"></i>
-                    <input type="file" id="medicalReport" accept="image/*" capture="environment" onchange="previewReport()">
-                </div>
+            <label style="margin-bottom: 8px; font-weight: 700;">اختر مصدر الصورة:</label>
+            <div class="upload-options-grid">
+                <!-- زر الكاميرا المباشرة -->
+                <button type="button" class="upload-option-btn" onclick="triggerCameraInput()">
+                    <i class="fa-solid fa-camera-retro"></i>
+                    تصوير بالكاميرا مباشرة
+                </button>
+                <!-- زر الاستوديو -->
+                <button type="button" class="upload-option-btn" onclick="triggerGalleryInput()">
+                    <i class="fa-solid fa-images"></i>
+                    اختيار من الأستوديو
+                </button>
             </div>
+
+            <!-- عناصر إدخال مخفية للتعامل مع الملفات -->
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleFileSelected(this)">
+            <input type="file" id="galleryInput" accept="image/*" onchange="handleFileSelected(this)">
 
             <div class="size-warning-badge">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>ملاحظة: النظام يقوم الآن بضغط صور الهاتف الكبيرة تلقائياً لتتوافق بسلاسة مع قاعدة البيانات.</span>
+                <span>ملاحظة: سيتم ضغط الصورة تلقائياً لتتلاءم بسلاسة مع النظام.</span>
             </div>
 
             <div id="reportPreview" class="report-preview">
@@ -757,6 +805,7 @@
     const db = getFirestore(app);
     let unsubscribeLive = null;
     let base64ReportImage = "";
+    let selectedReportName = "لا يوجد تقرير مرفق";
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -764,6 +813,16 @@
 
     window.closeReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "none";
+    };
+
+    // تفعيل اختيار الكاميرا مباشرة
+    window.triggerCameraInput = function() {
+        document.getElementById("cameraInput").click();
+    };
+
+    // تفعيل اختيار الاستوديو
+    window.triggerGalleryInput = function() {
+        document.getElementById("galleryInput").click();
     };
 
     function monitorClinicStatus() {
@@ -810,16 +869,17 @@
         }
     };
 
-    window.previewReport = function() {
-        const input = document.getElementById("medicalReport");
+    // معالجة الملف المختار سواء من الكاميرا أو الأستوديو وضغطه
+    window.handleFileSelected = function(inputElement) {
         const preview = document.getElementById("reportPreview");
         const indicator = document.getElementById("reportStatusIndicator");
         const fileNameText = document.getElementById("reportFileNameText");
 
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
+        if (inputElement.files && inputElement.files[0]) {
+            const file = inputElement.files[0];
+            selectedReportName = file.name || (inputElement.id === 'cameraInput' ? "صورة التقرير من الكاميرا" : "صورة التقرير من الاستوديو");
+            
             const reader = new FileReader();
-
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
@@ -847,16 +907,12 @@
                     base64ReportImage = canvas.toDataURL('image/jpeg', 0.7);
 
                     preview.style.display = "flex";
-                    fileNameText.innerHTML = `تم إرفاق وضغط التقرير بنجاح: <b>${file.name || 'صورة الكاميرا'}</b>`;
+                    fileNameText.innerHTML = `تم إرفاق وضغط التقرير بنجاح: <b>${selectedReportName}</b>`;
                     indicator.style.display = "inline-block";
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
-        } else {
-            preview.style.display = "none";
-            base64ReportImage = "";
-            indicator.style.display = "none";
         }
     };
 
@@ -875,7 +931,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
         monitorClinicStatus();
-        renderSavedAppointments(); // عرض الحجوزات القديمة المحفوظة في الجهاز
+        renderSavedAppointments();
         
         const savedDocId = localStorage.getItem("current_appointment_id");
         if (savedDocId) {
@@ -897,7 +953,6 @@
         const timeSlot = document.getElementById("timeSlot").value;
         const visitType = document.getElementById("visitType").value;
         const fileNumber = document.getElementById("fileNumber").value.trim();
-        const reportInput = document.getElementById("medicalReport");
         const statusMsg = document.getElementById("statusMsg");
 
         if (!username || !age || !residence || !timeSlot || !visitType) {
@@ -914,11 +969,6 @@
             const transactionCode = generateTransactionCode(isEmergency);
             const now = new Date();
 
-            let reportFileName = "لا يوجد تقرير مرفق";
-            if (reportInput.files && reportInput.files.length > 0) {
-                reportFileName = reportInput.files[0].name || "صورة من كاميرا الهاتف";
-            }
-
             let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | الفترة: ${timeSlot} | النوع: ${visitType}`;
             if (fileNumber) {
                 formattedDetails += ` | رقم الأضبارة: ${fileNumber}`;
@@ -931,7 +981,7 @@
                 sessionPeriod: timeSlot,
                 visitType: visitType,
                 fileNumber: fileNumber || "لا يوجد",
-                reportFileName: reportFileName,
+                reportFileName: selectedReportName,
                 reportImage: base64ReportImage,
                 isEmergency: isEmergency,
                 transactionCode: transactionCode,
@@ -981,7 +1031,6 @@
                 }
 
                 if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
-                    // حفظ المستند في قائمة الحجوزات الدائمة في localStorage
                     saveAppointmentPermanently({
                         id: docId,
                         username: data.username,
@@ -1061,13 +1110,11 @@
         });
     }
 
-    // دوال الحفظ الدائم في الـ localStorage واستعراضها
     function saveAppointmentPermanently(appData) {
         let savedList = JSON.parse(localStorage.getItem("clinic_approved_appointments") || "[]");
-        // التأكد من عدم تكرار نفس الأضبارة أو المعاملة
         const exists = savedList.some(item => item.id === appData.id);
         if (!exists) {
-            savedList.unshift(appData); // إضافة الجديد في البداية
+            savedList.unshift(appData);
             localStorage.setItem("clinic_approved_appointments", JSON.stringify(savedList));
             renderSavedAppointments();
         }
@@ -1163,10 +1210,12 @@
         document.getElementById("visitType").selectedIndex = 0;
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
-        document.getElementById("medicalReport").value = "";
+        document.getElementById("cameraInput").value = "";
+        document.getElementById("galleryInput").value = "";
         document.getElementById("reportPreview").style.display = "none";
         document.getElementById("reportStatusIndicator").style.display = "none";
         base64ReportImage = "";
+        selectedReportName = "لا يوجد تقرير مرفق";
     };
 </script>
 
