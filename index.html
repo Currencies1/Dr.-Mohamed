@@ -580,7 +580,7 @@
                 <button type="button" class="btn-open-report-modal" onclick="openReportModal()">
                     <span style="display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-paperclip" style="color: #16a34a;"></i> 
-                        إرسال صورة التقرير الطبي <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري - متاح حتى 20 ميغابايت)</span>
+                        إرسال صورة التقرير الطبي <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري - تقبل صور الكاميرا تلقائياً)</span>
                     </span>
                     <span id="reportStatusIndicator" class="report-status-indicator" style="display: none;">تم الإدراج ✓</span>
                 </button>
@@ -616,25 +616,25 @@
         <div class="report-modal-body">
             <p class="notice-text">
                 <i class="fa-solid fa-circle-info" style="color: #16a34a; margin-left: 5px;"></i>
-                <b>إرسال صورة التقرير الطبي اختياري.</b> يمكنك إرفاق أي صورة تقرير طبي أو روشتة أدوية بأي حجم مفتوح من 1 كيلو بايت ولغاية 20 ميغابايت.
+                <b>إرسال صورة التقرير الطبي اختياري.</b> يمكنك التقاط صورة مباشرة بكاميرا الهاتف أو اختيارها من الاستوديو، وسيتم ضغطها وتجهيزها تلقائياً.
             </p>
 
             <div class="form-group" style="margin-bottom: 0;">
-                <label>اختر صورة التقرير من الجهاز (مفتوح الحجم حتى 20MB)</label>
+                <label>اختر أو التقط صورة التقرير (من الكاميرا أو الاستوديو)</label>
                 <div class="input-with-icon">
                     <i class="fa-solid fa-camera"></i>
-                    <input type="file" id="medicalReport" accept="image/*" onchange="previewReport()">
+                    <input type="file" id="medicalReport" accept="image/*" capture="environment" onchange="previewReport()">
                 </div>
             </div>
 
             <div class="size-warning-badge">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>ملاحظة: تم إلغاء القيود تماماً، يمكنك رفع الصور بدقة عالية جداً حتى 20MB.</span>
+                <span>ملاحظة: النظام يقوم الآن بضغط صور الهاتف الكبيرة تلقائياً لتتوافق بسلاسة مع قاعدة البيانات.</span>
             </div>
 
             <div id="reportPreview" class="report-preview">
                 <i class="fa-solid fa-circle-check"></i> 
-                <span id="reportFileNameText">تم اختيار صورة التقرير بنجاح.</span>
+                <span id="reportFileNameText">تم اختيار وضغط صورة التقرير بنجاح.</span>
             </div>
 
             <button type="button" class="btn-confirm-report" onclick="closeReportModal()">
@@ -667,7 +667,6 @@
     let unsubscribeLive = null;
     let base64ReportImage = "";
 
-    // إدارة فتح وإغلاق نافذة التقرير المنبثقة
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
     };
@@ -676,7 +675,6 @@
         document.getElementById("reportModalOverlay").style.display = "none";
     };
 
-    // مراقبة حالة العيادة (مفتوحة / مغلقة) لحظياً من قاعدة البيانات
     function monitorClinicStatus() {
         const statusRef = doc(db, "settings", "clinic_status");
         onSnapshot(statusRef, (docSnap) => {
@@ -721,36 +719,53 @@
         }
     };
 
+    // دالة ضغط الصور تلقائياً لتلائم قاعدة البيانات من كاميرا الهاتف
     window.previewReport = function() {
         const input = document.getElementById("medicalReport");
         const preview = document.getElementById("reportPreview");
         const indicator = document.getElementById("reportStatusIndicator");
         const fileNameText = document.getElementById("reportFileNameText");
-        const statusMsg = document.getElementById("statusMsg");
 
-        if (input.files && input.files.length > 0) {
+        if (input.files && input.files[0]) {
             const file = input.files[0];
-            const fileSizeMB = file.size / (1024 * 1024);
-
-            // التحقق من الحد الأقصى (20 ميجابايت) والحد الأدنى المفتوح
-            if (fileSizeMB > 20) {
-                alert("حجم الصورة كبير جداً. الحد الأقصى المسموح به هو 20 ميجابايت.");
-                input.value = "";
-                preview.style.display = "none";
-                base64ReportImage = "";
-                indicator.style.display = "none";
-                return;
-            }
-
             const reader = new FileReader();
+
             reader.onload = function(e) {
-                base64ReportImage = e.target.result;
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // تصغير أبعاد الصورة إذا كانت كبيرة جداً (الحد الأقصى للعرض أو الارتفاع 1000 بكسل)
+                    const MAX_DIMENSION = 1000;
+                    if (width > height) {
+                        if (width > MAX_DIMENSION) {
+                            height = Math.round((height * MAX_DIMENSION) / width);
+                            width = MAX_DIMENSION;
+                        }
+                    } else {
+                        if (height > MAX_DIMENSION) {
+                            width = Math.round((width * MAX_DIMENSION) / height);
+                            height = MAX_DIMENSION;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // تحويل الصورة إلى صيغة JPEG بجودة 0.7 لتصغير الحجم بشكل كبير وقبوله في القاعدة
+                    base64ReportImage = canvas.toDataURL('image/jpeg', 0.7);
+
+                    preview.style.display = "flex";
+                    fileNameText.innerHTML = `تم إرفاق وضغط التقرير بنجاح: <b>${file.name || 'صورة الكاميرا'}</b>`;
+                    indicator.style.display = "inline-block";
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
-
-            preview.style.display = "flex";
-            fileNameText.innerHTML = `تم اختيار التقرير: <b>${file.name}</b> (${fileSizeMB.toFixed(2)} MB)`;
-            indicator.style.display = "inline-block";
         } else {
             preview.style.display = "none";
             base64ReportImage = "";
@@ -802,7 +817,7 @@
         }
 
         statusMsg.className = "loading-msg";
-        statusMsg.innerText = "جاري إرسال حجزك للعيادة ومعالجة المرفقات الكبيرة...";
+        statusMsg.innerText = "جاري إرسال حجزك للعيادة ومعالجة المرفقات...";
 
         try {
             const isEmergency = visitType === "حالة إعسافية طارئة";
@@ -811,7 +826,7 @@
 
             let reportFileName = "لا يوجد تقرير مرفق";
             if (reportInput.files && reportInput.files.length > 0) {
-                reportFileName = reportInput.files[0].name;
+                reportFileName = reportInput.files[0].name || "صورة من كاميرا الهاتف";
             }
 
             let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | النوع: ${visitType}`;
@@ -843,7 +858,7 @@
         } catch (error) {
             console.error("خطأ في الإرسال:", error);
             statusMsg.className = "error-msg";
-            statusMsg.innerText = "فشل إرسال الحجز! قد يكون حجم الصورة كبيراً جداً على قاعدة البيانات، حاول تصغيرها قليلاً أو تحقق من الاتصال.";
+            statusMsg.innerText = "فشل إرسال الحجز! تحقق من اتصال الإنترنت وحاول مرة أخرى.";
         }
     };
 
@@ -961,8 +976,7 @@
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
         document.getElementById("medicalReport").value = "";
-        document.getElementById("reportPreview").style.display = "none";
-        document.getElementById("reportStatusIndicator").style.display = "none";
+        document.getElementById("reportPreview").style.display, document.getElementById("reportStatusIndicator").style.display = "none";
         base64ReportImage = "";
     };
 </script>
