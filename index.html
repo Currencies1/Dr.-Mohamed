@@ -119,6 +119,22 @@
             line-height: 1.5;
         }
 
+        /* رسالة إغلاق العيادة */
+        #clinicClosedNotice {
+            display: none;
+            background: #fee2e2;
+            border: 1.5px solid #ef4444;
+            color: #991b1b;
+            padding: 25px 20px;
+            border-radius: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+        }
+        #clinicClosedNotice i { font-size: 38px; margin-bottom: 12px; display: block; color: #dc2626; }
+        #clinicClosedNotice h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+        #clinicClosedNotice p { font-size: 14.5px; line-height: 1.7; color: #7f1d1d; }
+
         .form-group { margin-bottom: 15px; }
 
         label {
@@ -366,6 +382,13 @@
             <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
         </div>
 
+        <!-- رسالة إغلاق العيادة (تظهر تلقائياً عند تفعيلها من لوحة التحكم) -->
+        <div id="clinicClosedNotice">
+            <i class="fa-solid fa-door-closed"></i>
+            <h3>العيادة مغلقة حالياً</h3>
+            <p id="closedMessageText">نعتذر منك، العيادة مغلقة حالياً. أوقات الدوام الرسمي: من الساعة 9 صباحاً حتى 3 عصراً ومن الساعة 5 مساءً حتى 11 ليلاً.</p>
+        </div>
+
         <div id="formFieldsContainer">
             <!-- المعلومات الشخصية -->
             <div class="section-title">
@@ -488,6 +511,39 @@
     let unsubscribeLive = null;
     let base64ReportImage = "";
 
+    // مراقبة حالة العيادة (مفتوحة / مغلقة) لحظياً من قاعدة البيانات
+    function monitorClinicStatus() {
+        const statusRef = doc(db, "settings", "clinic_status");
+        onSnapshot(statusRef, (docSnap) => {
+            const noticeDiv = document.getElementById("clinicClosedNotice");
+            const formFields = document.getElementById("formFieldsContainer");
+            const messageText = document.getElementById("closedMessageText");
+
+            let isOpen = true;
+            if (docSnap.exists()) {
+                isOpen = docSnap.data().isOpen;
+                if (docSnap.data().closedMessage) {
+                    messageText.innerText = docSnap.data().closedMessage;
+                }
+            }
+
+            // إذا كان المريض يتابع طلبه الحالي (لديه أضبارة أو طلب قيد المراجعة)، نتجاهل شاشة الإغلاق لكي لا نقطع عليه متابعة دوره، وإلا نطبق حالة الإغلاق
+            const savedDocId = localStorage.getItem("current_appointment_id");
+
+            if (!isOpen) {
+                if (!savedDocId) {
+                    noticeDiv.style.display = "block";
+                    formFields.style.display = "none";
+                }
+            } else {
+                noticeDiv.style.display = "none";
+                if (!savedDocId) {
+                    formFields.style.display = "block";
+                }
+            }
+        });
+    }
+
     window.toggleFileNumberField = function() {
         const visitType = document.getElementById("visitType").value;
         const fileGroup = document.getElementById("fileNumberGroup");
@@ -523,6 +579,7 @@
 
     function lockScreenToWaiting() {
         document.getElementById("formFieldsContainer").style.display = "none";
+        document.getElementById("clinicClosedNotice").style.display = "none"; // إخفاء إشعار الإغلاق إذا كان الطلب مُرسلاً بالفعل
         const statusMsg = document.getElementById("statusMsg");
         statusMsg.className = "loading-msg";
         statusMsg.innerHTML = `
@@ -534,6 +591,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+        monitorClinicStatus(); // بدء مراقبة حالة العيادة
         const savedDocId = localStorage.getItem("current_appointment_id");
         if (savedDocId) {
             lockScreenToWaiting();
@@ -624,7 +682,6 @@
                 const fileNumber = data.fileNumber || "لا يوجد";
                 const doctorNotes = data.doctorNotes ? data.doctorNotes.trim() : "";
 
-                // معالجة عرض ساعة وتاريخ صدور الحجز للمستند
                 let issuedTimeStr = "قيد الصدور";
                 if (data.createdAt) {
                     try {
