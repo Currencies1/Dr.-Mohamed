@@ -60,13 +60,6 @@
         }
         .login-card button:hover { background: #0284c7; }
         .login-error { color: var(--danger); font-size: 13px; margin-top: 10px; display: none; }
-        .login-success { color: var(--success); font-size: 13px; margin-top: 10px; display: none; }
-
-        .forgot-password-link {
-            display: block; margin-top: 15px; font-size: 13px; color: var(--primary);
-            text-decoration: none; cursor: pointer; font-weight: 600; transition: 0.2s;
-        }
-        .forgot-password-link:hover { text-decoration: underline; color: #0284c7; }
 
         /* لوحة التحكم الرئيسية */
         #adminDashboard { display: none; }
@@ -92,8 +85,8 @@
         .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 13.5px; }
         .btn-logout:hover { background: #fecaca; }
 
-        /* نافذة منبثقة (Modal) للباركود ونسيت كلمة المرور */
-        .custom-modal {
+        /* نافذة منبثقة (Modal) للباركود */
+        #barcodeModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.75); display: none; justify-content: center;
             align-items: center; z-index: 10000; backdrop-filter: blur(4px); padding: 15px;
@@ -258,34 +251,16 @@
             <div class="doctor-avatar-login"><i class="fa-solid fa-user-doctor"></i></div>
             <h2>لوحة تحكم عيادة د. محمد إسماعيل</h2>
             <form id="loginForm" onsubmit="handleLogin(event)">
-                <!-- حقل البريد الإلكتروني أصبح فارغاً ولا يتم ملؤه تلقائياً -->
                 <input type="email" id="emailInput" placeholder="البريد الإلكتروني للإدارة" required>
                 <input type="password" id="passwordInput" placeholder="كلمة المرور" required>
                 <button type="submit">تسجيل الدخول</button>
                 <div id="loginError" class="login-error">البريد الإلكتروني أو كلمة المرور غير صحيحة!</div>
-                <a class="forgot-password-link" onclick="openForgotModal()">نسيت كلمة المرور؟</a>
-            </form>
-        </div>
-    </div>
-
-    <!-- نافذة منبثقة (نسيت كلمة المرور) -->
-    <div id="forgotModal" class="custom-modal">
-        <div class="modal-card">
-            <button class="close-modal" onclick="closeForgotModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3><i class="fa-solid fa-key" style="color: var(--primary);"></i> استعادة كلمة المرور</h3>
-            <p>أدخل بريدك الإلكتروني المسجل، وسنرسل لك رابطاً لإعادة تعيين كلمة المرور إلى صندوق الوارد (Gmail).</p>
-            
-            <form onsubmit="handlePasswordReset(event)">
-                <input type="email" id="resetEmailInput" placeholder="البريد الإلكتروني الخاص بك" required style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 14px; outline: none;">
-                <button type="submit" class="btn-download-qr">إرسال رابط الإعادة</button>
-                <div id="resetError" class="login-error">البريد غير مسجل أو حدث خطأ!</div>
-                <div id="resetSuccess" class="login-success">تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح! تفقد الوارد أو الرسائل غير المرغوب فيها.</div>
             </form>
         </div>
     </div>
 
     <!-- نافذة منبثقة (مستعرض الباركود للعيادة) -->
-    <div id="barcodeModal" class="custom-modal">
+    <div id="barcodeModal">
         <div class="modal-card">
             <button class="close-modal" onclick="closeBarcodeModal()"><i class="fa-solid fa-xmark"></i></button>
             <h3><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> باركود حجز العيادة</h3>
@@ -350,7 +325,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -364,7 +338,6 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
         const container = document.getElementById("ordersContainer");
@@ -374,63 +347,26 @@
         let qrInitialized = false;
         let previousCount = null;
 
-        // البريد الإلكتروني الخاص المطلوب اعتماده
-        const specificEmail = "MohamedIsmail123@gmail.com";
-
         if (localStorage.getItem("doctorLoggedIn") === "true") {
             showDashboard();
         }
 
-        window.handleLogin = async function(event) {
+        window.handleLogin = function(event) {
             event.preventDefault();
-            // إذا ترك الحقل فارغاً أو كتب البريد، سيتم اعتماد البريد الخاص المعتمد تلقائياً أو ما كتبه الطبيب
-            const inputVal = document.getElementById("emailInput").value.trim();
-            const email = inputVal !== "" ? inputVal : specificEmail;
+            const email = document.getElementById("emailInput").value.trim();
             const password = document.getElementById("passwordInput").value.trim();
             const errorDiv = document.getElementById("loginError");
 
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
+            if (email === "MohamedIsmail123@gmail.com" && password === "Mohamed123") {
                 localStorage.setItem("doctorLoggedIn", "true");
                 errorDiv.style.display = "none";
                 showDashboard();
-            } catch (error) {
+            } else {
                 errorDiv.style.display = "block";
             }
         };
 
-        window.openForgotModal = function() {
-            document.getElementById("forgotModal").style.display = "flex";
-            document.getElementById("resetError").style.display = "none";
-            document.getElementById("resetSuccess").style.display = "none";
-            document.getElementById("resetEmailInput").value = ""; // يبقى فارغاً أيضاً
-        };
-
-        window.closeForgotModal = function() {
-            document.getElementById("forgotModal").style.display = "none";
-        };
-
-        window.handlePasswordReset = async function(event) {
-            event.preventDefault();
-            const inputVal = document.getElementById("resetEmailInput").value.trim();
-            const email = inputVal !== "" ? inputVal : specificEmail;
-            const errorDiv = document.getElementById("resetError");
-            const successDiv = document.getElementById("resetSuccess");
-
-            try {
-                await sendPasswordResetEmail(auth, email);
-                errorDiv.style.display = "none";
-                successDiv.style.display = "block";
-            } catch (error) {
-                successDiv.style.display = "none";
-                errorDiv.style.display = "block";
-            }
-        };
-
-        window.handleLogout = async function() {
-            try {
-                await signOut(auth);
-            } catch (e) {}
+        window.handleLogout = function() {
             localStorage.removeItem("doctorLoggedIn");
             document.getElementById("adminDashboard").style.display = "none";
             document.getElementById("loginOverlay").style.display = "flex";
