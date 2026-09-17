@@ -538,7 +538,7 @@
             </div>
         </div>
 
-        <!-- رسالة إغلاق العيادة (تتغير تلقائياً من لوحة تحكم الطبيب) -->
+        <!-- رسالة إغلاق العيادة -->
         <div id="clinicClosedNotice">
             <i class="fa-solid fa-door-closed"></i>
             <h3>العيادة مغلقة حالياً</h3>
@@ -576,10 +576,22 @@
                 </div>
             </div>
 
-            <!-- تفاصيل الزيارة -->
+            <!-- تفاصيل الزيارة والفترة -->
             <div class="section-title">
                 <i class="fa-solid fa-stethoscope"></i>
-                تفاصيل الزيارة
+                تفاصيل الزيارة ووقت الموعد
+            </div>
+
+            <div class="form-group">
+                <label>اختر فترة الحجز (صباحي أم مسائي)<span class="required">*</span></label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-sun" style="color: #f59e0b;"></i>
+                    <select id="timeSlot" required>
+                        <option value="" disabled selected>اختر الفترة المفضلة...</option>
+                        <option value="الفترة الصباحية (11 ص - 3 م)">☀️ الفترة الصباحية (من 11 صباحاً حتى 3 عصراً)</option>
+                        <option value="الفترة المسائية (7 م - 11 ليلًا)">🌙 الفترة المسائية (من 7 مساءً حتى 11 ليلاً)</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
@@ -835,14 +847,15 @@
         const username = document.getElementById("username").value.trim();
         const age = document.getElementById("age").value.trim();
         const residence = document.getElementById("residence").value.trim();
+        const timeSlot = document.getElementById("timeSlot").value;
         const visitType = document.getElementById("visitType").value;
         const fileNumber = document.getElementById("fileNumber").value.trim();
         const reportInput = document.getElementById("medicalReport");
         const statusMsg = document.getElementById("statusMsg");
 
-        if (!username || !age || !residence || !visitType) {
+        if (!username || !age || !residence || !timeSlot || !visitType) {
             statusMsg.className = "error-msg";
-            statusMsg.innerText = "الرجاء تعبئة الحقول الأساسية المطلوبة!";
+            statusMsg.innerText = "الرجاء تعبئة جميع الحقول الأساسية المطلوبة واختيار الفترة!";
             return;
         }
 
@@ -859,7 +872,7 @@
                 reportFileName = reportInput.files[0].name || "صورة من كاميرا الهاتف";
             }
 
-            let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | النوع: ${visitType}`;
+            let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | الفترة: ${timeSlot} | النوع: ${visitType}`;
             if (fileNumber) {
                 formattedDetails += ` | رقم الأضبارة: ${fileNumber}`;
             }
@@ -868,6 +881,7 @@
                 username: username,
                 age: age,
                 residence: residence,
+                timeSlot: timeSlot,
                 visitType: visitType,
                 fileNumber: fileNumber || "لا يوجد",
                 reportFileName: reportFileName,
@@ -904,6 +918,7 @@
                 const isEmergency = data.isEmergency || false;
                 const transCode = data.transactionCode || "10000";
                 const residence = data.residence || "غير متوفر";
+                const timeSlot = data.timeSlot || "غير محدد";
                 const visitType = data.visitType || "مريض جديد";
                 const fileNumber = data.fileNumber || "لا يوجد";
                 const doctorNotes = data.doctorNotes ? data.doctorNotes.trim() : "";
@@ -934,6 +949,7 @@
                                 <p>الاسم الكامل: <span>${data.username}</span></p>
                                 <p>العمر: <span>${data.age} سنة</span></p>
                                 <p>الإقامة: <span>${residence}</span></p>
+                                <p>فترة الحجز: <span style="color:#0284c7;">${timeSlot}</span></p>
                                 <p>حالة الزيارة: <span style="color:${isEmergency ? '#ef4444' : '#0284c7'};">${visitType}</span></p>
                                 ${fileNumber && fileNumber !== "لا يوجد" ? `<p>رقم الأضبارة: <span style="color:#7c2d12;">${fileNumber}</span></p>` : ""}
                                 <p>رقم الدور: <span style="color:#0284c7;font-size:16px;">${queueNum}</span></p>
@@ -1002,6 +1018,7 @@
         document.getElementById("username").value = "";
         document.getElementById("age").value = "";
         document.getElementById("residence").value = "";
+        document.getElementById("timeSlot").selectedIndex = 0;
         document.getElementById("visitType").selectedIndex = 0;
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
