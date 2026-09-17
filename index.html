@@ -112,7 +112,6 @@
 
         .clinic-location-badge i { color: var(--primary); font-size: 16px; }
 
-        /* شريط أوقات الدوام الجميل والواضح */
         .clinic-hours-banner {
             background: linear-gradient(135deg, #f8fafc 100%, #f1f5f9 0%);
             border: 1.5px solid #cbd5e1;
@@ -143,7 +142,6 @@
             font-weight: 700;
         }
 
-        /* رسالة إغلاق العيادة */
         #clinicClosedNotice {
             display: none;
             background: #fee2e2;
@@ -201,7 +199,6 @@
 
         input[type="file"] { padding: 10px 45px 10px 10px; cursor: pointer; }
 
-        /* زر فتح إطار التقارير الطبية المنبثق الاحترافي */
         .btn-open-report-modal {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border: 1.5px dashed #22c55e;
@@ -231,7 +228,6 @@
             border-radius: 6px;
         }
 
-        /* نافذة منبثقة (Modal) مخصصة للتقارير الطبية */
         .report-modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -527,7 +523,6 @@
             </div>
         </div>
 
-        <!-- إشعار أوقات دوام العيادة الجميل والواضح -->
         <div class="clinic-hours-banner">
             <div class="hours-title">
                 <i class="fa-solid fa-clock-rotate-left"></i>
@@ -538,7 +533,6 @@
             </div>
         </div>
 
-        <!-- رسالة إغلاق العيادة -->
         <div id="clinicClosedNotice">
             <i class="fa-solid fa-door-closed"></i>
             <h3>العيادة مغلقة حالياً</h3>
@@ -546,7 +540,6 @@
         </div>
 
         <div id="formFieldsContainer">
-            <!-- المعلومات الشخصية -->
             <div class="section-title">
                 <i class="fa-solid fa-id-card"></i>
                 المعلومات الشخصية
@@ -576,7 +569,6 @@
                 </div>
             </div>
 
-            <!-- تفاصيل الزيارة والفترة -->
             <div class="section-title">
                 <i class="fa-solid fa-stethoscope"></i>
                 تفاصيل الزيارة ووقت الموعد
@@ -586,10 +578,11 @@
                 <label>اختر فترة الحجز (صباحي أم مسائي)<span class="required">*</span></label>
                 <div class="input-with-icon">
                     <i class="fa-solid fa-sun" style="color: #f59e0b;"></i>
+                    <!-- تم تعديل القيم هنا لتتطابق برمجياً مع لوحة الأدمن وتجنب الخطأ -->
                     <select id="timeSlot" required>
                         <option value="" disabled selected>اختر الفترة المفضلة...</option>
                         <option value="الفترة الصباحية (11 ص - 3 م)">☀️ الفترة الصباحية (من 11 صباحاً حتى 3 عصراً)</option>
-                        <option value="الفترة المسائية (7 م - 11 ليلًا)">🌙 الفترة المسائية (من 7 مساءً حتى 11 ليلاً)</option>
+                        <option value="الفترة المسائية (7 م - 11 ليلاً)">🌙 الفترة المسائية (من 7 مساءً حتى 11 ليلاً)</option>
                     </select>
                 </div>
             </div>
@@ -615,7 +608,6 @@
                 </div>
             </div>
 
-            <!-- قسم التقارير الطبية المنبثق -->
             <div class="section-title">
                 <i class="fa-solid fa-file-medical"></i>
                 التقارير الطبية والأدوية
@@ -632,7 +624,6 @@
                 </button>
             </div>
 
-            <!-- زر الإرسال -->
             <button type="button" id="submitBtn" class="btn-submit" onclick="sendOrder()">
                 <span id="btnText">إرسال طلب الحجز للطبيب</span>
                 <i class="fa-solid fa-paper-plane" id="btnIcon"></i>
@@ -652,7 +643,6 @@
     </div>
 </div>
 
-<!-- النافذة المنبثقة (Modal) الخاصة بالتقرير الطبي -->
 <div id="reportModalOverlay" class="report-modal-overlay">
     <div class="report-modal-card">
         <div class="report-modal-header">
@@ -1019,7 +1009,7 @@
         document.getElementById("age").value = "";
         document.getElementById("residence").value = "";
         document.getElementById("timeSlot").selectedIndex = 0;
-        document.getElementById("visitType").selectedIndex = 0;
+        document.getElementById("visitType").selectedIndex, 0;
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
         document.getElementById("medicalReport").value = "";
