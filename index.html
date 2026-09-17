@@ -68,6 +68,7 @@
             border-radius: 20px;
             box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
         }
 
         .form-header {
@@ -468,6 +469,48 @@
         .btn-download:hover { background: #0369a1; }
         .btn-new { background: #065f46; color: white; }
 
+        /* قسم الحجوزات المحفوظة الدائمة */
+        .saved-appointments-section {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            padding: 25px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .saved-appointments-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+        .saved-appointments-header h3 {
+            font-size: 17px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+        }
+        .saved-appointments-header h3 i { color: #0284c7; }
+        .saved-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .no-saved-msg {
+            text-align: center;
+            color: #64748b;
+            font-size: 13.5px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
         .doctor-signature {
             text-align: center;
             margin-top: 25px;
@@ -638,6 +681,19 @@
                 إشراف وإدارة: د. محمد الأسماعيل
                 <span style="font-size:12px;color:#64748b;font-weight:400;">(استشاري الأمراض الداخلية)</span>
             </div>
+        </div>
+    </div>
+
+    <!-- قسم الحجوزات والمستندات المعتمدة المحفوظة دائماً -->
+    <div class="saved-appointments-section">
+        <div class="saved-appointments-header">
+            <h3><i class="fa-solid fa-folder-closed"></i> سجل الحجوزات والمستندات المعتمدة</h3>
+            <button onclick="clearSavedAppointments()" style="background:#ffeeef; color:#dc2626; border:1px solid #fecaca; padding:5px 10px; border-radius:6px; font-size:11.5px; font-weight:bold; cursor:pointer; font-family:'Cairo';">
+                <i class="fa-solid fa-trash-can"></i> إفراغ السجل
+            </button>
+        </div>
+        <div id="savedListContainer" class="saved-list-container">
+            <div class="no-saved-msg">لا توجد حجوزات معتمدة محفوظة حالياً في سجلك.</div>
         </div>
     </div>
 </div>
@@ -819,6 +875,8 @@
 
     window.addEventListener("DOMContentLoaded", () => {
         monitorClinicStatus();
+        renderSavedAppointments(); // عرض الحجوزات القديمة المحفوظة في الجهاز
+        
         const savedDocId = localStorage.getItem("current_appointment_id");
         if (savedDocId) {
             lockScreenToWaiting();
@@ -870,7 +928,7 @@
                 username: username,
                 age: age,
                 residence: residence,
-                sessionPeriod: timeSlot, // تم توحيد اسم الحقل ليتطابق مع لوحة التحكم
+                sessionPeriod: timeSlot,
                 visitType: visitType,
                 fileNumber: fileNumber || "لا يوجد",
                 reportFileName: reportFileName,
@@ -923,11 +981,27 @@
                 }
 
                 if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
+                    // حفظ المستند في قائمة الحجوزات الدائمة في localStorage
+                    saveAppointmentPermanently({
+                        id: docId,
+                        username: data.username,
+                        age: data.age,
+                        residence: residence,
+                        timeSlot: timeSlot,
+                        visitType: visitType,
+                        fileNumber: fileNumber,
+                        queueNumber: queueNum,
+                        transactionCode: transCode,
+                        issuedTime: issuedTimeStr,
+                        doctorNotes: doctorNotes,
+                        isEmergency: isEmergency
+                    });
+
                     statusMsg.className = "success-msg flash-success";
                     statusMsg.innerHTML = `
                         <div style="text-align:center;margin-bottom:10px;">
                             <i class="fa-solid fa-circle-check" style="font-size:24px;color:#10b981;"></i>
-                            <span style="font-size:15px;font-weight:bold;color:#065f46;">مبروك! تم قبول وتأكيد طلبك بنجاح.</span>
+                            <span style="font-size:15px;font-weight:bold;color:#065f46;">مبروك! تم قبول وتأكيد طلبك بنجاح وحفظه في سجلك الدائم.</span>
                         </div>
                         <div id="patientDocumentCard" class="patient-document ${isEmergency ? 'emergency-doc' : ''}">
                             <div class="doc-header">
@@ -955,7 +1029,7 @@
                             </div>
                         </div>
                         <div class="doc-actions">
-                            <button onclick="downloadDocument()" class="btn-doc btn-download">
+                            <button onclick="downloadDocument('patientDocumentCard')" class="btn-doc btn-download">
                                 <i class="fa-solid fa-download"></i> تحميل المستند / التقاط صورة
                             </button>
                             <button onclick="resetForNewPatient()" class="btn-doc btn-new">
@@ -987,8 +1061,86 @@
         });
     }
 
-    window.downloadDocument = function() {
-        const docElement = document.getElementById("patientDocumentCard");
+    // دوال الحفظ الدائم في الـ localStorage واستعراضها
+    function saveAppointmentPermanently(appData) {
+        let savedList = JSON.parse(localStorage.getItem("clinic_approved_appointments") || "[]");
+        // التأكد من عدم تكرار نفس الأضبارة أو المعاملة
+        const exists = savedList.some(item => item.id === appData.id);
+        if (!exists) {
+            savedList.unshift(appData); // إضافة الجديد في البداية
+            localStorage.setItem("clinic_approved_appointments", JSON.stringify(savedList));
+            renderSavedAppointments();
+        }
+    }
+
+    window.renderSavedAppointments = function() {
+        const container = document.getElementById("savedListContainer");
+        let savedList = JSON.parse(localStorage.getItem("clinic_approved_appointments") || "[]");
+
+        if (savedList.length === 0) {
+            container.innerHTML = `<div class="no-saved-msg">لا توجد حجوزات معتمدة محفوظة حالياً في سجلك.</div>`;
+            return;
+        }
+
+        let html = "";
+        savedList.forEach((item, index) => {
+            html += `
+                <div class="patient-document ${item.isEmergency ? 'emergency-doc' : ''}" id="savedDoc-${index}">
+                    <div class="doc-header">
+                        <h3><i class="fa-solid fa-file-shield"></i> مستند إثبات الدور (معتمد)</h3>
+                        <span class="doc-badge">${item.isEmergency ? "🚨 حالة إسعافية طارئة" : item.visitType}</span>
+                    </div>
+                    <div class="doc-body">
+                        <p>الاسم الكامل: <span>${item.username}</span></p>
+                        <p>العمر: <span>${item.age} سنة</span></p>
+                        <p>الإقامة: <span>${item.residence}</span></p>
+                        <p>فترة الحجز: <span style="color:#0284c7;">${item.timeSlot}</span></p>
+                        <p>حالة الزيارة: <span style="color:${item.isEmergency ? '#ef4444' : '#0284c7'};">${item.visitType}</span></p>
+                        ${item.fileNumber && item.fileNumber !== "لا يوجد" ? `<p>رقم الأضبارة: <span style="color:#7c2d12;">${item.fileNumber}</span></p>` : ""}
+                        <p>رقم الدور: <span style="color:#0284c7;font-size:16px;">${item.queueNumber}</span></p>
+                        <p>ساعة وتاريخ صدور الحجز: <span style="color:#059669;font-size:14px;">${item.issuedTime}</span></p>
+                        <p>رمز المعاملة الرقمي: <span style="letter-spacing:1px;color:#7c2d12;font-family:monospace;">${item.transactionCode}</span></p>
+                        ${item.doctorNotes ? `
+                        <div class="doc-notes-box">
+                            <div class="notes-title"><i class="fa-solid fa-note-sticky"></i> ملاحظات وتوجيهات الطبيب:</div>
+                            <div class="notes-content">${item.doctorNotes}</div>
+                        </div>` : ""}
+                    </div>
+                    <div style="margin-top:10px;font-size:11.5px;color:#64748b;text-align:center;border-top:1px dashed #cbd5e1;padding-top:5px;">
+                        عيادة الأمراض الداخلية - د. محمد الأسماعيل | مستند محفوظ محلياً بشكل دائم.
+                    </div>
+                    <div class="doc-actions" style="margin-top: 12px;">
+                        <button onclick="downloadDocument('savedDoc-${index}')" class="btn-doc btn-download">
+                            <i class="fa-solid fa-download"></i> تحميل المستند كصورة
+                        </button>
+                        <button onclick="removeSavedItem('${item.id}')" class="btn-doc" style="background:#ef4444; color:white;">
+                            <i class="fa-solid fa-trash"></i> حذف من السجل
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    };
+
+    window.removeSavedItem = function(id) {
+        if (confirm("هل تريد بالتأكيد إزالة هذا المستند من السجل المحلي؟")) {
+            let savedList = JSON.parse(localStorage.getItem("clinic_approved_appointments") || "[]");
+            savedList = savedList.filter(item => item.id !== id);
+            localStorage.setItem("clinic_approved_appointments", JSON.stringify(savedList));
+            renderSavedAppointments();
+        }
+    };
+
+    window.clearSavedAppointments = function() {
+        if (confirm("هل أنت متأكد من إفراغ كافة الحجوزات والمستندات المحفوظة في سجلك؟")) {
+            localStorage.removeItem("clinic_approved_appointments");
+            renderSavedAppointments();
+        }
+    };
+
+    window.downloadDocument = function(elementId) {
+        const docElement = document.getElementById(elementId);
         html2canvas(docElement, { scale: 2 }).then(canvas => {
             const link = document.createElement("a");
             link.download = `مستند_دور_المريض_${Date.now()}.png`;
