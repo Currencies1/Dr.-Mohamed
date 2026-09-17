@@ -456,11 +456,10 @@
             if (statusSnap.exists()) {
                 const isOpen = statusSnap.data().isOpen;
                 toggle.checked = isOpen;
-                statusText.innerText = isOpen ? "حالة الموقع: (مفتوح)" : "حالة الموقع: (مغلق)";
+                statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
             } else {
-                await setDoc(statusRef, { isOpen: true });
                 toggle.checked = true;
-                statusText.innerText = "حالة الموقع: (مفتوح)";
+                statusText.innerText = "الموقع: (مفتوح)";
             }
         } catch (e) {
             console.error("خطأ في جلب حالة الموقع:", e);
@@ -475,11 +474,11 @@
         try {
             const statusRef = doc(db, "settings", "siteStatus");
             await setDoc(statusRef, { isOpen: isOpen }, { merge: true });
-            statusText.innerText = isOpen ? "حالة الموقع: (مفتوح)" : "حالة الموقع: (مغلق)";
+            statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
         } catch (e) {
             console.error("خطأ تفصيلي:", e);
-            alert("فشل تحديث حالة الموقع، يجدر التأكد من قواعد أمان Firestore.");
-            toggle.checked = !isOpen; 
+            alert("فشل التحديث. تأكد من ضبط قواعد الأمان (Firestore Rules) لتسمح بالقراءة والكتابة.");
+            toggle.checked = !isOpen; // إعادة الزر لحالته السابقة عند الخطأ
         }
     };
 
@@ -624,7 +623,7 @@
                 doctorNotes: doctorNotes
             });
 
-            alert("تم تحديث حالة الحجز بنجاح!");
+            alert("تم تحديث حالة الحجز بنجاح! سيتم تحديث شاشة المريض فوراً.");
             closeModal();
             loadAppointments();
         } catch (error) {
