@@ -927,9 +927,13 @@
                 const isEmergency = data.isEmergency || false;
                 const status = data.status || "قيد الانتظار";
                 
-                // معالجة فترة الحجز بدقة والتأكد من مطابقتها (مسائي أو صباحي)
-                let rawPeriod = data.sessionPeriod ? data.sessionPeriod.trim().toLowerCase() : "صباحي";
-                let period = (rawPeriod.includes("مساء") || rawPeriod === "evening") ? "مسائي" : "صباحي";
+                // تحسين الفحص الدقيق لفترة الحجز للتأكد من فرزها بشكل صحيح
+                let rawPeriod = data.sessionPeriod ? String(data.sessionPeriod).trim().toLowerCase() : "";
+                let period = "صباحي"; // القيمة الافتراضية
+                
+                if (rawPeriod.includes("مساء") || rawPeriod.includes("evening") || rawPeriod.includes("مسائية")) {
+                    period = "مسائي";
+                }
 
                 const username = (data.username || "").toLowerCase();
                 const fileNumber = (data.fileNumber || "").toLowerCase();
@@ -966,6 +970,7 @@
                             <p>العمر: <span>${data.age} سنة</span> | الإقامة: <span>${data.residence}</span></p>
                             <p>رقم الأضبارة: <span>${data.fileNumber}</span></p>
                             <p>رمز المعاملة: <span style="font-family: monospace; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">${data.transactionCode || 'N/A'}</span></p>
+                            <p>فترة الحجز المختارة: <b style="color: ${period === 'مسائي' ? '#3730a3' : '#b45309'}">${data.sessionPeriod || period}</b></p>
                             <p style="margin-top: 8px;">التفاصيل: <span>${data.details}</span></p>
                             ${reportBtnHtml}
                             <p style="margin-top: 8px;">الحالة الحالية: <b style="color: ${status === 'قيد الانتظار' ? 'var(--warning)' : (status.includes('مقبول') ? 'var(--success)' : 'var(--danger)')}">${status}</b></p>
@@ -1024,7 +1029,9 @@
             }
 
             const isDuplicate = allFetchedDocs.some(docItem => {
-                let itemPeriod = (docItem.sessionPeriod && (docItem.sessionPeriod.toLowerCase().includes("مساء") || docItem.sessionPeriod.toLowerCase() === "evening")) ? "مسائي" : "صباحي";
+                let rawP = docItem.sessionPeriod ? String(docItem.sessionPeriod).trim().toLowerCase() : "";
+                let itemPeriod = (rawP.includes("مساء") || rawP.includes("evening") || rawP.includes("مسائية")) ? "مسائي" : "صباحي";
+                
                 return docItem.id !== docId && 
                        itemPeriod === period && 
                        docItem.queueNumber === queueNumber && 
