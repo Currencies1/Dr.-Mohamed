@@ -578,7 +578,6 @@
                 <label>اختر فترة الحجز (صباحي أم مسائي)<span class="required">*</span></label>
                 <div class="input-with-icon">
                     <i class="fa-solid fa-sun" style="color: #f59e0b;"></i>
-                    <!-- تم تعديل القيم هنا لتتطابق برمجياً مع لوحة الأدمن وتجنب الخطأ -->
                     <select id="timeSlot" required>
                         <option value="" disabled selected>اختر الفترة المفضلة...</option>
                         <option value="الفترة الصباحية (11 ص - 3 م)">☀️ الفترة الصباحية (من 11 صباحاً حتى 3 عصراً)</option>
@@ -871,7 +870,7 @@
                 username: username,
                 age: age,
                 residence: residence,
-                timeSlot: timeSlot,
+                sessionPeriod: timeSlot, // تم توحيد اسم الحقل ليتطابق مع لوحة التحكم
                 visitType: visitType,
                 fileNumber: fileNumber || "لا يوجد",
                 reportFileName: reportFileName,
@@ -908,7 +907,7 @@
                 const isEmergency = data.isEmergency || false;
                 const transCode = data.transactionCode || "10000";
                 const residence = data.residence || "غير متوفر";
-                const timeSlot = data.timeSlot || "غير محدد";
+                const timeSlot = data.sessionPeriod || data.timeSlot || "غير محدد";
                 const visitType = data.visitType || "مريض جديد";
                 const fileNumber = data.fileNumber || "لا يوجد";
                 const doctorNotes = data.doctorNotes ? data.doctorNotes.trim() : "";
@@ -1009,7 +1008,7 @@
         document.getElementById("age").value = "";
         document.getElementById("residence").value = "";
         document.getElementById("timeSlot").selectedIndex = 0;
-        document.getElementById("visitType").selectedIndex, 0;
+        document.getElementById("visitType").selectedIndex = 0;
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
         document.getElementById("medicalReport").value = "";
