@@ -296,7 +296,6 @@
             border-right: 3px solid #22c55e;
         }
 
-        /* أزرار اختيار مصدر الصورة (كاميرا أو أستوديو) */
         .upload-options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -506,7 +505,6 @@
         .btn-download:hover { background: #0369a1; }
         .btn-new { background: #065f46; color: white; }
 
-        /* قسم الحجوزات المحفوظة الدائمة */
         .saved-appointments-section {
             background: var(--card-bg);
             width: 100%;
@@ -616,7 +614,7 @@
         <div id="clinicClosedNotice">
             <i class="fa-solid fa-door-closed"></i>
             <h3>العيادة مغلقة حالياً</h3>
-            <p id="closedMessageText">نعتذر منك، العيادة مغلقة حالياً من قبل الطبيب. يرجى المحاولة في أوقات الدوام الرسمي.</p>
+            <p id="closedMessageText">نعتذر منك العيادة مغلقة حالياً، أوقات الدوام الرسمي: من الساعة ١١ صباحاً حتى 3 عصراً ومن الساعة 7 مساءً حتى 11 ليلاً.</p>
         </div>
 
         <div id="formFieldsContainer">
@@ -721,7 +719,6 @@
         </div>
     </div>
 
-    <!-- قسم الحجوزات والمستندات المعتمدة المحفوظة دائماً -->
     <div class="saved-appointments-section">
         <div class="saved-appointments-header">
             <h3><i class="fa-solid fa-folder-closed"></i> سجل الحجوزات والمستندات المعتمدة</h3>
@@ -735,7 +732,6 @@
     </div>
 </div>
 
-<!-- النافذة المنسدلة لإرفاق التقرير مع خيارين (كاميرا مباشرة أو الأستوديو) -->
 <div id="reportModalOverlay" class="report-modal-overlay">
     <div class="report-modal-card">
         <div class="report-modal-header">
@@ -750,19 +746,16 @@
 
             <label style="margin-bottom: 8px; font-weight: 700;">اختر مصدر الصورة:</label>
             <div class="upload-options-grid">
-                <!-- زر الكاميرا المباشرة -->
                 <button type="button" class="upload-option-btn" onclick="triggerCameraInput()">
                     <i class="fa-solid fa-camera-retro"></i>
                     تصوير بالكاميرا مباشرة
                 </button>
-                <!-- زر الاستوديو -->
                 <button type="button" class="upload-option-btn" onclick="triggerGalleryInput()">
                     <i class="fa-solid fa-images"></i>
                     اختيار من الأستوديو
                 </button>
             </div>
 
-            <!-- عناصر إدخال مخفية للتعامل مع الملفات -->
             <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleFileSelected(this)">
             <input type="file" id="galleryInput" accept="image/*" onchange="handleFileSelected(this)">
 
@@ -815,12 +808,10 @@
         document.getElementById("reportModalOverlay").style.display = "none";
     };
 
-    // تفعيل اختيار الكاميرا مباشرة
     window.triggerCameraInput = function() {
         document.getElementById("cameraInput").click();
     };
 
-    // تفعيل اختيار الاستوديو
     window.triggerGalleryInput = function() {
         document.getElementById("galleryInput").click();
     };
@@ -869,7 +860,6 @@
         }
     };
 
-    // معالجة الملف المختار سواء من الكاميرا أو الأستوديو وضغطه
     window.handleFileSelected = function(inputElement) {
         const preview = document.getElementById("reportPreview");
         const indicator = document.getElementById("reportStatusIndicator");
