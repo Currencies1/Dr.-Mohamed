@@ -177,23 +177,132 @@
 
         input[type="file"] { padding: 10px 45px 10px 10px; cursor: pointer; }
 
-        .report-help {
-            margin-top: 7px;
-            font-size: 11.5px;
+        /* زر فتح إطار التقارير الطبية المنبثق */
+        .btn-open-report-modal {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1.5px dashed #22c55e;
+            color: #15803d;
+            padding: 14px 18px;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+            margin-top: 5px;
+        }
+        .btn-open-report-modal:hover {
+            background: #dcfce7;
+            border-color: #16a34a;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+        }
+        .btn-open-report-modal .report-status-indicator {
+            font-size: 12px;
+            background: #22c55e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        /* نافذة منبثقة (Modal) مخصصة للتقارير الطبية */
+        .report-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500;
+            padding: 20px;
+        }
+        .report-modal-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 28px;
+            border-radius: 18px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e2e8f0;
+            animation: modalFadeIn 0.3s ease;
+            position: relative;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .report-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+        .report-modal-header h3 {
+            font-size: 17px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+        }
+        .report-modal-header h3 i { color: #16a34a; }
+        .close-modal-x {
+            background: #f1f5f9;
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
             color: #64748b;
-            line-height: 1.6;
+            font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-modal-x:hover { background: #fee2e2; color: #dc2626; }
+
+        .report-modal-body p.notice-text {
+            font-size: 13.5px;
+            color: #475569;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 10px;
+            border-right: 3px solid #22c55e;
         }
 
         .report-preview {
             display: none;
-            margin-top: 10px;
-            padding: 10px;
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
+            margin-top: 12px;
+            padding: 12px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
             border-radius: 10px;
-            color: #0369a1;
-            font-size: 12px;
+            color: #15803d;
+            font-size: 13px;
+            align-items: center;
+            gap: 8px;
         }
+
+        .btn-confirm-report {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Cairo';
+            transition: background 0.2s;
+        }
+        .btn-confirm-report:hover { background: #15803d; }
 
         .section-title {
             font-size: 14px;
@@ -382,7 +491,7 @@
             <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
         </div>
 
-        <!-- رسالة إغلاق العيادة (تظهر تلقائياً عند تفعيلها من لوحة التحكم) -->
+        <!-- رسالة إغلاق العيادة -->
         <div id="clinicClosedNotice">
             <i class="fa-solid fa-door-closed"></i>
             <h3>العيادة مغلقة حالياً</h3>
@@ -447,25 +556,21 @@
                 </div>
             </div>
 
-            <!-- التقرير الطبي -->
+            <!-- قسم التقارير الطبية المنبثق -->
             <div class="section-title">
                 <i class="fa-solid fa-file-medical"></i>
-                التقرير الطبي أو الأدوية السابقة
+                التقارير الطبية والأدوية
             </div>
 
             <div class="form-group">
-                <label>إرسال صورة التقرير الطبي <span style="color:#64748b;font-size:11px;">(اختياري وليس إجباري)</span></label>
-                <div class="input-with-icon">
-                    <i class="fa-solid fa-camera"></i>
-                    <input type="file" id="medicalReport" accept="image/*" onchange="previewReport()">
-                </div>
-                <div class="report-help">
-                    <i class="fa-solid fa-circle-info"></i>
-                    إذا توفرت تقارير طبية أو أدوية سابقة، يمكنك إرفاق صورتها هنا (اختياري).
-                </div>
-                <div id="reportPreview" class="report-preview">
-                    <i class="fa-solid fa-image"></i> تم اختيار صورة التقرير بنجاح.
-                </div>
+                <label>إرفاق تقارير طبية أو أدوية سابقة</label>
+                <button type="button" class="btn-open-report-modal" onclick="openReportModal()">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paperclip" style="color: #16a34a;"></i> 
+                        إرسال صورة التقرير الطبي <span style="font-size: 11px; font-weight: normal; opacity: 0.8;">(اختياري)</span>
+                    </span>
+                    <span id="reportStatusIndicator" class="report-status-indicator" style="display: none;">تم الإدراج ✓</span>
+                </button>
             </div>
 
             <!-- زر الإرسال -->
@@ -484,6 +589,39 @@
                 إشراف وإدارة: د. محمد الأسماعيل
                 <span style="font-size:12px;color:#64748b;font-weight:400;">(استشاري الأمراض الداخلية)</span>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- النافذة المنبثقة (Modal) الخاصة بالتقرير الطبي -->
+<div id="reportModalOverlay" class="report-modal-overlay">
+    <div class="report-modal-card">
+        <div class="report-modal-header">
+            <h3><i class="fa-solid fa-file-medical-alt"></i> إرفاق التقرير الطبي أو الأدوية</h3>
+            <button class="close-modal-x" onclick="closeReportModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="report-modal-body">
+            <p class="notice-text">
+                <i class="fa-solid fa-circle-info" style="color: #16a34a; margin-left: 5px;"></i>
+                <b>إرسال صورة التقرير الطبي اختياري وليس إجباري.</b> إذا توفرت تقارير طبية أو أدوية سابقة، يمكنك إرفاق صورتها هنا لتسهيل التشخيص على الطبيب.
+            </p>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>اختر صورة التقرير من الجهاز</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-camera"></i>
+                    <input type="file" id="medicalReport" accept="image/*" onchange="previewReport()">
+                </div>
+            </div>
+
+            <div id="reportPreview" class="report-preview">
+                <i class="fa-solid fa-circle-check"></i> 
+                <span id="reportFileNameText">تم اختيار صورة التقرير بنجاح.</span>
+            </div>
+
+            <button type="button" class="btn-confirm-report" onclick="closeReportModal()">
+                تأكيد وإغلاق النافذة
+            </button>
         </div>
     </div>
 </div>
@@ -511,6 +649,15 @@
     let unsubscribeLive = null;
     let base64ReportImage = "";
 
+    // إدارة فتح وإغلاق نافذة التقرير المنبثقة
+    window.openReportModal = function() {
+        document.getElementById("reportModalOverlay").style.display = "flex";
+    };
+
+    window.closeReportModal = function() {
+        document.getElementById("reportModalOverlay").style.display = "none";
+    };
+
     // مراقبة حالة العيادة (مفتوحة / مغلقة) لحظياً من قاعدة البيانات
     function monitorClinicStatus() {
         const statusRef = doc(db, "settings", "clinic_status");
@@ -527,7 +674,6 @@
                 }
             }
 
-            // إذا كان المريض يتابع طلبه الحالي (لديه أضبارة أو طلب قيد المراجعة)، نتجاهل شاشة الإغلاق لكي لا نقطع عليه متابعة دوره، وإلا نطبق حالة الإغلاق
             const savedDocId = localStorage.getItem("current_appointment_id");
 
             if (!isOpen) {
@@ -560,6 +706,8 @@
     window.previewReport = function() {
         const input = document.getElementById("medicalReport");
         const preview = document.getElementById("reportPreview");
+        const indicator = document.getElementById("reportStatusIndicator");
+        const fileNameText = document.getElementById("reportFileNameText");
 
         if (input.files && input.files.length > 0) {
             const file = input.files[0];
@@ -569,17 +717,19 @@
             };
             reader.readAsDataURL(file);
 
-            preview.style.display = "block";
-            preview.innerHTML = `<i class="fa-solid fa-image"></i> تم اختيار التقرير: <b>${file.name}</b>`;
+            preview.style.display = "flex";
+            fileNameText.innerHTML = `تم اختيار التقرير: <b>${file.name}</b>`;
+            indicator.style.display = "inline-block";
         } else {
             preview.style.display = "none";
             base64ReportImage = "";
+            indicator.style.display = "none";
         }
     };
 
     function lockScreenToWaiting() {
         document.getElementById("formFieldsContainer").style.display = "none";
-        document.getElementById("clinicClosedNotice").style.display = "none"; // إخفاء إشعار الإغلاق إذا كان الطلب مُرسلاً بالفعل
+        document.getElementById("clinicClosedNotice").style.display = "none";
         const statusMsg = document.getElementById("statusMsg");
         statusMsg.className = "loading-msg";
         statusMsg.innerHTML = `
@@ -591,7 +741,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-        monitorClinicStatus(); // بدء مراقبة حالة العيادة
+        monitorClinicStatus();
         const savedDocId = localStorage.getItem("current_appointment_id");
         if (savedDocId) {
             lockScreenToWaiting();
@@ -773,7 +923,7 @@
         const statusMsg = document.getElementById("statusMsg");
         statusMsg.style.display = "none";
         statusMsg.className = "";
-        document.getElementById("username").value = "";
+        document.getElementById("username").value = " ";
         document.getElementById("age").value = "";
         document.getElementById("residence").value = "";
         document.getElementById("visitType").selectedIndex = 0;
@@ -781,6 +931,7 @@
         document.getElementById("fileNumber").value = "";
         document.getElementById("medicalReport").value = "";
         document.getElementById("reportPreview").style.display = "none";
+        document.getElementById("reportStatusIndicator").style.display = "none";
         base64ReportImage = "";
     };
 </script>
