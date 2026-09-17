@@ -1,648 +1,1755 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز موعد - عيادة الأمراض الداخلية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبة التقاط صورة للمستند -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <style>
-        :root {
-            --primary: #0284c7;
-            --primary-hover: #0369a1;
-            --success: #10b981;
-            --danger: #ef4444;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #cbd5e1;
+    <title>حجز موعد - عيادة الأمراض الداخلية</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- مكتبة التقاط صورة المستند -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    :root {
+        --primary: #0284c7;
+        --primary-hover: #0369a1;
+        --success: #10b981;
+        --danger: #ef4444;
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-color: #1e293b;
+        --border-color: #cbd5e1;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        direction: rtl;
+        padding: 20px;
+        transition: background 0.5s ease;
+    }
+
+    @keyframes flashGreen {
+        0% { background: #d1fae5; }
+        50% { background: #6ee7b7; }
+        100% { background: #d1fae5; }
+    }
+
+    @keyframes flashRed {
+        0% { background: #fee2e2; }
+        50% { background: #fca5a5; }
+        100% { background: #fee2e2; }
+    }
+
+    .flash-success {
+        animation: flashGreen 0.8s ease-in-out infinite;
+    }
+
+    .flash-rejected {
+        animation: flashRed 0.8s ease-in-out infinite;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .form-card {
+        background: var(--card-bg);
+        width: 100%;
+        padding: 35px 30px;
+        border-radius: 20px;
+        box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .form-header .icon-box {
+        width: 70px;
+        height: 70px;
+        background: #e0f2fe;
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto 15px;
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
+    }
+
+    .form-header h2 {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 22px;
+    }
+
+    .clinic-location-badge {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1.5px solid #bae6fd;
+        color: #0369a1;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0 15px 0;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+    }
+
+    .clinic-location-badge i {
+        color: var(--primary);
+        font-size: 16px;
+    }
+
+    .form-header p {
+        color: #64748b;
+        font-size: 13px;
+        margin-top: 5px;
+        line-height: 1.5;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    @media(min-width: 550px) {
+        .form-grid.two-cols {
+            grid-template-columns: 1fr 1fr;
         }
+    }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { 
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
-            color: var(--text-color); 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            min-height: 100vh; 
-            direction: rtl; 
-            padding: 20px; 
-            transition: background 0.5s ease;
-        }
+    .form-group {
+        margin-bottom: 4px;
+    }
 
-        /* تأثيرات الوميض التلقائي للحالة */
-        @keyframes flashGreen {
-            0% { background: #d1fae5; }
-            50% { background: #6ee7b7; }
-            100% { background: #d1fae5; }
-        }
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        color: #334155;
+    }
 
-        @keyframes flashRed {
-            0% { background: #fee2e2; }
-            50% { background: #fca5a5; }
-            100% { background: #fee2e2; }
-        }
+    label .required {
+        color: var(--danger);
+        margin-right: 4px;
+    }
 
-        .flash-success {
-            animation: flashGreen 0.8s ease-in-out infinite;
-        }
+    .input-with-icon {
+        position: relative;
+    }
 
-        .flash-rejected {
-            animation: flashRed 0.8s ease-in-out infinite;
-        }
+    .input-with-icon i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        z-index: 2;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: auto;
-        }
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px 16px 12px 45px;
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 14px;
+        outline: none;
+        background: #fff;
+        transition: all 0.3s;
+        color: #1e293b;
+    }
 
-        .form-card { 
-            background: var(--card-bg); 
-            width: 100%; 
-            padding: 35px 30px; 
-            border-radius: 20px; 
-            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.05); 
-            border: 1px solid #e2e8f0;
-        }
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+    }
 
-        .form-header { text-align: center; margin-bottom: 25px; }
-        .form-header .icon-box {
-            width: 70px; height: 70px; background: #e0f2fe; color: var(--primary);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 28px; margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
-        }
-        .form-header h2 { font-weight: 700; color: #0f172a; font-size: 22px; }
-        
-        .clinic-location-badge {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 1.5px solid #bae6fd;
-            color: #0369a1;
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin: 12px 0 15px 0;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
-        }
-        .clinic-location-badge i { color: var(--primary); font-size: 16px; }
+    input[type="file"] {
+        padding: 10px 45px 10px 10px;
+        cursor: pointer;
+    }
 
-        .form-header p { color: #64748b; font-size: 13px; margin-top: 5px; line-height: 1.5; }
+    .report-help {
+        margin-top: 7px;
+        font-size: 11.5px;
+        color: #64748b;
+        line-height: 1.6;
+    }
 
-        .form-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        @media(min-width: 550px) {
-            .form-grid.two-cols { grid-template-columns: 1fr 1fr; }
-        }
+    .report-preview {
+        display: none;
+        margin-top: 10px;
+        padding: 10px;
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        color: #0369a1;
+        font-size: 12px;
+    }
 
-        .form-group { margin-bottom: 4px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #334155; }
-        label .required { color: var(--danger); margin-right: 4px; }
-        
-        .input-with-icon { position: relative; }
-        .input-with-icon i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-        
-        input, select, textarea { 
-            width: 100%; padding: 12px 16px 12px 45px; border: 1.5px solid var(--border-color); 
-            border-radius: 10px; font-size: 14px; outline: none; background: #fff; transition: all 0.3s; color: #1e293b;
-        }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12); }
-        textarea { padding-right: 45px; resize: none; }
+    .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 15px 0 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px dashed #cbd5e1;
+        padding-bottom: 5px;
+    }
 
-        .section-title {
-            font-size: 14px; font-weight: 700; color: var(--primary); margin: 15px 0 10px 0;
-            display: flex; align-items: center; gap: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 5px;
-        }
+    .btn-submit {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 700;
+        width: 100%;
+        font-size: 16px;
+        transition: background 0.3s, transform 0.1s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
 
-        .btn-submit { 
-            background: var(--primary); color: white; border: none; padding: 14px; 
-            border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; 
-            font-size: 16px; transition: background 0.3s, transform 0.1s; 
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            margin-top: 20px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-        }
-        .btn-submit:hover { background: var(--primary-hover); }
-        .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:hover {
+        background: var(--primary-hover);
+    }
 
-        #statusMsg { 
-            margin-top: 20px; 
-            text-align: center; 
-            font-weight: 600; 
-            font-size: 14px; 
-            padding: 15px; 
-            border-radius: 10px; 
-            display: none; 
-            line-height: 1.6;
-            transition: all 0.3s ease;
-        }
-        .success-msg { background: #d1fae5; color: #065f46; border: 1px solid #10b981; display: block !important; }
-        .error-msg { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; display: block !important; }
-        .loading-msg { background: #e0f2fe; color: #0369a1; border: 1px solid #0284c7; display: block !important; }
-        .rejected-msg { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; display: block !important; font-size: 16px; font-weight: bold; }
+    .btn-submit:active {
+        transform: scale(0.98);
+    }
 
-        /* تصميم مستند المريض (سند الدور الرسمي) */
-        .patient-document {
-            background: #ffffff;
-            border: 2px dashed #0284c7;
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 15px;
-            text-align: right;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            position: relative;
-        }
-        .patient-document.emergency-doc {
-            border-color: #ef4444;
-            background: #fff5f5;
-        }
-        .doc-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
-        }
-        .doc-header h3 { font-size: 16px; color: #0f172a; display: flex; align-items: center; gap: 6px; }
-        .doc-badge {
-            background: #e0f2fe;
-            color: #0369a1;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .patient-document.emergency-doc .doc-badge {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .doc-body {
-            font-size: 14px;
-            color: #334155;
-            line-height: 1.8;
-        }
-        .doc-body p {
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #f8fafc;
-            padding-bottom: 4px;
-        }
-        .doc-body span { font-weight: bold; color: #0f172a; }
+    #statusMsg {
+        margin-top: 20px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 15px;
+        border-radius: 10px;
+        display: none;
+        line-height: 1.6;
+        transition: all 0.3s ease;
+    }
 
-        /* تنسيق صندوق ملاحظات الطبيب داخل المستند */
-        .doc-notes-box {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-top: 12px;
-            text-align: right;
-        }
-        .doc-notes-box .notes-title {
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #b45309;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .doc-notes-box .notes-content {
-            font-size: 13.5px;
-            color: #78350f;
-            font-weight: 600;
-            word-break: break-all;
-        }
-        
-        .doc-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .btn-doc {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: 'Cairo';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 13px;
-        }
-        .btn-download { background: #0284c7; color: white; }
-        .btn-download:hover { background: #0369a1; }
-        .btn-new { background: #065f46; color: white; }
+    .success-msg {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #10b981;
+        display: block !important;
+    }
 
-        .doctor-signature {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #e2e8f0;
-        }
-        .doctor-signature .patient-quote {
-            font-size: 12px;
-            color: #64748b;
-            font-style: italic;
-            margin-bottom: 8px;
-        }
-        .doctor-signature .doc-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .doctor-signature .doc-name i { color: var(--primary); }
+    .error-msg {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #ef4444;
+        display: block !important;
+    }
 
-        .whatsapp-float {
-            position: fixed;
-            bottom: 25px;
-            left: 25px;
-            background-color: #25d366;
-            color: #fff;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            text-align: center;
-            font-size: 32px;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        .whatsapp-float:hover { background-color: #20ba5a; transform: scale(1.1); }
-    </style>
-</head>
-<body>
+    .loading-msg {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #0284c7;
+        display: block !important;
+    }
 
-    <div class="container">
-        <div class="form-card" id="mainCard">
-            <div class="form-header">
-                <div class="icon-box"><i class="fa-solid fa-user-doctor"></i></div>
-                <h2>حجز موعد - عيادة الأمراض الداخلية</h2>
-                
-                <div class="clinic-location-badge">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <span>موقع العيادة: معرة النعمان - شارع البريد بجانب مجمع الشفاء</span>
-                </div>
+    .rejected-msg {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+        display: block !important;
+        font-size: 16px;
+        font-weight: bold;
+    }
 
-                <p>يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب</p>
-            </div>
+    .patient-document {
+        background: #ffffff;
+        border: 2px dashed #0284c7;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 15px;
+        text-align: right;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        position: relative;
+    }
 
-            <div id="formFieldsContainer">
-                <div class="section-title"><i class="fa-solid fa-id-card"></i> المعلومات الشخصية</div>
-                
-                <div class="form-grid two-cols">
-                    <div class="form-group">
-                        <label>الاسم الثلاثي <span class="required">*</span></label>
-                        <div class="input-with-icon">
-                            <i class="fa-solid fa-user"></i>
-                            <input type="text" id="username" placeholder="الاسم الثلاثي..." required>
-                        </div>
-                    </div>
+    .patient-document.emergency-doc {
+        border-color: #ef4444;
+        background: #fff5f5;
+    }
 
-                    <div class="form-group">
-                        <label>العمر <span class="required">*</span></label>
-                        <div class="input-with-icon">
-                            <i class="fa-solid fa-child"></i>
-                            <input type="number" id="age" placeholder="مثال: 35" min="1" max="120" required>
-                        </div>
-                    </div>
-                </div>
+    .doc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 12px;
+        margin-bottom: 15px;
+    }
 
-                <div class="form-grid two-cols" style="margin-top: 12px;">
-                    <div class="form-group">
-                        <label>الإقامة <span class="required">*</span></label>
-                        <div class="input-with-icon">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <input type="text" id="residence" placeholder="المدينة / المنطقة..." required>
-                        </div>
-                    </div>
+    .doc-header h3 {
+        font-size: 16px;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-                    <div class="form-group">
-                        <label>رقم الهاتف بالرمز الدولي حصراً <span class="required">*</span></label>
-                        <div class="input-with-icon">
-                            <i class="fa-solid fa-phone"></i>
-                            <input type="tel" id="phone" placeholder="+9639xxxxxxxx" required>
-                        </div>
-                    </div>
-                </div>
+    .doc-badge {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: bold;
+    }
 
-                <div class="section-title"><i class="fa-solid fa-calendar-check"></i> تفاصيل وزيارة الموعد</div>
-                
-                <div class="form-grid two-cols">
-                    <div class="form-group">
-                        <label>تاريخ الموعد المطلوب <span class="required">*</span></label>
-                        <div class="input-with-icon">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            <input type="date" id="appointmentDate" required>
-                        </div>
-                    </div>
+    .patient-document.emergency-doc .doc-badge {
+        background: #fee2e2;
+        color: #991b1b;
+    }
 
-                    <div class="form-group">
-                        <label>نوع الزيارة / الحالة <span class="required">*</span></label>
-                        <div class="input-with-icon">
-                            <i class="fa-solid fa-stethoscope"></i>
-                            <select id="visitType" onchange="toggleFileNumberField()" required>
-                                <option value="" disabled selected>اختر نوع الزيارة...</option>
-                                <option value="مريض جديد">مريض جديد (عادي)</option>
-                                <option value="مراجعة">مراجعة (عادي)</option>
-                                <option value="حالة إعسافية طارئة" style="color: #ef4444; font-weight: bold;">🚨 حالة إسعافية طارئة</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+    .doc-body {
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.8;
+    }
 
-                <div class="form-group" id="fileNumberGroup" style="display: none; margin-top: 12px;">
-                    <label>رقم الأضبارة السابقة <span class="required">*</span></label>
-                    <div class="input-with-icon">
-                        <i class="fa-solid fa-folder-open"></i>
-                        <input type="text" id="fileNumber" placeholder="اكتب رقم الأضبارة...">
-                    </div>
-                </div>
+    .doc-body p {
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #f8fafc;
+        padding-bottom: 4px;
+    }
 
-                <div class="section-title"><i class="fa-solid fa-file-medical"></i> الأعراض والمستلزمات الطبية المصاحبة</div>
-                
-                <div class="form-group">
-                    <label>وصف الأعراض أو سبب الزيارة</label>
-                    <div class="input-with-icon">
-                        <i class="fa-solid fa-notes-medical" style="top: 25px;"></i>
-                        <textarea id="details" rows="2" placeholder="اكتب باختصار الأعراض الرئيسية (اختياري)..."></textarea>
-                    </div>
-                </div>
+    .doc-body span {
+        font-weight: bold;
+        color: #0f172a;
+    }
 
-                <div class="form-group">
-                    <label>المستلزمات، التقارير أو الأدوية السابقة (إن وجدت)</label>
-                    <div class="input-with-icon">
-                        <i class="fa-solid fa-box-archive" style="top: 25px;"></i>
-                        <textarea id="medicalSupplies" rows="2" placeholder="ذكر التحاليل السابقة، تقارير سابقة، أو أدوية يتم تناولها حالياً..."></textarea>
-                    </div>
-                </div>
+    .doc-notes-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-top: 12px;
+        text-align: right;
+    }
 
-                <button type="button" id="submitBtn" class="btn-submit" onclick="sendOrder()">
-                    <span id="btnText">إرسال طلب الحجز للطبيب</span>
-                    <i class="fa-solid fa-paper-plane" id="btnIcon"></i>
-                </button>
-            </div>
+    .doc-notes-box .notes-title {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #b45309;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
 
-            <div id="statusMsg"></div>
+    .doc-notes-box .notes-content {
+        font-size: 13.5px;
+        color: #78350f;
+        font-weight: 600;
+        word-break: break-all;
+    }
 
-            <div class="doctor-signature">
-                <p class="patient-quote">"صحتك أمانة، نعتني بك بعناية واهتمام دائم"</p>
-                <div class="doc-name">
-                    <i class="fa-solid fa-stethoscope"></i> إشراف وإدارة: د. محمد الأسماعيل <span style="font-size: 12px; color: #64748b; font-weight: 400;">(استشاري الأمراض الداخلية)</span>
-                </div>
-            </div>
+    .doc-actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-doc {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: 'Cairo';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .btn-download {
+        background: #0284c7;
+        color: white;
+    }
+
+    .btn-download:hover {
+        background: #0369a1;
+    }
+
+    .btn-new {
+        background: #065f46;
+        color: white;
+    }
+
+    .doctor-signature {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .doctor-signature .patient-quote {
+        font-size: 12px;
+        color: #64748b;
+        font-style: italic;
+        margin-bottom: 8px;
+    }
+
+    .doctor-signature .doc-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .doctor-signature .doc-name i {
+        color: var(--primary);
+    }
+
+    .whatsapp-float {
+        position: fixed;
+        bottom: 25px;
+        left: 25px;
+        background-color: #25d366;
+        color: #fff;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 32px;
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .whatsapp-float:hover {
+        background-color: #20ba5a;
+        transform: scale(1.1);
+    }
+</style>
+
+</head><body><div class="container"><div class="form-card" id="mainCard">
+
+    <div class="form-header">
+
+        <div class="icon-box">
+            <i class="fa-solid fa-user-doctor"></i>
         </div>
+
+        <h2>حجز موعد - عيادة الأمراض الداخلية</h2>
+
+        <div class="clinic-location-badge">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>موقع العيادة: معرة النعمان - شارع البريد بجانب مجمع الشفاء</span>
+        </div>
+
+        <p>
+            يرجى تعبئة الحقول أدناه بدقة لضمان سرعة معالجة طلبك وحجز الموعد المناسب
+        </p>
+
     </div>
 
-    <a href="https://wa.me/963937050272" class="whatsapp-float" target="_blank" title="تواصل معنا عبر واتساب">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <div id="formFieldsContainer">
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
-            authDomain: "mohamed-ismail-c0525.firebaseapp.com",
-            projectId: "mohamed-ismail-c0525",
-            storageBucket: "mohamed-ismail-c0525.firebasestorage.app",
-            messagingSenderId: "582285551584",
-            appId: "1:582285551584:web:abbb715cb6b70582556d85",
-            measurementId: "G-JZ45DZ3ZTP"
-        };
+        <!-- المعلومات الشخصية -->
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        <div class="section-title">
+            <i class="fa-solid fa-id-card"></i>
+            المعلومات الشخصية
+        </div>
 
-        let unsubscribeLive = null;
+        <div class="form-grid two-cols">
 
-        window.toggleFileNumberField = function() {
-            const visitType = document.getElementById("visitType").value;
-            const fileGroup = document.getElementById("fileNumberGroup");
-            const fileInput = document.getElementById("fileNumber");
+            <div class="form-group">
 
-            if (visitType === "مراجعة") {
-                fileGroup.style.display = "block";
-                fileInput.required = true;
-            } else {
-                fileGroup.style.display = "none";
-                fileInput.required = false;
-                fileInput.value = "";
-            }
-        };
+                <label>
+                    الاسم الثلاثي
+                    <span class="required">*</span>
+                </label>
 
-        function lockScreenToWaiting() {
-            document.getElementById("formFieldsContainer").style.display = "none";
-            const statusMsg = document.getElementById("statusMsg");
-            statusMsg.className = "loading-msg";
-            statusMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> تم إرسال الطلب بنجاح!<br><b>يرجى الانتظار وعدم مغادرة الصفحة حتى يتم تأكيد الحجز من قِبل الطبيب وإعطائك المستند الرسمي ورقم الدور...</b>`;
+                <div class="input-with-icon">
+
+                    <i class="fa-solid fa-user"></i>
+
+                    <input
+                        type="text"
+                        id="username"
+                        placeholder="الاسم الثلاثي..."
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    العمر
+                    <span class="required">*</span>
+                </label>
+
+                <div class="input-with-icon">
+
+                    <i class="fa-solid fa-child"></i>
+
+                    <input
+                        type="number"
+                        id="age"
+                        placeholder="مثال: 35"
+                        min="1"
+                        max="120"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group" style="margin-top: 12px;">
+
+            <label>
+                الإقامة
+                <span class="required">*</span>
+            </label>
+
+            <div class="input-with-icon">
+
+                <i class="fa-solid fa-location-dot"></i>
+
+                <input
+                    type="text"
+                    id="residence"
+                    placeholder="المدينة / المنطقة..."
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- نوع الزيارة -->
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-stethoscope"></i>
+
+            تفاصيل الزيارة
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                نوع الزيارة / الحالة
+                <span class="required">*</span>
+            </label>
+
+            <div class="input-with-icon">
+
+                <i class="fa-solid fa-stethoscope"></i>
+
+                <select
+                    id="visitType"
+                    onchange="toggleFileNumberField()"
+                    required
+                >
+
+                    <option value="" disabled selected>
+                        اختر نوع الزيارة...
+                    </option>
+
+                    <option value="مريض جديد">
+                        مريض جديد (عادي)
+                    </option>
+
+                    <option value="مراجعة">
+                        مراجعة (عادي)
+                    </option>
+
+                    <option
+                        value="حالة إعسافية طارئة"
+                        style="color:#ef4444;font-weight:bold;"
+                    >
+                        🚨 حالة إسعافية طارئة
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- رقم الأضبارة اختياري -->
+
+        <div
+            class="form-group"
+            id="fileNumberGroup"
+            style="display:none;margin-top:12px;"
+        >
+
+            <label>
+                رقم الأضبارة السابقة
+                <span style="color:#64748b;font-size:11px;">
+                    (اختياري)
+                </span>
+            </label>
+
+            <div class="input-with-icon">
+
+                <i class="fa-solid fa-folder-open"></i>
+
+                <input
+                    type="text"
+                    id="fileNumber"
+                    placeholder="اكتب رقم الأضبارة إن وجد..."
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- التقرير الطبي -->
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-file-medical"></i>
+
+            التقرير الطبي
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+
+                إرسال صورة التقرير
+                <span style="color:#64748b;font-size:11px;">
+                    (اختياري)
+                </span>
+
+            </label>
+
+            <div class="input-with-icon">
+
+                <i class="fa-solid fa-camera"></i>
+
+                <input
+                    type="file"
+                    id="medicalReport"
+                    accept="image/*"
+                    onchange="previewReport()"
+                >
+
+            </div>
+
+
+            <div class="report-help">
+
+                <i class="fa-solid fa-circle-info"></i>
+
+                التقرير الطبي إن وجد، يرجى إرفاق صورته هنا.
+                <b>إرفاق التقرير اختياري وليس إلزاميًا.</b>
+
+            </div>
+
+
+            <div
+                id="reportPreview"
+                class="report-preview"
+            >
+                <i class="fa-solid fa-image"></i>
+                تم اختيار صورة التقرير.
+            </div>
+
+        </div>
+
+
+        <!-- زر الإرسال -->
+
+        <button
+            type="button"
+            id="submitBtn"
+            class="btn-submit"
+            onclick="sendOrder()"
+        >
+
+            <span id="btnText">
+                إرسال طلب الحجز للطبيب
+            </span>
+
+            <i
+                class="fa-solid fa-paper-plane"
+                id="btnIcon"
+            ></i>
+
+        </button>
+
+    </div>
+
+
+    <div id="statusMsg"></div>
+
+
+    <div class="doctor-signature">
+
+        <p class="patient-quote">
+            "صحتك أمانة، نعتني بك بعناية واهتمام دائم"
+        </p>
+
+        <div class="doc-name">
+
+            <i class="fa-solid fa-stethoscope"></i>
+
+            إشراف وإدارة: د. محمد الأسماعيل
+
+            <span
+                style="
+                font-size:12px;
+                color:#64748b;
+                font-weight:400;
+                "
+            >
+                (استشاري الأمراض الداخلية)
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div><a
+href="https://wa.me/963937050272"
+class="whatsapp-float"
+target="_blank"
+title="تواصل معنا عبر واتساب"
+
+«»
+
+<i class="fa-brands fa-whatsapp"></i>
+
+</a><script type="module">
+
+    import {
+        initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        doc,
+        onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+    const firebaseConfig = {
+
+        apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
+
+        authDomain:
+            "mohamed-ismail-c0525.firebaseapp.com",
+
+        projectId:
+            "mohamed-ismail-c0525",
+
+        storageBucket:
+            "mohamed-ismail-c0525.firebasestorage.app",
+
+        messagingSenderId:
+            "582285551584",
+
+        appId:
+            "1:582285551584:web:abbb715cb6b70582556d85",
+
+        measurementId:
+            "G-JZ45DZ3ZTP"
+    };
+
+
+    const app =
+        initializeApp(firebaseConfig);
+
+
+    const db =
+        getFirestore(app);
+
+
+    let unsubscribeLive = null;
+
+
+    /* إظهار رقم الأضبارة عند المراجعة */
+
+    window.toggleFileNumberField = function() {
+
+        const visitType =
+            document.getElementById("visitType").value;
+
+        const fileGroup =
+            document.getElementById("fileNumberGroup");
+
+        const fileInput =
+            document.getElementById("fileNumber");
+
+
+        if (visitType === "مراجعة") {
+
+            fileGroup.style.display = "block";
+
+            /* لم يعد إلزاميًا */
+
+            fileInput.required = false;
+
+        } else {
+
+            fileGroup.style.display = "none";
+
+            fileInput.required = false;
+
+            fileInput.value = "";
+
         }
 
-        window.addEventListener("DOMContentLoaded", () => {
-            const savedDocId = localStorage.getItem("current_appointment_id");
+    };
+
+
+    /* معاينة اسم صورة التقرير */
+
+    window.previewReport = function() {
+
+        const input =
+            document.getElementById("medicalReport");
+
+        const preview =
+            document.getElementById("reportPreview");
+
+
+        if (input.files && input.files.length > 0) {
+
+            const file =
+                input.files[0];
+
+            preview.style.display = "block";
+
+            preview.innerHTML = `
+
+                <i class="fa-solid fa-image"></i>
+
+                تم اختيار التقرير:
+
+                <b>${file.name}</b>
+
+            `;
+
+        } else {
+
+            preview.style.display = "none";
+
+        }
+
+    };
+
+
+    function lockScreenToWaiting() {
+
+        document.getElementById(
+            "formFieldsContainer"
+        ).style.display = "none";
+
+
+        const statusMsg =
+            document.getElementById("statusMsg");
+
+
+        statusMsg.className =
+            "loading-msg";
+
+
+        statusMsg.innerHTML = `
+
+            <i class="fa-solid fa-spinner fa-spin"></i>
+
+            تم إرسال الطلب بنجاح!
+
+            <br>
+
+            <b>
+                يرجى الانتظار وعدم مغادرة الصفحة
+                حتى يتم تأكيد الحجز من قِبل الطبيب
+                وإعطائك المستند الرسمي ورقم الدور...
+            </b>
+
+        `;
+
+    }
+
+
+    window.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            const savedDocId =
+                localStorage.getItem(
+                    "current_appointment_id"
+                );
+
+
             if (savedDocId) {
+
                 lockScreenToWaiting();
+
                 monitorAppointment(savedDocId);
-            }
-        });
 
-        function generateTransactionCode(isEmergency) {
-            const prefix = isEmergency ? "9" : "1";
-            const randomDigits = Math.floor(10000 + Math.random() * 90000);
-            return `${prefix}${randomDigits}`;
+            }
+
+        }
+    );
+
+
+    function generateTransactionCode(isEmergency) {
+
+        const prefix =
+            isEmergency ? "9" : "1";
+
+        const randomDigits =
+            Math.floor(
+                10000 +
+                Math.random() * 90000
+            );
+
+        return `${prefix}${randomDigits}`;
+
+    }
+
+
+    window.sendOrder = async function() {
+
+        const username =
+            document.getElementById(
+                "username"
+            ).value.trim();
+
+
+        const age =
+            document.getElementById(
+                "age"
+            ).value.trim();
+
+
+        const residence =
+            document.getElementById(
+                "residence"
+            ).value.trim();
+
+
+        const visitType =
+            document.getElementById(
+                "visitType"
+            ).value;
+
+
+        const fileNumber =
+            document.getElementById(
+                "fileNumber"
+            ).value.trim();
+
+
+        const reportInput =
+            document.getElementById(
+                "medicalReport"
+            );
+
+
+        const statusMsg =
+            document.getElementById(
+                "statusMsg"
+            );
+
+
+        /*
+         * الحقول الإجبارية الآن:
+         * الاسم
+         * العمر
+         * الإقامة
+         * نوع الزيارة
+         *
+         * رقم الأضبارة اختياري
+         * التقرير اختياري
+         */
+
+        if (
+            !username ||
+            !age ||
+            !residence ||
+            !visitType
+        ) {
+
+            statusMsg.className =
+                "error-msg";
+
+            statusMsg.innerText =
+                "الرجاء تعبئة الحقول الأساسية المطلوبة!";
+
+            return;
+
         }
 
-        window.sendOrder = async function() {
-            const username = document.getElementById("username").value.trim();
-            const age = document.getElementById("age").value.trim();
-            const residence = document.getElementById("residence").value.trim();
-            const phone = document.getElementById("phone").value.trim();
-            const appointmentDate = document.getElementById("appointmentDate").value;
-            const visitType = document.getElementById("visitType").value;
-            const fileNumber = document.getElementById("fileNumber").value.trim();
-            const details = document.getElementById("details").value.trim() || "لم يتم كتابة وصف للأعراض";
-            const supplies = document.getElementById("medicalSupplies").value.trim() || "لا توجد مستلزمات مضافة";
-            const statusMsg = document.getElementById("statusMsg");
 
-            if (!username || !age || !residence || !phone || !appointmentDate || !visitType || (visitType === "مراجعة" && !fileNumber)) {
-                statusMsg.className = "error-msg";
-                statusMsg.innerText = "الرجاء تعبئة جميع الحقول الأساسية الإجبارية المطلوبة!";
-                return;
+        statusMsg.className =
+            "loading-msg";
+
+        statusMsg.innerText =
+            "جاري إرسال حجزك للعيادة...";
+
+
+        try {
+
+            const isEmergency =
+                visitType ===
+                "حالة إعسافية طارئة";
+
+
+            const transactionCode =
+                generateTransactionCode(
+                    isEmergency
+                );
+
+
+            const now =
+                new Date();
+
+
+            /*
+             * معلومات التقرير.
+             *
+             * هنا نحفظ اسم الصورة فقط
+             * إلى أن يتم ربط Firebase Storage.
+             */
+
+            let reportFileName =
+                "لا يوجد تقرير مرفق";
+
+
+            if (
+                reportInput.files &&
+                reportInput.files.length > 0
+            ) {
+
+                reportFileName =
+                    reportInput.files[0].name;
+
             }
 
-            statusMsg.className = "loading-msg";
-            statusMsg.innerText = "جاري إرسال حجزك للعيادة...";
 
-            try {
-                const isEmergency = visitType === "حالة إعسافية طارئة";
-                const transactionCode = generateTransactionCode(isEmergency);
-                const now = new Date();
+            let formattedDetails =
 
-                let formattedDetails = `العمر: ${age} | الإقامة: ${residence} | الهاتف: ${phone} | النوع: ${visitType}`;
-                if (visitType === "مراجعة") {
-                    formattedDetails += ` | رقم الأضبارة: ${fileNumber}`;
-                }
-                formattedDetails += ` | التاريخ: ${appointmentDate} \nالأعراض: ${details} \nالمستلزمات: ${supplies}`;
+                `العمر: ${age} | الإقامة: ${residence} | النوع: ${visitType}`;
 
-                const docRef = await addDoc(collection(db, "appointments"), {
-                    username: username,
-                    age: age,
-                    residence: residence,
-                    visitType: visitType,
-                    fileNumber: fileNumber || "لا يوجد",
-                    isEmergency: isEmergency,
-                    transactionCode: transactionCode,
-                    appointmentDate: appointmentDate,
-                    details: formattedDetails,
-                    status: "قيد الانتظار",
-                    queueNumber: "قيد الصدور", 
-                    appointmentTime: "قيد الصدور", 
-                    doctorNotes: "", // حقل ملاحظات الطبيب مبدئياً فارغ
-                    createdAt: now.toISOString()
-                });
 
-                localStorage.setItem("current_appointment_id", docRef.id);
-                lockScreenToWaiting();
-                monitorAppointment(docRef.id);
+            if (fileNumber) {
 
-            } catch (error) {
-                console.error("خطأ في الإرسال:", error);
-                statusMsg.className = "error-msg";
-                statusMsg.innerText = "فشل إرسال الحجز! تحقق من اتصال الإنترنت.";
+                formattedDetails +=
+                    ` | رقم الأضبارة: ${fileNumber}`;
+
             }
-        };
 
-        function monitorAppointment(docId) {
-            if (unsubscribeLive) unsubscribeLive();
 
-            const statusMsg = document.getElementById("statusMsg");
+            formattedDetails +=
+                ` | التقرير: ${reportFileName}`;
 
-            unsubscribeLive = onSnapshot(doc(db, "appointments", docId), (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    const currentStatus = data.status;
-                    const queueNum = data.queueNumber || "لم يتم تحديده بعد";
-                    const appointmentTime = data.appointmentTime || "لم يتم تحديدها بعد";
-                    const isEmergency = data.isEmergency || false;
-                    const transCode = data.transactionCode || "10000";
-                    const residence = data.residence || "غير متوفر";
-                    const visitType = data.visitType || "مريض جديد";
-                    const fileNumber = data.fileNumber || "لا يوجد";
-                    const doctorNotes = data.doctorNotes ? data.doctorNotes.trim() : "";
 
-                    if (currentStatus.includes("مقبول") || currentStatus.includes("مؤكد")) {
-                        statusMsg.className = "success-msg flash-success";
-                        statusMsg.innerHTML = `
-                            <div style="text-align: center; margin-bottom: 10px;">
-                                <i class="fa-solid fa-circle-check" style="font-size: 24px; color: #10b981; display: inline-block; vertical-align: middle;"></i>
-                                <span style="font-size: 15px; font-weight: bold; color: #065f46;">مبروك! تم قبول وتأكيد طلبك بنجاح.</span>
-                            </div>
+            const docRef =
+                await addDoc(
+                    collection(
+                        db,
+                        "appointments"
+                    ),
+                    {
 
-                            <!-- المستند الرقمي الرسمي للمريض -->
-                            <div id="patientDocumentCard" class="patient-document ${isEmergency ? 'emergency-doc' : ''}">
-                                <div class="doc-header">
-                                    <h3><i class="fa-solid fa-file-shield"></i> مستند إثبات الدور الرسمي</h3>
-                                    <span class="doc-badge">${isEmergency ? '🚨 حالة إسعافية طارئة' : visitType}</span>
-                                </div>
-                                <div class="doc-body">
-                                    <p>الاسم الكامل: <span>${data.username}</span></p>
-                                    <p>العمر: <span>${data.age} سنة</span></p>
-                                    <p>الإقامة: <span>${residence}</span></p>
-                                    <p>حالة الزيارة: <span style="color: ${isEmergency ? '#ef4444' : '#0284c7'};">${visitType}</span></p>
-                                    ${visitType === "مراجعة" ? `<p>رقم الأضبارة السابقة: <span style="color: #7c2d12;">${fileNumber}</span></p>` : ''}
-                                    <p>رقم الدور: <span style="color: #0284c7; font-size: 16px;">${queueNum}</span></p>
-                                    <p>ساعة الحضور (الموعد): <span style="color: #059669; font-size: 15px;">${appointmentTime}</span></p>
-                                    <p>تاريخ الموعد: <span>${data.appointmentDate}</span></p>
-                                    <p>رمز المعاملة الرقمي: <span style="letter-spacing: 1px; color: #7c2d12; font-family: monospace;">${transCode}</span></p>
+                        username:
+                            username,
 
-                                    <!-- سطر/صندوق ملاحظات الطبيب تظهر تلقائياً هنا إن وجدت -->
-                                    ${doctorNotes !== "" ? `
-                                        <div class="doc-notes-box">
-                                            <div class="notes-title"><i class="fa-solid fa-note-sticky"></i> ملاحظات وتوجيهات الطبيب:</div>
-                                            <div class="notes-content">${doctorNotes}</div>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                                <div style="margin-top: 10px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
-                                    عيادة الأمراض الداخلية - د. محمد الأسماعيل | يرجى إبراز هذا المستند عند الدخول.
-                                </div>
-                            </div>
+                        age:
+                            age,
 
-                            <div class="doc-actions">
-                                <button onclick="downloadDocument()" class="btn-doc btn-download">
-                                    <i class="fa-solid fa-download"></i> تحميل المستند / التقاط صورة
-                                </button>
-                                <button onclick="resetForNewPatient()" class="btn-doc btn-new">
-                                    <i class="fa-solid fa-user-plus"></i> مريض جديد
-                                </button>
-                            </div>
-                        `;
-                    } else if (currentStatus.includes("مرفوض") || currentStatus.includes("ملغي")) {
-                        statusMsg.className = "rejected-msg flash-rejected";
-                        statusMsg.innerHTML = `
-                            <i class="fa-solid fa-circle-xmark" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
-                            نعتذر منك، تم <b>رفض</b> طلب الحجز الحالي من قِبل الطبيب.<br><br>
-                            <button onclick="resetForNewPatient()" style="background: #991b1b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; width: 100%;">
-                                <i class="fa-solid fa-rotate-right"></i> محاولة حجز جديدة / لمريض آخر
-                            </button>
-                        `;
+                        residence:
+                            residence,
+
+                        visitType:
+                            visitType,
+
+                        fileNumber:
+                            fileNumber ||
+                            "لا يوجد",
+
+                        reportFileName:
+                            reportFileName,
+
+                        isEmergency:
+                            isEmergency,
+
+                        transactionCode:
+                            transactionCode,
+
+                        details:
+                            formattedDetails,
+
+                        status:
+                            "قيد الانتظار",
+
+                        queueNumber:
+                            "قيد الصدور",
+
+                        appointmentTime:
+                            "قيد الصدور",
+
+                        doctorNotes:
+                            "",
+
+                        createdAt:
+                            now.toISOString()
+
                     }
-                } else {
-                    statusMsg.className = "error-msg";
-                    statusMsg.innerHTML = `عذراً، لم يتم العثور على هذا الطلب.<br><br>
-                        <button onclick="resetForNewPatient()" style="background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">تسجيل مريض جديد</button>
-                    `;
-                }
-            });
+                );
+
+
+            localStorage.setItem(
+                "current_appointment_id",
+                docRef.id
+            );
+
+
+            lockScreenToWaiting();
+
+
+            monitorAppointment(
+                docRef.id
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "خطأ في الإرسال:",
+                error
+            );
+
+
+            statusMsg.className =
+                "error-msg";
+
+
+            statusMsg.innerText =
+                "فشل إرسال الحجز! تحقق من اتصال الإنترنت.";
+
         }
 
-        window.downloadDocument = function() {
-            const docElement = document.getElementById("patientDocumentCard");
-            html2canvas(docElement, { scale: 2 }).then(canvas => {
-                const link = document.createElement("a");
-                link.download = `مستند_دور_المريض_${Date.now()}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            });
+    };
+
+
+    function monitorAppointment(docId) {
+
+        if (unsubscribeLive)
+            unsubscribeLive();
+
+
+        const statusMsg =
+            document.getElementById(
+                "statusMsg"
+            );
+
+
+        unsubscribeLive =
+            onSnapshot(
+
+                doc(
+                    db,
+                    "appointments",
+                    docId
+                ),
+
+                (docSnap) => {
+
+                    if (docSnap.exists()) {
+
+                        const data =
+                            docSnap.data();
+
+
+                        const currentStatus =
+                            data.status;
+
+
+                        const queueNum =
+                            data.queueNumber ||
+                            "لم يتم تحديده بعد";
+
+
+                        const appointmentTime =
+                            data.appointmentTime ||
+                            "لم يتم تحديدها بعد";
+
+
+                        const isEmergency =
+                            data.isEmergency ||
+                            false;
+
+
+                        const transCode =
+                            data.transactionCode ||
+                            "10000";
+
+
+                        const residence =
+                            data.residence ||
+                            "غير متوفر";
+
+
+                        const visitType =
+                            data.visitType ||
+                            "مريض جديد";
+
+
+                        const fileNumber =
+                            data.fileNumber ||
+                            "لا يوجد";
+
+
+                        const doctorNotes =
+                            data.doctorNotes
+                                ? data.doctorNotes.trim()
+                                : "";
+
+
+                        if (
+                            currentStatus.includes("مقبول") ||
+                            currentStatus.includes("مؤكد")
+                        ) {
+
+                            statusMsg.className =
+                                "success-msg flash-success";
+
+
+                            statusMsg.innerHTML = `
+
+                                <div
+                                    style="
+                                    text-align:center;
+                                    margin-bottom:10px;
+                                    "
+                                >
+
+                                    <i
+                                        class="fa-solid fa-circle-check"
+                                        style="
+                                        font-size:24px;
+                                        color:#10b981;
+                                        "
+                                    ></i>
+
+                                    <span
+                                        style="
+                                        font-size:15px;
+                                        font-weight:bold;
+                                        color:#065f46;
+                                        "
+                                    >
+                                        مبروك! تم قبول وتأكيد طلبك بنجاح.
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    id="patientDocumentCard"
+                                    class="patient-document
+                                    ${isEmergency ? 'emergency-doc' : ''}"
+                                >
+
+                                    <div class="doc-header">
+
+                                        <h3>
+
+                                            <i
+                                                class="fa-solid fa-file-shield"
+                                            ></i>
+
+                                            مستند إثبات الدور الرسمي
+
+                                        </h3>
+
+
+                                        <span class="doc-badge">
+
+                                            ${
+                                                isEmergency
+                                                ? "🚨 حالة إسعافية طارئة"
+                                                : visitType
+                                            }
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="doc-body">
+
+                                        <p>
+                                            الاسم الكامل:
+                                            <span>
+                                                ${data.username}
+                                            </span>
+                                        </p>
+
+
+                                        <p>
+                                            العمر:
+                                            <span>
+                                                ${data.age} سنة
+                                            </span>
+                                        </p>
+
+
+                                        <p>
+                                            الإقامة:
+                                            <span>
+                                                ${residence}
+                                            </span>
+                                        </p>
+
+
+                                        <p>
+                                            حالة الزيارة:
+                                            <span
+                                                style="
+                                                color:
+                                                ${isEmergency ? '#ef4444' : '#0284c7'};
+                                                "
+                                            >
+                                                ${visitType}
+                                            </span>
+                                        </p>
+
+
+                                        ${
+                                            fileNumber &&
+                                            fileNumber !== "لا يوجد"
+                                            ?
+                                            `
+                                            <p>
+                                                رقم الأضبارة:
+                                                <span
+                                                    style="
+                                                    color:#7c2d12;
+                                                    "
+                                                >
+                                                    ${fileNumber}
+                                                </span>
+                                            </p>
+                                            `
+                                            :
+                                            ""
+                                        }
+
+
+                                        <p>
+                                            رقم الدور:
+                                            <span
+                                                style="
+                                                color:#0284c7;
+                                                font-size:16px;
+                                                "
+                                            >
+                                                ${queueNum}
+                                            </span>
+                                        </p>
+
+
+                                        <p>
+                                            ساعة الحضور:
+                                            <span
+                                                style="
+                                                color:#059669;
+                                                font-size:15px;
+                                                "
+                                            >
+                                                ${appointmentTime}
+                                            </span>
+                                        </p>
+
+
+                                        <p>
+                                            رمز المعاملة الرقمي:
+                                            <span
+                                                style="
+                                                letter-spacing:1px;
+                                                color:#7c2d12;
+                                                font-family:monospace;
+                                                "
+                                            >
+                                                ${transCode}
+                                            </span>
+                                        </p>
+
+
+                                        ${
+                                            doctorNotes !== ""
+                                            ?
+                                            `
+                                            <div
+                                                class="doc-notes-box"
+                                            >
+
+                                                <div
+                                                    class="notes-title"
+                                                >
+
+                                                    <i
+                                                        class="fa-solid fa-note-sticky"
+                                                    ></i>
+
+                                                    ملاحظات وتوجيهات الطبيب:
+
+                                                </div>
+
+
+                                                <div
+                                                    class="notes-content"
+                                                >
+                                                    ${doctorNotes}
+                                                </div>
+
+                                            </div>
+                                            `
+                                            :
+                                            ""
+                                        }
+
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                        margin-top:10px;
+                                        font-size:11px;
+                                        color:#64748b;
+                                        text-align:center;
+                                        border-top:1px dashed #cbd5e1;
+                                        padding-top:5px;
+                                        "
+                                    >
+
+                                        عيادة الأمراض الداخلية -
+                                        د. محمد الأسماعيل |
+                                        يرجى إبراز هذا المستند عند الدخول.
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="doc-actions">
+
+                                    <button
+                                        onclick="downloadDocument()"
+                                        class="btn-doc btn-download"
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-download"
+                                        ></i>
+
+                                        تحميل المستند / التقاط صورة
+
+                                    </button>
+
+
+                                    <button
+                                        onclick="resetForNewPatient()"
+                                        class="btn-doc btn-new"
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-user-plus"
+                                        ></i>
+
+                                        مريض جديد
+
+                                    </button>
+
+                                </div>
+
+                            `;
+
+                        }
+
+
+                        else if (
+                            currentStatus.includes("مرفوض") ||
+                            currentStatus.includes("ملغي")
+                        ) {
+
+                            statusMsg.className =
+                                "rejected-msg flash-rejected";
+
+
+                            statusMsg.innerHTML = `
+
+                                <i
+                                    class="fa-solid fa-circle-xmark"
+                                    style="
+                                    font-size:24px;
+                                    margin-bottom:8px;
+                                    display:block;
+                                    "
+                                ></i>
+
+                                نعتذر منك، تم
+                                <b>رفض</b>
+                                طلب الحجز الحالي من قِبل الطبيب.
+
+                                <br><br>
+
+                                <button
+                                    onclick="resetForNewPatient()"
+                                    style="
+                                    background:#991b1b;
+                                    color:white;
+                                    border:none;
+                                    padding:10px 20px;
+                                    border-radius:8px;
+                                    cursor:pointer;
+                                    font-weight:bold;
+                                    font-family:'Cairo';
+                                    width:100%;
+                                    "
+                                >
+
+                                    <i
+                                        class="fa-solid fa-rotate-right"
+                                    ></i>
+
+                                    محاولة حجز جديدة / لمريض آخر
+
+                                </button>
+
+                            `;
+
+                        }
+
+                    }
+
+                    else {
+
+                        statusMsg.className =
+                            "error-msg";
+
+
+                        statusMsg.innerHTML = `
+
+                            عذراً، لم يتم العثور على هذا الطلب.
+
+                            <br><br>
+
+                            <button
+                                onclick="resetForNewPatient()"
+                                style="
+                                background:#0284c7;
+                                color:white;
+                                border:none;
+                                padding:10px 20px;
+                                border-radius:8px;
+                                cursor:pointer;
+                                font-weight:bold;
+                                font-family:'Cairo';
+                                "
+                            >
+
+                                تسجيل مريض جديد
+
+                            </button>
+
+                        `;
+
+                    }
+
+                }
+
+            );
+
+    }
+
+
+    /* تحميل المستند كصورة */
+
+    window.downloadDocument =
+        function() {
+
+            const docElement =
+                document.getElementById(
+                    "patientDocumentCard"
+                );
+
+
+            html2canvas(
+                docElement,
+                {
+                    scale: 2
+                }
+            ).then(
+                canvas => {
+
+                    const link =
+                        document.createElement(
+                            "a"
+                        );
+
+
+                    link.download =
+                        `مستند_دور_المريض_${Date.now()}.png`;
+
+
+                    link.href =
+                        canvas.toDataURL(
+                            "image/png"
+                        );
+
+
+                    link.click();
+
+                }
+            );
+
         };
 
-        window.resetForNewPatient = function() {
-            localStorage.removeItem("current_appointment_id");
-            if (unsubscribeLive) unsubscribeLive();
-            
-            document.getElementById("formFieldsContainer").style.display = "block";
-            document.getElementById("statusMsg").style.display = "none";
-            document.getElementById("statusMsg").className = "";
-            document.getElementById("username").value = "";
-            document.getElementById("age").value = "";
-            document.getElementById("residence").value = "";
-            document.getElementById("phone").value = "";
-            document.getElementById("appointmentDate").value = "";
-            document.getElementById("visitType").selectedIndex = 0;
-            document.getElementById("fileNumberGroup").style.display = "none";
-            document.getElementById("fileNumber").value = "";
-            document.getElementById("details").value = "";
-            document.getElementById("medicalSupplies").value = "";
+
+    /* مريض جديد */
+
+    window.resetForNewPatient =
+        function() {
+
+            localStorage.removeItem(
+                "current_appointment_id"
+            );
+
+
+            if (unsubscribeLive)
+                unsubscribeLive();
+
+
+            document.getElementById(
+                "formFieldsContainer"
+            ).style.display = "block";
+
+
+            document.getElementById(
+                "statusMsg"
+            ).style.display = "none";
+
+
+            document.getElementById(
+                "statusMsg"
+            ).className = "";
+
+
+            document.getElementById(
+                "username"
+            ).value = "";
+
+
+            document.getElementById(
+                "age"
+            ).value = "";
+
+
+            document.getElementById(
+                "residence"
+            ).value = "";
+
+
+            document.getElementById(
+                "visitType"
+            ).selectedIndex = 0;
+
+
+            document.getElementById(
+                "fileNumberGroup"
+            ).style.display = "none";
+
+
+            document.getElementById(
+                "fileNumber"
+            ).value = "";
+
+
+            document.getElementById(
+                "medicalReport"
+            ).value = "";
+
+
+            document.getElementById(
+                "reportPreview"
+            ).style.display = "none";
+
         };
-    </script>
-</body>
+
+</script></body>
 </html>
