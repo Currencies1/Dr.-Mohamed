@@ -149,7 +149,6 @@
             flex-wrap: wrap;
         }
 
-        /* أزرار الرأس */
         .btn-backup {
             background: #f0fdf4;
             color: #15803d;
@@ -167,7 +166,6 @@
         }
         .btn-backup:hover { background: #16a34a; color: #ffffff; border-color: #16a34a; }
 
-        /* زر جرس الإشعارات المحدث والمتناسق بالرأس */
         .notification-bell {
             position: relative;
             background: #eff6ff;
@@ -234,7 +232,6 @@
         }
         .btn-logout:hover { background: #dc2626; color: #ffffff; border-color: #dc2626; }
 
-        /* شريط التحكم وحالة العيادة والبحث */
         .control-bar {
             background: var(--card-bg);
             padding: 18px 22px;
@@ -282,7 +279,6 @@
             box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
         }
 
-        /* أزرار الفلترة مع العدادات */
         .filter-buttons {
             display: flex;
             gap: 8px;
@@ -351,7 +347,6 @@
             border: 1.5px solid #ef4444;
         }
 
-        /* تنسيق أقسام الفترات (صباحي / مسائي) */
         .periods-container {
             display: grid;
             grid-template-columns: 1fr;
@@ -539,7 +534,6 @@
             font-size: 14px;
         }
 
-        /* النوافذ المنبثقة */
         .custom-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);
@@ -614,7 +608,6 @@
             <div class="header-actions">
                 <button onclick="downloadExcelBackup()" class="btn-backup"><i class="fa-solid fa-file-excel"></i> نسخة احتياطية</button>
                 <button onclick="openBarcodeModal()" class="btn-barcode"><i class="fa-solid fa-qrcode"></i> باركود الموقع</button>
-                <!-- زر جرس الإشعارات المتناسق مع العداد -->
                 <div class="notification-bell" title="الطلبات الجديدة غير المكتملة">
                     <i class="fa-solid fa-bell"></i> الإشعارات 
                     <span id="notifBadge" class="notification-badge">0</span>
@@ -623,7 +616,6 @@
             </div>
         </div>
 
-        <!-- شريط التحكم بالعيادة والفلترة والبحث -->
         <div class="control-bar">
             <div class="search-box-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -657,7 +649,6 @@
             </div>
         </div>
 
-        <!-- الأقسام المنفصلة للفترة الصباحية والفترة المسائية -->
         <div class="periods-container">
             <!-- قسم الفترة الصباحية -->
             <div class="period-section morning-section">
@@ -935,7 +926,11 @@
                 const id = data.id;
                 const isEmergency = data.isEmergency || false;
                 const status = data.status || "قيد الانتظار";
-                const period = data.sessionPeriod || "صباحي";
+                
+                // معالجة فترة الحجز بدقة والتأكد من مطابقتها (مسائي أو صباحي)
+                let rawPeriod = data.sessionPeriod ? data.sessionPeriod.trim().toLowerCase() : "صباحي";
+                let period = (rawPeriod.includes("مساء") || rawPeriod === "evening") ? "مسائي" : "صباحي";
+
                 const username = (data.username || "").toLowerCase();
                 const fileNumber = (data.fileNumber || "").toLowerCase();
                 const transactionCode = (data.transactionCode || "").toLowerCase();
@@ -1016,7 +1011,6 @@
             eveningContainer.innerHTML = eveningCount > 0 ? eveningHtml : `<div class="no-requests">لا توجد حجوزات في الفترة المسائية مطابقة.</div>`;
         }
 
-        // دالة قبول الطلب مع التحقق من عدم تكرار رقم الدور في نفس الفترة
         window.updateStatus = async function(docId, period) {
             const queueInput = document.getElementById(`queue-${docId}`);
             const notesInput = document.getElementById(`notes-${docId}`);
@@ -1029,10 +1023,10 @@
                 return;
             }
 
-            // التحقق البرمجي من عدم تكرار رقم الدور لنفس الفترة النشطة
             const isDuplicate = allFetchedDocs.some(docItem => {
+                let itemPeriod = (docItem.sessionPeriod && (docItem.sessionPeriod.toLowerCase().includes("مساء") || docItem.sessionPeriod.toLowerCase() === "evening")) ? "مسائي" : "صباحي";
                 return docItem.id !== docId && 
-                       docItem.sessionPeriod === period && 
+                       itemPeriod === period && 
                        docItem.queueNumber === queueNumber && 
                        docItem.status && docItem.status.includes("مقبول");
             });
