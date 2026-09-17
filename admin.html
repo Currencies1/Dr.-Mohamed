@@ -49,6 +49,8 @@
             align-items: center;
             margin-bottom: 25px;
             border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .admin-header h1 {
@@ -61,6 +63,65 @@
 
         .admin-header h1 i {
             color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* تصميم زر التبديل (Switch) لإيقاف وتشغيل الموقع */
+        .site-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f5f9;
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ef4444;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #10b981;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
 
         .stats-grid {
@@ -169,7 +230,8 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            margin-left: 5px;
+            margin-left: 4px;
+            margin-bottom: 4px;
             transition: opacity 0.2s;
         }
 
@@ -177,6 +239,7 @@
         .btn-accept { background: var(--success); color: white; }
         .btn-reject { background: var(--danger); color: white; }
         .btn-view { background: var(--primary); color: white; }
+        .btn-edit { background: #64748b; color: white; }
 
         /* نافذة منبثقة (Modal) لإدارة الحجز وعرض التقرير */
         .modal {
@@ -268,7 +331,17 @@
 <div class="container">
     <div class="admin-header">
         <h1><i class="fa-solid fa-user-doctor"></i> لوحة إدارة عيادة د. محمد الأسماعيل</h1>
-        <button onclick="location.reload()" class="btn-action btn-view"><i class="fa-solid fa-rotate-right"></i> تحديث البيانات</button>
+        <div class="header-actions">
+            <!-- زر إيقاف وتشغيل الموقع -->
+            <div class="site-toggle-wrapper">
+                <span id="siteStatusText" style="font-size: 13px; font-weight: bold;">حالة الموقع:</span>
+                <label class="switch">
+                    <input type="checkbox" id="siteToggle" onchange="toggleSiteStatus()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button onclick="location.reload()" class="btn-action btn-view"><i class="fa-solid fa-rotate-right"></i> تحديث</button>
+        </div>
     </div>
 
     <div class="stats-grid">
@@ -306,7 +379,7 @@
                         <th>نوع الزيارة</th>
                         <th>التقرير الطبي</th>
                         <th>الحالة</th>
-                        <th>الإجراءات</th>
+                        <th>الإجراءات السريعة</th>
                     </tr>
                 </thead>
                 <tbody id="appointmentsTableBody">
@@ -342,11 +415,6 @@
         </div>
 
         <div class="form-group">
-            <label>ساعة الحضور (مثال: 10:30 صباحاً):</label>
-            <input type="text" id="modalAppointmentTime" placeholder="أدخل ساعة الحضور...">
-        </div>
-
-        <div class="form-group">
             <label>ملاحظات وتوجيهات الطبيب للمريض:</label>
             <textarea id="modalDoctorNotes" rows="3" placeholder="أدخل أي ملاحظات أو تعليمات للمريض..."></textarea>
         </div>
@@ -367,7 +435,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC1jJGXpZJm_SZ4xOsSN2JhDhzsjhx0aRU",
@@ -382,7 +450,46 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // جلب حالة الموقع عند التحميل
+    async function checkSiteStatus() {
+        try {
+            const statusRef = doc(db, "settings", "siteStatus");
+            const statusSnap = await getDoc(statusRef);
+            const toggle = document.getElementById("siteToggle");
+            const statusText = document.getElementById("siteStatusText");
+
+            if (statusSnap.exists()) {
+                const isOpen = statusSnap.data().isOpen;
+                toggle.checked = isOpen;
+                statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
+            } else {
+                // الافتراضي مفتوح إذا لم تقم بإنشائه بعد
+                toggle.checked = true;
+                statusText.innerText = "الموقع: (مفتوح)";
+            }
+        } catch (e) {
+            console.error("خطأ في جلب حالة الموقع:", e);
+        }
+    }
+
+    // تبديل وحفظ حالة الموقع في فايربيس
+    window.toggleSiteStatus = async function() {
+        const toggle = document.getElementById("siteToggle");
+        const statusText = document.getElementById("siteStatusText");
+        const isOpen = toggle.checked;
+
+        try {
+            const statusRef = doc(db, "settings", "siteStatus");
+            await setDoc(statusRef, { isOpen: isOpen }, { merge: true });
+            statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
+        } catch (e) {
+            console.error("خطأ في تحديث حالة الموقع:", e);
+            alert("حدث خطأ أثناء تغيير حالة الموقع.");
+        }
+    };
+
     async function loadAppointments() {
+        await checkSiteStatus();
         const tbody = document.getElementById("appointmentsTableBody");
         try {
             const querySnapshot = await getDocs(collection(db, "appointments"));
@@ -396,7 +503,6 @@
                 docsList.push({ id: docSnap.id, ...data });
             });
 
-            // ترتيب الطلبات من الأحدث للأقدم
             docsList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
             if (docsList.length === 0) {
@@ -415,7 +521,7 @@
 
                 let reportHtml = `<span style="color:#64748b; font-size:12px;">لا يوجد</span>`;
                 if (data.reportImage && data.reportImage.startsWith("data:image")) {
-                    reportHtml = `<button class="btn-action btn-view" onclick="openManageModal('${data.id}')"><i class="fa-solid fa-image"></i> عرض التقرير</button>`;
+                    reportHtml = `<button class="btn-action btn-view" onclick="openReportModal('${data.id}')"><i class="fa-solid fa-image"></i> عرض التقرير</button>`;
                 } else if (data.reportFileName && data.reportFileName !== "لا يوجد تقرير مرفق") {
                     reportHtml = `<span style="font-size:12px; color:#0284c7;">${data.reportFileName}</span>`;
                 }
@@ -431,8 +537,15 @@
                         <td>${reportHtml}</td>
                         <td><span class="badge ${badgeClass}">${data.status}</span></td>
                         <td>
-                            <button class="btn-action btn-view" onclick="openManageModal('${data.id}')">
-                                <i class="fa-solid fa-pen-to-square"></i> إدارة وتعديل
+                            <button class="btn-action btn-accept" onclick="quickAccept('${data.id}')" title="موافقة سريعة">
+                                <i class="fa-solid fa-check"></i> موافقة
+                            </button>
+                            ${data.reportImage && data.reportImage.startsWith("data:image") ? `
+                            <button class="btn-action btn-view" onclick="openReportModal('${data.id}')" title="عرض التقرير">
+                                <i class="fa-solid fa-eye"></i> التقرير
+                            </button>` : ''}
+                            <button class="btn-action btn-edit" onclick="openManageModal('${data.id}')" title="إدارة متقدمة">
+                                <i class="fa-solid fa-pen-to-square"></i> إدارة
                             </button>
                         </td>
                     </tr>
@@ -450,7 +563,24 @@
         }
     }
 
-    // فتح نافذة الإدارة للطلب وتعبئة بياناته
+    // موافقة سريعة بضغطة زر واحدة
+    window.quickAccept = async function(docId) {
+        try {
+            const docRef = doc(db, "appointments", docId);
+            await updateDoc(docRef, { status: "مقبول وتأكيد الحجز" });
+            loadAppointments();
+        } catch (e) {
+            console.error(e);
+            alert("فشل تحديث الحالة.");
+        }
+    };
+
+    // فتح التقرير مباشرة من زر العرض المنفصل
+    window.openReportModal = async function(docId) {
+        openManageModal(docId);
+    };
+
+    // فتح نافذة الإدارة المتقدمة للطلب وتعبئة بياناته
     window.openManageModal = async function(docId) {
         document.getElementById("selectedDocId").value = docId;
         const modal = document.getElementById("manageModal");
@@ -464,7 +594,6 @@
                 document.getElementById("modalPatientName").innerText = `إدارة حجز المريض: ${data.username}`;
                 document.getElementById("modalStatus").value = data.status || "قيد الانتظار";
                 document.getElementById("modalQueueNumber").value = data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
-                document.getElementById("modalAppointmentTime").value = data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
                 document.getElementById("modalDoctorNotes").value = data.doctorNotes || "";
 
                 const reportContainer = document.getElementById("reportContainer");
@@ -494,7 +623,6 @@
         const docId = document.getElementById("selectedDocId").value;
         const status = document.getElementById("modalStatus").value;
         const queueNumber = document.getElementById("modalQueueNumber").value.trim() || "قيد الصدور";
-        const appointmentTime = document.getElementById("modalAppointmentTime").value.trim() || "قيد الصدور";
         const doctorNotes = document.getElementById("modalDoctorNotes").value.trim();
 
         try {
@@ -502,7 +630,6 @@
             await updateDoc(docRef, {
                 status: status,
                 queueNumber: queueNumber,
-                appointmentTime: appointmentTime,
                 doctorNotes: doctorNotes
             });
 
@@ -515,7 +642,6 @@
         }
     };
 
-    // التشغيل التلقائي عند فتح الصفحة
     loadAppointments();
 </script>
 
