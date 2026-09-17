@@ -258,8 +258,8 @@
             <div class="doctor-avatar-login"><i class="fa-solid fa-user-doctor"></i></div>
             <h2>لوحة تحكم عيادة د. محمد إسماعيل</h2>
             <form id="loginForm" onsubmit="handleLogin(event)">
-                <!-- تم وضع البريد الجديد تلقائياً هنا -->
-                <input type="email" id="emailInput" value="mohamaedasmail12@gmail.com" placeholder="البريد الإلكتروني للإدارة" required>
+                <!-- حقل البريد الإلكتروني أصبح فارغاً ولا يتم ملؤه تلقائياً -->
+                <input type="email" id="emailInput" placeholder="البريد الإلكتروني للإدارة" required>
                 <input type="password" id="passwordInput" placeholder="كلمة المرور" required>
                 <button type="submit">تسجيل الدخول</button>
                 <div id="loginError" class="login-error">البريد الإلكتروني أو كلمة المرور غير صحيحة!</div>
@@ -276,7 +276,7 @@
             <p>أدخل بريدك الإلكتروني المسجل، وسنرسل لك رابطاً لإعادة تعيين كلمة المرور إلى صندوق الوارد (Gmail).</p>
             
             <form onsubmit="handlePasswordReset(event)">
-                <input type="email" id="resetEmailInput" value="mohamaedasmail12@gmail.com" placeholder="البريد الإلكتروني الخاص بك" required style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 14px; outline: none;">
+                <input type="email" id="resetEmailInput" placeholder="البريد الإلكتروني الخاص بك" required style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 14px; outline: none;">
                 <button type="submit" class="btn-download-qr">إرسال رابط الإعادة</button>
                 <div id="resetError" class="login-error">البريد غير مسجل أو حدث خطأ!</div>
                 <div id="resetSuccess" class="login-success">تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح! تفقد الوارد أو الرسائل غير المرغوب فيها.</div>
@@ -374,13 +374,18 @@
         let qrInitialized = false;
         let previousCount = null;
 
+        // البريد الإلكتروني الخاص المطلوب اعتماده
+        const specificEmail = "MohamedIsmail123@gmail.com";
+
         if (localStorage.getItem("doctorLoggedIn") === "true") {
             showDashboard();
         }
 
         window.handleLogin = async function(event) {
             event.preventDefault();
-            const email = document.getElementById("emailInput").value.trim();
+            // إذا ترك الحقل فارغاً أو كتب البريد، سيتم اعتماد البريد الخاص المعتمد تلقائياً أو ما كتبه الطبيب
+            const inputVal = document.getElementById("emailInput").value.trim();
+            const email = inputVal !== "" ? inputVal : specificEmail;
             const password = document.getElementById("passwordInput").value.trim();
             const errorDiv = document.getElementById("loginError");
 
@@ -398,6 +403,7 @@
             document.getElementById("forgotModal").style.display = "flex";
             document.getElementById("resetError").style.display = "none";
             document.getElementById("resetSuccess").style.display = "none";
+            document.getElementById("resetEmailInput").value = ""; // يبقى فارغاً أيضاً
         };
 
         window.closeForgotModal = function() {
@@ -406,7 +412,8 @@
 
         window.handlePasswordReset = async function(event) {
             event.preventDefault();
-            const email = document.getElementById("resetEmailInput").value.trim();
+            const inputVal = document.getElementById("resetEmailInput").value.trim();
+            const email = inputVal !== "" ? inputVal : specificEmail;
             const errorDiv = document.getElementById("resetError");
             const successDiv = document.getElementById("resetSuccess");
 
