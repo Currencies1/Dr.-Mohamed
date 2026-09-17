@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - عيادة الأمراض الداخلية (د. محمد الأسماعيل)</title>
+    <title>لوحة التحكم المحمية - عيادة د. محمد الأسماعيل</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -39,6 +39,99 @@
             margin: 0 auto;
         }
 
+        /* شاشة تسجيل الدخول */
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 15px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .login-card i {
+            font-size: 45px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .login-card h2 {
+            font-size: 20px;
+            color: #0f172a;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            text-align: right;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-login {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: 'Cairo';
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background: var(--primary-hover);
+        }
+
+        #loginError {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* لوحة التحكم الأساسية (مخفية لحين الدخول) */
+        #adminDashboard {
+            display: none;
+        }
+
         .admin-header {
             background: var(--card-bg);
             padding: 20px 30px;
@@ -68,59 +161,31 @@
         .header-actions {
             display: flex;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* شريط التحكم في حالة لوحة المريض */
+        .clinic-control-bar {
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 15px;
         }
 
-        .site-toggle-wrapper {
+        .status-indicator {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #f1f5f9;
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: 1px solid #cbd5e1;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 26px;
-        }
-
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ef4444;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #10b981;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(24px);
+            font-weight: bold;
+            font-size: 14px;
         }
 
         .stats-grid {
@@ -238,8 +303,10 @@
         .btn-accept { background: var(--success); color: white; }
         .btn-reject { background: var(--danger); color: white; }
         .btn-view { background: var(--primary); color: white; }
-        .btn-edit { background: #64748b; color: white; }
+        .btn-logout { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
 
+        /* نافذة منبثقة (Modal) لإدارة الحجز وعرض التقرير */
         .modal {
             display: none;
             position: fixed;
@@ -277,30 +344,6 @@
             background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: var(--primary);
-        }
-
         .report-preview-box {
             margin-top: 10px;
             text-align: center;
@@ -326,18 +369,44 @@
 </head>
 <body>
 
-<div class="container">
+<!-- شاشة تسجيل الدخول السرية -->
+<div id="loginOverlay">
+    <div class="login-card">
+        <i class="fa-solid fa-user-shield"></i>
+        <h2>تسجيل دخول لوحة التحكم</h2>
+        <div class="form-group">
+            <label>البريد الإلكتروني للإدارة:</label>
+            <input type="email" id="adminEmail" placeholder="admin@clinic.com">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور:</label>
+            <input type="password" id="adminPassword" placeholder="••••••••">
+        </div>
+        <button onclick="loginAdmin()" class="btn-login"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</button>
+        <p id="loginError">البريد الإلكتروني أو كلمة المرور غير صحيحة!</p>
+    </div>
+</div>
+
+<!-- لوحة التحكم الأساسية (محمية) -->
+<div class="container" id="adminDashboard">
     <div class="admin-header">
         <h1><i class="fa-solid fa-user-doctor"></i> لوحة إدارة عيادة د. محمد الأسماعيل</h1>
         <div class="header-actions">
-            <div class="site-toggle-wrapper">
-                <span id="siteStatusText" style="font-size: 13px; font-weight: bold;">حالة الموقع:</span>
-                <label class="switch">
-                    <input type="checkbox" id="siteToggle" onchange="toggleSiteStatus()">
-                    <span class="slider"></span>
-                </label>
-            </div>
             <button onclick="location.reload()" class="btn-action btn-view"><i class="fa-solid fa-rotate-right"></i> تحديث</button>
+            <button onclick="logoutAdmin()" class="btn-action btn-logout"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+        </div>
+    </div>
+
+    <!-- شريط إيقاف وتفعيل لوحة المريض -->
+    <div class="clinic-control-bar">
+        <div class="status-indicator">
+            <i class="fa-solid fa-circle-dot" id="statusDot" style="color: #10b981;"></i>
+            <span>حالة استقبال المواعيد في لوحة المريض: <b id="clinicStatusText">مفعلة ويستقبل حجوزات</b></span>
+        </div>
+        <div>
+            <button id="toggleClinicBtn" onclick="toggleClinicStatus()" class="btn-action btn-warning">
+                <i class="fa-solid fa-power-off"></i> إيقاف لوحة المريض مؤقتاً
+            </button>
         </div>
     </div>
 
@@ -366,7 +435,7 @@
     </div>
 
     <div class="appointments-section">
-        <div class="section-title"><i class="fa-solid fa-list"></i> جدول طلبات حجز المواعيد والتقارير</div>
+        <div class="section-title"><i class="fa-solid fa-list"></i> جدول طلبات حجز المواعيد والتقارير الطبية</div>
         <div class="table-responsive">
             <table>
                 <thead>
@@ -374,19 +443,20 @@
                         <th>اسم المريض</th>
                         <th>العمر / الإقامة</th>
                         <th>نوع الزيارة</th>
-                        <th>التقرير الطبي</th>
+                        <th>التقرير الطبي (من ملف المريض)</th>
                         <th>الحالة</th>
-                        <th>الإجراءات السريعة</th>
+                        <th>الإجراءات وإدارة الحجز</th>
                     </tr>
                 </thead>
                 <tbody id="appointmentsTableBody">
-                    <tr><td colspan="6" class="no-data"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحميل الطلبات...</td></tr>
+                    <tr><td colspan="6" class="no-data"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
+<!-- نافذة إدارة الطلب وعرض التقرير المرفق -->
 <div id="manageModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -411,15 +481,21 @@
         </div>
 
         <div class="form-group">
+            <label>ساعة الحضور (مثال: 10:30 صباحاً):</label>
+            <input type="text" id="modalAppointmentTime" placeholder="أدخل ساعة الحضور...">
+        </div>
+
+        <div class="form-group">
             <label>ملاحظات وتوجيهات الطبيب للمريض:</label>
             <textarea id="modalDoctorNotes" rows="3" placeholder="أدخل أي ملاحظات أو تعليمات للمريض..."></textarea>
         </div>
 
+        <!-- معاينة صورة التقرير الطبي من ملف المريض -->
         <div class="form-group" id="reportContainer" style="display:none;">
-            <label>صورة التقرير الطبي المرفق:</label>
+            <label>صورة التقرير الطبي المرفق من المريض:</label>
             <div class="report-preview-box">
                 <img id="modalReportImage" src="" alt="تقرير المريض" onclick="window.open(this.src)">
-                <p style="font-size:11px; color:#64748b; margin-top:5px;">(اضغط على الصورة لتكبيرها)</p>
+                <p style="font-size:11px; color:#64748b; margin-top:5px;">(اضغط على الصورة لتكبيرها في نافذة جديدة)</p>
             </div>
         </div>
 
@@ -431,6 +507,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -444,46 +521,94 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    async function checkSiteStatus() {
-        try {
-            const statusRef = doc(db, "settings", "siteStatus");
-            const statusSnap = await getDoc(statusRef);
-            const toggle = document.getElementById("siteToggle");
-            const statusText = document.getElementById("siteStatusText");
+    // التحقق من حالة تسجيل دخول الأدمن
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById("loginOverlay").style.display = "none";
+            document.getElementById("adminDashboard").style.display = "block";
+            loadAppointments();
+            checkClinicStatus();
+        } else {
+            document.getElementById("loginOverlay").style.display = "flex";
+            document.getElementById("adminDashboard").style.display = "none";
+        }
+    });
 
-            if (statusSnap.exists()) {
-                const isOpen = statusSnap.data().isOpen;
-                toggle.checked = isOpen;
-                statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
+    window.loginAdmin = async function() {
+        const email = document.getElementById("adminEmail").value.trim();
+        const password = document.getElementById("adminPassword").value.trim();
+        const errorText = document.getElementById("loginError");
+
+        if (!email || !password) {
+            errorText.innerText = "الرجاء إدخال البريد وكلمة المرور";
+            errorText.style.display = "block";
+            return;
+        }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            errorText.style.display = "none";
+        } catch (error) {
+            console.error(error);
+            errorText.innerText = "البريد الإلكتروني أو كلمة المرور غير صحيحة!";
+            errorText.style.display = "block";
+        }
+    };
+
+    window.logoutAdmin = async function() {
+        await signOut(auth);
+    };
+
+    // التحقق من حالة إيقاف أو تشغيل لوحة المريض
+    async function checkClinicStatus() {
+        try {
+            const statusRef = doc(db, "settings", "clinicStatus");
+            const snap = await getDoc(statusRef);
+            const statusText = document.getElementById("clinicStatusText");
+            const statusDot = document.getElementById("statusDot");
+            const toggleBtn = document.getElementById("toggleClinicBtn");
+
+            if (snap.exists() && snap.data().isOpen === false) {
+                statusText.innerText = "متوقفة مؤقتاً (لا تستقبل حجوزات جديدة)";
+                statusDot.style.color = "#ef4444";
+                toggleBtn.innerHTML = `<i class="fa-solid fa-power-off"></i> تفعيل لوحة المريض الآن`;
+                toggleBtn.className = "btn-action btn-accept";
             } else {
-                toggle.checked = true;
-                statusText.innerText = "الموقع: (مفتوح)";
+                statusText.innerText = "مفعلة ويستقبل حجوزات";
+                statusDot.style.color = "#10b981";
+                toggleBtn.innerHTML = `<i class="fa-solid fa-power-off"></i> إيقاف لوحة المريض مؤقتاً`;
+                toggleBtn.className = "btn-action btn-warning";
             }
         } catch (e) {
-            console.error("خطأ في جلب حالة الموقع:", e);
+            console.error(e);
         }
     }
 
-    window.toggleSiteStatus = async function() {
-        const toggle = document.getElementById("siteToggle");
-        const statusText = document.getElementById("siteStatusText");
-        const isOpen = toggle.checked;
-
+    // تبديل حالة لوحة المريض (إيقاف / تشغيل)
+    window.toggleClinicStatus = async function() {
         try {
-            const statusRef = doc(db, "settings", "siteStatus");
-            await setDoc(statusRef, { isOpen: isOpen }, { merge: true });
-            statusText.innerText = isOpen ? "الموقع: (مفتوح)" : "الموقع: (مغلق)";
+            const statusRef = doc(db, "settings", "clinicStatus");
+            const snap = await getDoc(statusRef);
+            let currentState = true;
+            if (snap.exists()) {
+                currentState = snap.data().isOpen;
+            }
+
+            const newState = !currentState;
+            await setDoc(statusRef, { isOpen: newState });
+
+            checkClinicStatus();
+            alert(newState ? "تم تفعيل لوحة المريض بنجاح!" : "تم إيقاف لوحة المريض مؤقتاً بنجاح!");
         } catch (e) {
-            console.error("خطأ تفصيلي:", e);
-            alert("فشل التحديث. تأكد من ضبط قواعد الأمان (Firestore Rules) لتسمح بالقراءة والكتابة.");
-            toggle.checked = !isOpen; // إعادة الزر لحالته السابقة عند الخطأ
+            console.error(e);
+            alert("فشل تغيير حالة اللوحة.");
         }
     };
 
     async function loadAppointments() {
-        await checkSiteStatus();
         const tbody = document.getElementById("appointmentsTableBody");
         try {
             const querySnapshot = await getDocs(collection(db, "appointments"));
@@ -513,11 +638,16 @@
                 if (data.status && data.status.includes("مقبول")) badgeClass = "badge-accepted";
                 if (data.status && data.status.includes("مرفوض")) badgeClass = "badge-rejected";
 
-                let reportHtml = `<span style="color:#64748b; font-size:12px;">لا يوجد</span>`;
+                // معاينة التقرير الطبي المرفق من ملف المريض
+                let reportHtml = `<span style="color:#64748b; font-size:12px;">لا يوجد تقرير مرفق</span>`;
                 if (data.reportImage && data.reportImage.startsWith("data:image")) {
-                    reportHtml = `<button class="btn-action btn-view" onclick="openReportModal('${data.id}')"><i class="fa-solid fa-image"></i> عرض التقرير</button>`;
+                    reportHtml = `
+                        <button class="btn-action btn-view" onclick="openManageModal('${data.id}')">
+                            <i class="fa-solid fa-image"></i> اطلاع على التقرير
+                        </button>
+                    `;
                 } else if (data.reportFileName && data.reportFileName !== "لا يوجد تقرير مرفق") {
-                    reportHtml = `<span style="font-size:12px; color:#0284c7;">${data.reportFileName}</span>`;
+                    reportHtml = `<span style="font-size:12px; color:#0284c7; font-weight:bold;">${data.reportFileName}</span>`;
                 }
 
                 let row = `
@@ -531,15 +661,8 @@
                         <td>${reportHtml}</td>
                         <td><span class="badge ${badgeClass}">${data.status}</span></td>
                         <td>
-                            <button class="btn-action btn-accept" onclick="quickAccept('${data.id}')" title="موافقة سريعة">
-                                <i class="fa-solid fa-check"></i> موافقة
-                            </button>
-                            ${data.reportImage && data.reportImage.startsWith("data:image") ? `
-                            <button class="btn-action btn-view" onclick="openReportModal('${data.id}')" title="عرض التقرير">
-                                <i class="fa-solid fa-eye"></i> التقرير
-                            </button>` : ''}
-                            <button class="btn-action btn-edit" onclick="openManageModal('${data.id}')" title="إدارة متقدمة">
-                                <i class="fa-solid fa-pen-to-square"></i> إدارة
+                            <button class="btn-action btn-view" onclick="openManageModal('${data.id}')">
+                                <i class="fa-solid fa-pen-to-square"></i> إدارة وتعديل
                             </button>
                         </td>
                     </tr>
@@ -557,21 +680,6 @@
         }
     }
 
-    window.quickAccept = async function(docId) {
-        try {
-            const docRef = doc(db, "appointments", docId);
-            await updateDoc(docRef, { status: "مقبول وتأكيد الحجز" });
-            loadAppointments();
-        } catch (e) {
-            console.error(e);
-            alert("فشل تحديث الحالة.");
-        }
-    };
-
-    window.openReportModal = async function(docId) {
-        openManageModal(docId);
-    };
-
     window.openManageModal = async function(docId) {
         document.getElementById("selectedDocId").value = docId;
         const modal = document.getElementById("manageModal");
@@ -585,6 +693,7 @@
                 document.getElementById("modalPatientName").innerText = `إدارة حجز المريض: ${data.username}`;
                 document.getElementById("modalStatus").value = data.status || "قيد الانتظار";
                 document.getElementById("modalQueueNumber").value = data.queueNumber !== "قيد الصدور" ? data.queueNumber : "";
+                document.getElementById("modalAppointmentTime").value = data.appointmentTime !== "قيد الصدور" ? data.appointmentTime : "";
                 document.getElementById("modalDoctorNotes").value = data.doctorNotes || "";
 
                 const reportContainer = document.getElementById("reportContainer");
@@ -610,20 +719,23 @@
     };
 
     window.saveAppointmentUpdate = async function() {
-        const docId = document.getElementById("selectedDocId").value;
+        const docId = document.getElementById("selectedDocId->value").value; // تم التصحيح بالأسفل
+        const realDocId = document.getElementById("selectedDocId").value;
         const status = document.getElementById("modalStatus").value;
         const queueNumber = document.getElementById("modalQueueNumber").value.trim() || "قيد الصدور";
+        const appointmentTime = document.getElementById("modalAppointmentTime").value.trim() || "قيد الصدور";
         const doctorNotes = document.getElementById("modalDoctorNotes").value.trim();
 
         try {
-            const docRef = doc(db, "appointments", docId);
+            const docRef = doc(db, "appointments", realDocId);
             await updateDoc(docRef, {
                 status: status,
                 queueNumber: queueNumber,
+                appointmentTime: appointmentTime,
                 doctorNotes: doctorNotes
             });
 
-            alert("تم تحديث حالة الحجز بنجاح! سيتم تحديث شاشة المريض فوراً.");
+            alert("تم تحديث حالة الحجز بنجاح!");
             closeModal();
             loadAppointments();
         } catch (error) {
@@ -631,8 +743,6 @@
             alert("فشل تحديث الحجز.");
         }
     };
-
-    loadAppointments();
 </script>
 
 </body>
