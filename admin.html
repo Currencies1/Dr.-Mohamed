@@ -688,6 +688,12 @@
                     <button class="filter-btn active" onclick="setFilter('all', this)">
                         الكل <span id="count-all" class="count-badge">0</span>
                     </button>
+                    <button class="filter-btn" onclick="setFilter('صباحي', this)">
+                        ☀️ الصباحي <span id="count-morning-filter" class="count-badge">0</span>
+                    </button>
+                    <button class="filter-btn" onclick="setFilter('مسائي', this)">
+                        🌙 المسائي <span id="count-evening-filter" class="count-badge">0</span>
+                    </button>
                     <button class="filter-btn" onclick="setFilter('قيد الانتظار', this)">
                         قيد الانتظار <span id="count-pending" class="count-badge">0</span>
                     </button>
@@ -709,7 +715,7 @@
 
         <div class="periods-container">
             <!-- قسم الفترة الصباحية -->
-            <div class="period-section morning-section">
+            <div class="period-section morning-section" id="morningSectionWrapper">
                 <div class="period-header">
                     <span><i class="fa-solid fa-sun" style="margin-left: 8px;"></i> الفترة الصباحية</span>
                     <span id="morning-count-badge" class="badge-type" style="background:#fde68a; color:#b45309;">0 حجز</span>
@@ -720,7 +726,7 @@
             </div>
 
             <!-- قسم الفترة المسائية -->
-            <div class="period-section evening-section">
+            <div class="period-section evening-section" id="eveningSectionWrapper">
                 <div class="period-header">
                     <span><i class="fa-solid fa-moon" style="margin-left: 8px;"></i> الفترة المسائية</span>
                     <span id="evening-count-badge" class="badge-type" style="background:#c7d2fe; color:#3730a3;">0 حجز</span>
@@ -782,12 +788,10 @@
             }
             initBarcodeGenerator();
 
-            // طلب صلاحية إظهار الإشعارات المنبثقة خارج المتصفح
             if (window.Notification && Notification.permission !== "granted") {
                 Notification.requestPermission();
             }
 
-            // تفعيل الصوت عند أول تفاعل بالصفحة لضمان عمله في الخلفية
             document.body.addEventListener('click', () => {
                 const sound = document.getElementById("notificationSound");
                 if (sound) {
@@ -931,6 +935,8 @@
                 });
 
                 let tallyAll = allFetchedDocs.length;
+                let tallyMorning = 0;
+                let tallyEvening = 0;
                 let tallyPending = 0;
                 let tallyEmergency = 0;
                 let tallyAccepted = 0;
@@ -940,9 +946,18 @@
                     if (status === "قيد الانتظار") tallyPending++;
                     if (data.isEmergency) tallyEmergency++;
                     if (status.includes("مقبول")) tallyAccepted++;
+
+                    let rawP = data.sessionPeriod ? String(data.sessionPeriod).trim().toLowerCase() : "";
+                    if (rawP.includes("مساء") || rawP.includes("evening") || rawP.includes("مسائية")) {
+                        tallyEvening++;
+                    } else {
+                        tallyMorning++;
+                    }
                 });
 
                 document.getElementById("count-all").innerText = tallyAll;
+                document.getElementById("count-morning-filter").innerText = tallyMorning;
+                document.getElementById("count-evening-filter").innerText = tallyEvening;
                 document.getElementById("count-pending").innerText = tallyPending;
                 document.getElementById("count-emergency").innerText = tallyEmergency;
                 document.getElementById("count-accepted").innerText = tallyAccepted;
@@ -951,14 +966,12 @@
                 notifBadge.innerText = tallyPending;
 
                 if (previousTotalCount !== null && tallyAll > previousTotalCount) {
-                    // تشغيل الصوت الرنان القوي
                     const sound = document.getElementById("notificationSound");
                     if (sound) {
                         sound.currentTime = 0;
                         sound.play().catch(e => console.log(e));
                     }
 
-                    // إظهار إشعار منبثق Browser Notification حتى لو كان المتصفح بالخلفية
                     if (window.Notification && Notification.permission === "granted") {
                         new Notification("🔔 حجز جديد في العيادة!", {
                             body: "هناك مريض جديد قام بإرسال طلب حجز موعد.",
@@ -985,12 +998,26 @@
         function renderAppointments(docsArray) {
             const morningContainer = document.getElementById("morningContainer");
             const eveningContainer = document.getElementById("eveningContainer");
+            const morningSectionWrapper = document.getElementById("morningSectionWrapper");
+            const eveningSectionWrapper = document.getElementById("eveningSectionWrapper");
             const searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
             
             let morningHtml = "";
             let eveningHtml = "";
             let morningCount = 0;
             let eveningCount = 0;
+
+            // إظهار القسمين افتراضياً حسب الفلتر العام
+            if (currentFilter === 'مسائي') {
+                morningSectionWrapper.style.display = 'none';
+                eveningSectionWrapper.style.display = 'block';
+            } else if (currentFilter === 'صباحي') {
+                morningSectionWrapper.style.display = 'block';
+                eveningSectionWrapper.style.display = 'none';
+            } else {
+                morningSectionWrapper.style.display = 'block';
+                eveningSectionWrapper.style.display = 'block';
+            }
 
             docsArray.forEach((data) => {
                 const id = data.id;
@@ -1008,6 +1035,9 @@
                 const fileNumber = (data.fileNumber || "").toLowerCase();
                 const transactionCode = (data.transactionCode || "").toLowerCase();
 
+                // تطبيق الفلاتر
+                if (currentFilter === 'صباحي' && period !== 'صباحي') return;
+                if (currentFilter === 'مسائي' && period !== 'مسائي') return;
                 if (currentFilter === 'قيد الانتظار' && status !== "قيد الانتظار") return;
                 if (currentFilter === 'إسعاف' && !isEmergency) return;
                 if (currentFilter === 'مؤكد' && !status.includes("مقبول")) return;
@@ -1094,7 +1124,6 @@
             eveningContainer.innerHTML = eveningCount > 0 ? eveningHtml : `<div class="no-requests">لا توجد حجوزات في الفترة المسائية مطابقة.</div>`;
         }
 
-        // دالة لتعديل فترة حجز مريض فردي من البطاقة
         window.updateCardPeriod = async function(docId, newPeriod) {
             try {
                 const docRef = doc(db, "appointments", docId);
@@ -1107,7 +1136,6 @@
             }
         };
 
-        // دالة لتطبيق نقل جماعي للفترات (عبر نموذج الشريط العلوي إذا رغبت)
         window.applyGlobalPeriodShift = async function() {
             const targetPeriod = document.getElementById("globalTargetPeriod").value;
             if (confirm(`هل أنت متأكد من نقل وتحديث كافة الحجوزات الظاهرة لتكون في الفترة (${targetPeriod})؟`)) {
@@ -1190,6 +1218,7 @@
         };
 
         window.showReportModal = function(imgSrc) {
+            document.getElementById("modalReportImg").src, imgSrc;
             document.getElementById("modalReportImg").src = imgSrc;
             document.getElementById("reportModal").style.display = "flex";
         };
