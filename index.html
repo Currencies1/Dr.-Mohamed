@@ -624,14 +624,14 @@
                 أوقات الدوام الرسمي للعيادة
             </div>
             <div class="hours-details">
-                العيادة متاحة على مدار الأسبوع من الساعة <span>11 صباحاً</span> حتى <span>3 عصراً</span>، ومن الساعة <span>7 مساءً</span> حتى <span>11 ليلاً</span>، ما عدا يوم الجمعة من الساعة <span>5 مساءً</span> حتى <span>11 ليلاً</span>.
+                العيادة متاحة يومياً من الساعة <span>9 صباحاً</span> حتى <span>3 عصراً</span>، ومن الساعة <span>7 مساءً</span> حتى <span>11 ليلاً</span>.
             </div>
         </div>
 
         <div id="clinicClosedNotice">
             <i class="fa-solid fa-door-closed main-closed-icon"></i>
             <h3>العيادة مغلقة حالياً</h3>
-            <p id="closedMessageText">نعتذر منك العيادة مغلقة حالياً، أوقات الدوام الرسمي: من الساعة ١١ صباحاً حتى 3 عصراً ومن الساعة 7 مساءً حتى 11 ليلاً.</p>
+            <p id="closedMessageText">نعتذر منك العيادة مغلقة حالياً، أوقات الدوام الرسمي: من الساعة 9 صباحاً حتى 3 عصراً ومن الساعة 7 مساءً حتى 11 ليلاً.</p>
             <div class="countdown-box">
                 <i class="fa-solid fa-hourglass-half"></i> موعد فتح العيادة خلال:
                 <div id="countdownTimer" class="countdown-timer">00:00:00</div>
@@ -679,7 +679,7 @@
                     <i class="fa-solid fa-sun" style="color: #f59e0b;"></i>
                     <select id="timeSlot" required>
                         <option value="" disabled selected>اختر الفترة المفضلة...</option>
-                        <option value="الفترة الصباحية (11 ص - 3 م)">☀️ الفترة الصباحية (من 11 صباحاً حتى 3 عصراً)</option>
+                        <option value="الفترة الصباحية (9 ص - 3 م)">☀️ الفترة الصباحية (من 9 صباحاً حتى 3 عصراً)</option>
                         <option value="الفترة المسائية (7 م - 11 ليلاً)">🌙 الفترة المسائية (من 7 مساءً حتى 11 ليلاً)</option>
                     </select>
                 </div>
@@ -820,7 +820,7 @@
     let unsubscribeLive = null;
     let base64ReportImage = "";
     let selectedReportName = "لا يوجد تقرير مرفق";
-    let countdownInterval = null;
+    let statusInterval = null;
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -838,102 +838,71 @@
         document.getElementById("galleryInput").click();
     };
 
-    // دالة حساب وبدء العد التنازلي حتى وقت الافتتاح التالي
-    function startCountdownToOpening() {
-        if (countdownInterval) clearInterval(countdownInterval);
+    // دالة الفحص التلقائي للفتح والإغلاق والعد التنازلي (9 ص - 3 م ومن 7 م - 11 ل)
+    function initAutomaticClinicSchedule() {
+        if (statusInterval) clearInterval(statusInterval);
 
-        function updateTimer() {
+        function checkStatus() {
             const now = new Date();
-            const day = now.getDay(); // 0: الأحد, 5: الجمعة, إلخ.
             const hours = now.getHours();
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
             const totalCurrentSeconds = hours * 3600 + minutes * 60 + seconds;
 
-            let targetTime = new Date(now);
-            targetTime.setMilliseconds(0);
+            let isOpen = false;
 
-            // أوقات العيادة:
-            // الأيام العادية: من 11 صباحاً (39600) إلى 3 عصراً (54000)، ومن 7 مساءً (68400) إلى 11 ليلاً (82800)
-            // يوم الجمعة: من 5 مساءً (61200) إلى 11 ليلاً (82800)
-
-            if (day === 5) {
-                // يوم الجمعة
-                if (totalCurrentSeconds < 17 * 3600) {
-                    targetTime.setHours(17, 0, 0, 0); // يفتح الجمعة الساعة 5 مساءً
-                } else if (totalCurrentSeconds >= 17 * 3600 && totalCurrentSeconds < 23 * 3600) {
-                    targetTime.setHours(23, 0, 0, 0);
-                } else {
-                    targetTime.setDate(targetTime.getDate() + 1);
-                    targetTime.setHours(11, 0, 0, 0); // السبت الساعة 11 صباحاً
-                }
-            } else {
-                // الأيام العادية (السبت إلى الخميس)
-                if (totalCurrentSeconds < 11 * 3600) {
-                    targetTime.setHours(11, 0, 0, 0); // اليوم الساعة 11 صباحاً
-                } else if (totalCurrentSeconds >= 11 * 3600 && totalCurrentSeconds < 15 * 3600) {
-                    targetTime.setHours(19, 0, 0, 0); // الفترة المسائية الساعة 7 مساءً
-                } else if (totalCurrentSeconds >= 15 * 3600 && totalCurrentSeconds < 19 * 3600) {
-                    targetTime.setHours(19, 0, 0, 0); // من 3 عصراً حتى 7 مساءً (المثال المطلوب: يغلق 3 ويفتح 7)
-                } else if (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600) {
-                    targetTime.setHours(23, 0, 0, 0);
-                } else {
-                    targetTime.setDate(targetTime.getDate() + 1);
-                    targetTime.setHours(11, 0, 0, 0); // غداً الساعة 11 صباحاً
-                }
+            // أوقات الدوام: من 9 صباحاً (09:00) إلى 3 عصراً (15:00) أو من 7 مساءً (19:00) إلى 11 ليلاً (23:00)
+            if ((totalCurrentSeconds >= 9 * 3600 && totalCurrentSeconds < 15 * 3600) || 
+                (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600)) {
+                isOpen = true;
             }
 
-            const diff = targetTime - now;
-            if (diff <= 0) {
-                document.getElementById("countdownTimer").innerText = "قريباً جداً...";
-                return;
-            }
-
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-            document.getElementById("countdownTimer").innerText = 
-                String(h).padStart(2, '0') + ":" + 
-                String(m).padStart(2, '0') + ":" + 
-                String(s).padStart(2, '0');
-        }
-
-        updateTimer();
-        countdownInterval = setInterval(updateTimer, 1000);
-    }
-
-    function monitorClinicStatus() {
-        const statusRef = doc(db, "settings", "clinic_status");
-        onSnapshot(statusRef, (docSnap) => {
             const noticeDiv = document.getElementById("clinicClosedNotice");
             const formFields = document.getElementById("formFieldsContainer");
-            const messageText = document.getElementById("closedMessageText");
-
-            let isOpen = true;
-            if (docSnap.exists()) {
-                isOpen = docSnap.data().isOpen;
-                if (docSnap.data().closedMessage) {
-                    messageText.innerText = docSnap.data().closedMessage;
-                }
-            }
-
             const savedDocId = localStorage.getItem("current_appointment_id");
 
-            if (!isOpen) {
-                if (!savedDocId) {
-                    noticeDiv.style.display = "block";
-                    formFields.style.display = "none";
-                    startCountdownToOpening(); // بدء العد التنازلي عند الإغلاق
-                }
-            } else {
+            if (isOpen) {
                 noticeDiv.style.display = "none";
-                if (countdownInterval) clearInterval(countdownInterval);
                 if (!savedDocId) {
                     formFields.style.display = "block";
                 }
+            } else {
+                if (!savedDocId) {
+                    noticeDiv.style.display = "block";
+                    formFields.style.display = "none";
+                }
+
+                let targetTime = new Date(now);
+                targetTime.setMilliseconds(0);
+
+                if (totalCurrentSeconds < 9 * 3600) {
+                    targetTime.setHours(9, 0, 0, 0); 
+                } else if (totalCurrentSeconds >= 15 * 3600 && totalCurrentSeconds < 19 * 3600) {
+                    targetTime.setHours(19, 0, 0, 0); 
+                } else {
+                    targetTime.setDate(targetTime.getDate() + 1);
+                    targetTime.setHours(9, 0, 0, 0); 
+                }
+
+                const diff = targetTime - now;
+                if (diff <= 0) {
+                    document.getElementById("countdownTimer").innerText = "00:00:00";
+                    return;
+                }
+
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById("countdownTimer").innerText = 
+                    String(h).padStart(2, '0') + ":" + 
+                    String(m).padStart(2, '0') + ":" + 
+                    String(s).padStart(2, '0');
             }
-        });
+        }
+
+        checkStatus();
+        statusInterval = setInterval(checkStatus, 1000);
     }
 
     window.toggleFileNumberField = function() {
@@ -1009,7 +978,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-        monitorClinicStatus();
+        initAutomaticClinicSchedule(); // تشغيل فحص الإغلاق والفتح التلقائي
         renderSavedAppointments();
         
         const savedDocId = localStorage.getItem("current_appointment_id");
