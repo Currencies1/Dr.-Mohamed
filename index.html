@@ -61,7 +61,7 @@
             font-size: 14.5px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
@@ -75,6 +75,7 @@
             font-size: 18px;
             color: #fef08a;
             animation: pulseIcon 1.2s infinite alternate;
+            flex-shrink: 0;
         }
 
         @keyframes pulseIcon {
@@ -83,6 +84,7 @@
         }
 
         .announcement-bar marquee {
+            flex: 1;
             font-weight: 800;
             letter-spacing: 0.5px;
         }
@@ -1340,7 +1342,7 @@
         document.getElementById("fileNumberGroup").style.display = "none";
         document.getElementById("fileNumber").value = "";
         document.getElementById("cameraInput").value = "";
-        document.getElementById("galleryInput").value,value = "";
+        document.getElementById("galleryInput").value = "";
         document.getElementById("reportPreview").style.display = "none";
         document.getElementById("reportStatusIndicator").style.display = "none";
         base64ReportImage = "";
