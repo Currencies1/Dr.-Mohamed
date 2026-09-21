@@ -84,12 +84,14 @@
             margin: 0 auto 15px auto;
             display: block;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #f1f5f9;
         }
 
         .form-header h2 {
             font-weight: 700;
             color: #0f172a;
             font-size: 22px;
+            margin-top: 10px;
         }
 
         .clinic-location-badge {
@@ -587,7 +589,8 @@
 <div class="container">
     <div class="form-card" id="mainCard">
         <div class="form-header">
-            <img src="32597.jpg" alt="د. محمد علي الاسماعيل" class="header-card-img">
+            <!-- تم ضبط مسار الصورة لتطابق اسم الصورة المرفوعة -->
+            <img src="32604.jpg" alt="د. محمد علي الاسماعيل" class="header-card-img" onerror="this.src='32597.jpg';">
             <h2>حجز موعد - عيادة الأمراض الداخلية</h2>
             <div class="clinic-location-badge">
                 <i class="fa-solid fa-location-dot"></i>
@@ -1193,7 +1196,7 @@
         document.getElementById("timeSlot").selectedIndex = 0;
         document.getElementById("visitType").selectedIndex = 0;
         document.getElementById("fileNumberGroup").style.display = "none";
-        document.getElementById("fileNumber.value") = "";
+        document.getElementById("fileNumber").value = "";
         document.getElementById("cameraInput").value = "";
         document.getElementById("galleryInput").value = "";
         document.getElementById("reportPreview").style.display = "none";
