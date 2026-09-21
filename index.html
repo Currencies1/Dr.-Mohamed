@@ -40,7 +40,7 @@
             padding: 20px;
         }
 
-        /* تنسيق الشريط الإعلاني المتحرك والمضيء */
+        /* تنسيق الشريط الإعلاني المتحرك والمضيء حديثاً */
         .announcement-bar-wrapper {
             width: 100%;
             max-width: 600px;
@@ -63,6 +63,8 @@
             align-items: center;
             gap: 12px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
         }
 
         @keyframes glowingGradient {
@@ -76,6 +78,7 @@
             color: #fef08a;
             animation: pulseIcon 1.2s infinite alternate;
             flex-shrink: 0;
+            z-index: 2;
         }
 
         @keyframes pulseIcon {
@@ -83,10 +86,28 @@
             to { transform: scale(1.2); }
         }
 
-        .announcement-bar marquee {
-            flex: 1;
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .marquee-text {
+            display: inline-block;
+            padding-left: 50px;
+            animation: marqueeScroll 22s linear infinite;
             font-weight: 800;
             letter-spacing: 0.5px;
+        }
+
+        .announcement-bar:hover .marquee-text {
+            animation-play-state: paused;
+        }
+
+        @keyframes marqueeScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
 
         @keyframes flashGreen {
@@ -662,9 +683,11 @@
     <div class="announcement-bar-wrapper">
         <div class="announcement-bar">
             <i class="fa-solid fa-bullhorn"></i>
-            <marquee behavior="scroll" direction="right" scrollamount="5" scrolldelay="60" onmouseover="this.stop();" onmouseout="this.start();">
-                🌟 أهلاً بكم في عيادة الدكتور محمد علي الأسماعيل للأمراض الداخلية | نحرص على تقديم أفضل خدمة طبية ورعاية صحية متكاملة لصحتكم | يرجى الحجز المسبق واختيار الفترة المناسبة (صباحي / مسائي) لتنظيم أدواركم بكل سهولة 🩺✨
-            </marquee>
+            <div class="marquee-container">
+                <div class="marquee-text">
+                    🌟 أهلاً بكم في عيادة الدكتور محمد علي الأسماعيل للأمراض الداخلية | نحرص على تقديم أفضل خدمة طبية ورعاية صحية متكاملة لصحتكم | يرجى الحجز المسبق واختيار الفترة المناسبة (صباحي / مسائي) لتنظيم أدواركم بكل سهولة 🩺✨
+                </div>
+            </div>
         </div>
     </div>
 
