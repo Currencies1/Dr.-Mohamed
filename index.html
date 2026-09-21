@@ -40,50 +40,35 @@
             padding: 20px;
         }
 
-        /* تنسيق الشريط الإعلاني المتحرك والمضيء حديثاً */
+        /* تنسيق الشريط الإعلاني المحدث بحواف ناعمة وألوان ملائمة للموقع */
         .announcement-bar-wrapper {
             width: 100%;
             max-width: 600px;
             margin-bottom: 20px;
-            border-radius: 14px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.15);
+            border: 1.5px solid #bae6fd;
         }
 
         .announcement-bar {
-            background: linear-gradient(270deg, #0284c7, #10b981, #f59e0b, #8b5cf6, #0284c7);
-            background-size: 400% 400%;
-            animation: glowingGradient 8s ease infinite;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0f172a 100%);
             color: #ffffff;
-            padding: 12px 15px;
-            font-weight: 800;
-            font-size: 14.5px;
+            padding: 12px 18px;
+            font-weight: 700;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 12px;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
             position: relative;
             overflow: hidden;
         }
 
-        @keyframes glowingGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         .announcement-bar i {
-            font-size: 18px;
-            color: #fef08a;
-            animation: pulseIcon 1.2s infinite alternate;
+            font-size: 16px;
+            color: #38bdf8;
             flex-shrink: 0;
             z-index: 2;
-        }
-
-        @keyframes pulseIcon {
-            from { transform: scale(1); }
-            to { transform: scale(1.2); }
         }
 
         .marquee-container {
@@ -95,19 +80,19 @@
 
         .marquee-text {
             display: inline-block;
-            padding-left: 50px;
-            animation: marqueeScroll 22s linear infinite;
-            font-weight: 800;
-            letter-spacing: 0.5px;
+            padding-right: 50px;
+            animation: marqueeScrollReverse 38s linear infinite; /* حركة بطيئة وعكسية */
+            font-weight: 700;
+            letter-spacing: 0.3px;
         }
 
         .announcement-bar:hover .marquee-text {
             animation-play-state: paused;
         }
 
-        @keyframes marqueeScroll {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        @keyframes marqueeScrollReverse {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         @keyframes flashGreen {
