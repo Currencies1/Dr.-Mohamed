@@ -318,31 +318,25 @@
         .clinic-status-toggle {
             display: flex;
             align-items: center;
+            gap: 10px;
         }
 
-        .btn-toggle-clinic {
-            padding: 10px 20px;
+        .clinic-mode-select {
+            padding: 10px 15px;
             border-radius: 12px;
             font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
+            font-size: 13.5px;
             font-family: 'Cairo';
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
             outline: none;
+            border: 1.5px solid var(--border-color);
+            background: #f8fafc;
+            color: var(--text-main);
+            transition: all 0.3s ease;
         }
-        .btn-toggle-clinic.clinic-open {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            color: #065f46;
-            border: 1.5px solid #10b981;
-        }
-        .btn-toggle-clinic.clinic-closed {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            color: #991b1b;
-            border: 1.5px solid #ef4444;
+        .clinic-mode-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
         }
 
         .periods-container {
@@ -643,9 +637,11 @@
                 </div>
 
                 <div class="clinic-status-toggle">
-                    <button id="clinicStatusBtn" class="btn-toggle-clinic clinic-open" onclick="toggleClinicStatus()">
-                        <i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة
-                    </button>
+                    <select id="clinicModeSelect" class="clinic-mode-select" onchange="changeClinicMode(this.value)">
+                        <option value="auto">⚡ الوضع التلقائي (حسب أوقات الدوام)</option>
+                        <option value="manual_open">🟢 فتح يدوي دائم (إجباري)</option>
+                        <option value="manual_closed">🔴 إغلاق يدوي دائم (إجباري)</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -715,7 +711,6 @@
 
         let unsubscribeOrders = null;
         let currentFilter = 'all';
-        let isClinicOpen = true;
         let previousTotalCount = null;
         let allFetchedDocs = []; 
 
@@ -837,28 +832,30 @@
         function checkClinicStatusRealtime() {
             const statusRef = doc(db, "settings", "clinic_status");
             onSnapshot(statusRef, (docSnap) => {
-                const btn = document.getElementById("clinicStatusBtn");
-                isClinicOpen = docSnap.exists() ? docSnap.data().isOpen : true;
-
-                if (isClinicOpen) {
-                    btn.className = "btn-toggle-clinic clinic-open";
-                    btn.innerHTML = `<i class="fa-solid fa-door-open"></i> حالة العيادة: مفتوحة`;
+                const selectEl = document.getElementById("clinicModeSelect");
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const mode = data.mode || (data.isOpen === false ? 'manual_closed' : (data.isOpen === true ? 'manual_open' : 'auto'));
+                    selectEl.value = mode;
                 } else {
-                    btn.className = "btn-toggle-clinic clinic-closed";
-                    btn.innerHTML = `<i class="fa-solid fa-door-closed"></i> حالة العيادة: مغلقة`;
+                    selectEl.value = "auto";
                 }
             });
         }
 
-        window.toggleClinicStatus = async function() {
-            const newStatus = !isClinicOpen;
+        window.changeClinicMode = async function(selectedMode) {
             try {
+                let isOpenVal = true;
+                if (selectedMode === 'manual_closed') isOpenVal = false;
+                else if (selectedMode === 'manual_open') isOpenVal = true;
+
                 await setDoc(doc(db, "settings", "clinic_status"), {
-                    isOpen: newStatus,
+                    mode: selectedMode,
+                    isOpen: isOpenVal,
                     closedMessage: "نعتذر منك، العيادة مغلقة حالياً."
                 }, { merge: true });
             } catch (error) {
-                console.error("خطأ:", error);
+                console.error("خطأ في تحديث حالة العيادة:", error);
             }
         };
 
@@ -1058,7 +1055,6 @@
             eveningContainer.innerHTML = eveningCount > 0 ? eveningHtml : `<div class="no-requests">لا توجد حجوزات في الفترة المسائية مطابقة.</div>`;
         }
 
-        // دالة تحديث أي حقل نصي مباشرة عند تحريره من اللوحة
         window.updateField = async function(docId, fieldName, newValue) {
             try {
                 const docRef = doc(db, "appointments", docId);
@@ -1086,7 +1082,6 @@
             const queueInput = document.getElementById(`queue-${docId}`);
             const notesInput = document.getElementById(`notes-${docId}`);
 
-            // رقم الدور أصبح اختيارياً (إن لم يُكتب يتم اعتباره "بدون رقم" أو "متابعة مباشرة")
             let queueNumber = queueInput ? queueInput.value.trim() : "بدون رقم";
             let doctorNotes = notesInput ? notesInput.value.trim() : "";
 
