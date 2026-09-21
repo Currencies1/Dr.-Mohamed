@@ -821,7 +821,7 @@
     let base64ReportImage = "";
     let selectedReportName = "لا يوجد تقرير مرفق";
     let statusInterval = null;
-    let adminOverrideStatus = "auto"; // القيمة الافتراضية
+    let currentClinicMode = "auto"; // الوضع الافتراضي تلقائي
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -839,35 +839,26 @@
         document.getElementById("galleryInput").click();
     };
 
-    // الاستماع لحالة العيادة من جميع المسارات المحتملة التي قد تستخدمها لوحة الأدمن
+    // الاستماع المباشر لحالة العيادة من لوحة التحكم (settings/clinic_status)
     function initClinicScheduleSync() {
-        const docRef = doc(db, "settings", "clinic");
+        const statusRef = doc(db, "settings", "clinic_status");
         
-        onSnapshot(docRef, (docSnap) => {
+        onSnapshot(statusRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                console.log("تم استلام حالة العيادة من قاعدة البيانات:", data); // فحص القيمة الواردة
-
-                // التحقق من جميع المسميات المحتملة للحالة
-                if (data.status !== undefined) {
-                    adminOverrideStatus = data.status; 
+                if (data.mode) {
+                    currentClinicMode = data.mode; // 'auto', 'manual_open', 'manual_closed'
                 } else if (data.isOpen !== undefined) {
-                    adminOverrideStatus = data.isOpen; 
-                } else if (data.clinicStatus !== undefined) {
-                    adminOverrideStatus = data.clinicStatus;
-                } else if (data.state !== undefined) {
-                    adminOverrideStatus = data.state;
+                    currentClinicMode = data.isOpen ? 'manual_open' : 'manual_closed';
                 }
             } else {
-                console.log("مستند إعدادات العيادة غير موجود في Firebase، يتم الاعتماد على الوضع التلقائي.");
-                adminOverrideStatus = "auto";
+                currentClinicMode = "auto";
             }
-            checkStatus(); // التحديث الفوري عند تغيير الحالة
+            checkStatus();
         }, (error) => {
-            console.error("خطأ في قراءة إعدادات العيادة:", error);
+            console.error("خطأ في قراءة حالة العيادة:", error);
         });
 
-        // تشغيل مؤقت الفحص التلقائي المستمر
         if (statusInterval) clearInterval(statusInterval);
         statusInterval = setInterval(checkStatus, 1000);
     }
@@ -880,21 +871,14 @@
         const totalCurrentSeconds = hours * 3600 + minutes * 60 + seconds;
 
         let isOpen = false;
-        
-        // تحويل القيمة الواردة لنص صغير لتجنب أخطاء حالة الأحرف
-        const currentStatus = String(adminOverrideStatus).toLowerCase();
 
-        // 1. أولوية الإغلاق اليدوي
-        if (currentStatus === 'closed' || currentStatus === 'false' || currentStatus === 'مغلق' || currentStatus === 'إغلاق') {
-            isOpen = false;
-        } 
-        // 2. أولوية الفتح اليدوي
-        else if (currentStatus === 'open' || currentStatus === 'true' || currentStatus === 'مفتوح' || currentStatus === 'فتح') {
+        // تطبيق الوضع اليدوي أو التلقائي بناءً على اختيار لوحة التحكم
+        if (currentClinicMode === 'manual_open') {
             isOpen = true;
-        } 
-        // 3. الوضع التلقائي (auto)
-        else {
-            // الأوقات الرسمية (من 9 ص لـ 3 م ومن 7 م لـ 11 ليلاً)
+        } else if (currentClinicMode === 'manual_closed') {
+            isOpen = false;
+        } else {
+            // الوضع التلقائي (حسب أوقات الدوام الرسمية: 9 ص لـ 3 م ومن 7 م لـ 11 ليلاً)
             if ((totalCurrentSeconds >= 9 * 3600 && totalCurrentSeconds < 15 * 3600) || 
                 (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600)) {
                 isOpen = true;
@@ -1021,7 +1005,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-        initClinicScheduleSync(); // تفعيل المزامنة المعززة
+        initClinicScheduleSync();
         renderSavedAppointments();
         
         const savedDocId = localStorage.getItem("current_appointment_id");
