@@ -821,6 +821,7 @@
     let base64ReportImage = "";
     let selectedReportName = "لا يوجد تقرير مرفق";
     let statusInterval = null;
+    let adminOverrideStatus = "auto"; // 'auto', 'open', 'closed'
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -838,71 +839,87 @@
         document.getElementById("galleryInput").click();
     };
 
-    // دالة الفحص التلقائي للفتح والإغلاق والعد التنازلي (9 ص - 3 م ومن 7 م - 11 ل)
-    function initAutomaticClinicSchedule() {
+    // الاستماع لحالة التحكم اليدوي من لوحة الأدمن عبر Firebase مع الحفاظ على التوقيت التلقائي
+    function initClinicScheduleSync() {
+        // الاستماع لمستند الحالة في قاعدة البيانات (يتوافق مع زر الفتح/الإغلاق في لوحة الأدمن)
+        onSnapshot(doc(db, "settings", "clinic"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.status) {
+                    adminOverrideStatus = data.status; // 'open', 'closed', أو 'auto'
+                    checkStatus(); // تحديث فوري عند تغيير الحالة من الأدمن
+                }
+            }
+        });
+
         if (statusInterval) clearInterval(statusInterval);
+        statusInterval = setInterval(checkStatus, 1000);
+    }
 
-        function checkStatus() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const totalCurrentSeconds = hours * 3600 + minutes * 60 + seconds;
+    function checkStatus() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const totalCurrentSeconds = hours * 3600 + minutes * 60 + seconds;
 
-            let isOpen = false;
+        let isOpen = false;
 
-            // أوقات الدوام: من 9 صباحاً (09:00) إلى 3 عصراً (15:00) أو من 7 مساءً (19:00) إلى 11 ليلاً (23:00)
+        // الأولوية لخيارات لوحة الأدمن (إذا تم فتحها أو إغلاقها يدوياً من لوحة التحكم)
+        if (adminOverrideStatus === 'open') {
+            isOpen = true;
+        } else if (adminOverrideStatus === 'closed') {
+            isOpen = false;
+        } else {
+            // الوضع التلقائي حسب الأوقات الرسمية (من 9 ص لـ 3 م ومن 7 م لـ 11 ل)
             if ((totalCurrentSeconds >= 9 * 3600 && totalCurrentSeconds < 15 * 3600) || 
                 (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600)) {
                 isOpen = true;
             }
-
-            const noticeDiv = document.getElementById("clinicClosedNotice");
-            const formFields = document.getElementById("formFieldsContainer");
-            const savedDocId = localStorage.getItem("current_appointment_id");
-
-            if (isOpen) {
-                noticeDiv.style.display = "none";
-                if (!savedDocId) {
-                    formFields.style.display = "block";
-                }
-            } else {
-                if (!savedDocId) {
-                    noticeDiv.style.display = "block";
-                    formFields.style.display = "none";
-                }
-
-                let targetTime = new Date(now);
-                targetTime.setMilliseconds(0);
-
-                if (totalCurrentSeconds < 9 * 3600) {
-                    targetTime.setHours(9, 0, 0, 0); 
-                } else if (totalCurrentSeconds >= 15 * 3600 && totalCurrentSeconds < 19 * 3600) {
-                    targetTime.setHours(19, 0, 0, 0); 
-                } else {
-                    targetTime.setDate(targetTime.getDate() + 1);
-                    targetTime.setHours(9, 0, 0, 0); 
-                }
-
-                const diff = targetTime - now;
-                if (diff <= 0) {
-                    document.getElementById("countdownTimer").innerText = "00:00:00";
-                    return;
-                }
-
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-                document.getElementById("countdownTimer").innerText = 
-                    String(h).padStart(2, '0') + ":" + 
-                    String(m).padStart(2, '0') + ":" + 
-                    String(s).padStart(2, '0');
-            }
         }
 
-        checkStatus();
-        statusInterval = setInterval(checkStatus, 1000);
+        const noticeDiv = document.getElementById("clinicClosedNotice");
+        const formFields = document.getElementById("formFieldsContainer");
+        const savedDocId = localStorage.getItem("current_appointment_id");
+
+        if (isOpen) {
+            noticeDiv.style.display = "none";
+            if (!savedDocId) {
+                formFields.style.display = "block";
+            }
+        } else {
+            if (!savedDocId) {
+                noticeDiv.style.display = "block";
+                formFields.style.display = "none";
+            }
+
+            let targetTime = new Date(now);
+            targetTime.setMilliseconds(0);
+
+            if (totalCurrentSeconds < 9 * 3600) {
+                targetTime.setHours(9, 0, 0, 0); 
+            } else if (totalCurrentSeconds >= 15 * 3600 && totalCurrentSeconds < 19 * 3600) {
+                targetTime.setHours(19, 0, 0, 0); 
+            } else {
+                targetTime.setDate(targetTime.getDate() + 1);
+                targetTime.setHours(9, 0, 0, 0); 
+            }
+
+            const diff = targetTime - now;
+            if (diff <= 0) {
+                document.getElementById("countdownTimer").innerText = "00:00:00";
+                return;
+            }
+
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById("countdownTimer").innerText = 
+                String(h).padStart(2, '0') + ":" + 
+                String(m).padStart(2, '0') + ":" + 
+                String(s).padStart(2, '0');
+        }
     }
 
     window.toggleFileNumberField = function() {
@@ -978,7 +995,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-        initAutomaticClinicSchedule(); // تشغيل فحص الإغلاق والفتح التلقائي
+        initClinicScheduleSync(); // تفعيل المزامنة مع لوحة الأدمن والمؤقت التلقائي
         renderSavedAppointments();
         
         const savedDocId = localStorage.getItem("current_appointment_id");
