@@ -821,7 +821,7 @@
     let base64ReportImage = "";
     let selectedReportName = "لا يوجد تقرير مرفق";
     let statusInterval = null;
-    let adminOverrideStatus = "auto"; // 'auto', 'open', 'closed'
+    let adminOverrideStatus = "open"; // افتراضياً مفتوح حتى يتم جلب الحالة أو التحكم بها من الأدمن
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -839,17 +839,23 @@
         document.getElementById("galleryInput").click();
     };
 
-    // الاستماع لحالة التحكم اليدوي من لوحة الأدمن عبر Firebase مع الحفاظ على التوقيت التلقائي
+    // الاستماع لحالة التحكم اليدوي من لوحة الأدمن عبر Firebase مع دعم الوضع التلقائي
     function initClinicScheduleSync() {
-        // الاستماع لمستند الحالة في قاعدة البيانات (يتوافق مع زر الفتح/الإغلاق في لوحة الأدمن)
         onSnapshot(doc(db, "settings", "clinic"), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 if (data.status) {
                     adminOverrideStatus = data.status; // 'open', 'closed', أو 'auto'
-                    checkStatus(); // تحديث فوري عند تغيير الحالة من الأدمن
+                    checkStatus();
                 }
+            } else {
+                adminOverrideStatus = "open"; // إذا لم يوجد المستند، يفتح الموقع بشكل طبيعي
+                checkStatus();
             }
+        }, (error) => {
+            console.error("خطأ في قراءة إعدادات العيادة:", error);
+            adminOverrideStatus = "open";
+            checkStatus();
         });
 
         if (statusInterval) clearInterval(statusInterval);
@@ -865,17 +871,19 @@
 
         let isOpen = false;
 
-        // الأولوية لخيارات لوحة الأدمن (إذا تم فتحها أو إغلاقها يدوياً من لوحة التحكم)
+        // التحقق من حالة لوحة الأدمن
         if (adminOverrideStatus === 'open') {
             isOpen = true;
         } else if (adminOverrideStatus === 'closed') {
             isOpen = false;
-        } else {
+        } else if (adminOverrideStatus === 'auto') {
             // الوضع التلقائي حسب الأوقات الرسمية (من 9 ص لـ 3 م ومن 7 م لـ 11 ل)
             if ((totalCurrentSeconds >= 9 * 3600 && totalCurrentSeconds < 15 * 3600) || 
                 (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600)) {
                 isOpen = true;
             }
+        } else {
+            isOpen = true; // كصمام أمان افتراضي
         }
 
         const noticeDiv = document.getElementById("clinicClosedNotice");
@@ -995,7 +1003,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-        initClinicScheduleSync(); // تفعيل المزامنة مع لوحة الأدمن والمؤقت التلقائي
+        initClinicScheduleSync();
         renderSavedAppointments();
         
         const savedDocId = localStorage.getItem("current_appointment_id");
