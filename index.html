@@ -76,18 +76,14 @@
             margin-bottom: 20px;
         }
 
-        .form-header .icon-box {
-            width: 70px;
-            height: 70px;
-            background: #e0f2fe;
-            color: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin: 0 auto 15px;
-            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
+        .header-card-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 14px;
+            margin: 0 auto 15px auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .form-header h2 {
@@ -591,13 +587,11 @@
 <div class="container">
     <div class="form-card" id="mainCard">
         <div class="form-header">
-            <div class="icon-box">
-                <i class="fa-solid fa-user-doctor"></i>
-            </div>
+            <img src="32597.jpg" alt="د. محمد علي الاسماعيل" class="header-card-img">
             <h2>حجز موعد - عيادة الأمراض الداخلية</h2>
             <div class="clinic-location-badge">
                 <i class="fa-solid fa-location-dot"></i>
-                <span>موقع العيادة: معرة النعمان - شارع البريد بجانب مجمع الشفاء</span>
+                <span>موقع العيادة: معرة النعمان مقابل السرايا غربي البريد جانب مؤسسة التنمية</span>
             </div>
         </div>
 
@@ -1199,7 +1193,7 @@
         document.getElementById("timeSlot").selectedIndex = 0;
         document.getElementById("visitType").selectedIndex = 0;
         document.getElementById("fileNumberGroup").style.display = "none";
-        document.getElementById("fileNumber").value = "";
+        document.getElementById("fileNumber.value") = "";
         document.getElementById("cameraInput").value = "";
         document.getElementById("galleryInput").value = "";
         document.getElementById("reportPreview").style.display = "none";
