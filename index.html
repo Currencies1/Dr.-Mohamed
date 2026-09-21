@@ -152,9 +152,30 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
         }
-        #clinicClosedNotice i { font-size: 38px; margin-bottom: 12px; display: block; color: #dc2626; }
+        #clinicClosedNotice i.main-closed-icon { font-size: 38px; margin-bottom: 12px; display: block; color: #dc2626; }
         #clinicClosedNotice h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
         #clinicClosedNotice p { font-size: 14.5px; line-height: 1.7; color: #7f1d1d; }
+
+        .countdown-box {
+            margin-top: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #f87171;
+            padding: 12px;
+            border-radius: 10px;
+            color: #7f1d1d;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .countdown-timer {
+            font-family: monospace;
+            font-size: 18px;
+            color: #dc2626;
+            letter-spacing: 1px;
+            font-weight: 800;
+            display: inline-block;
+            margin-top: 4px;
+        }
 
         .form-group { margin-bottom: 15px; }
 
@@ -589,7 +610,6 @@
 <div class="container">
     <div class="form-card" id="mainCard">
         <div class="form-header">
-            <!-- تم ضبط مسار الصورة ليتطابق تماماً مع اسم الملف المرفوع IMG-20260921-WA0331.jpg -->
             <img src="IMG-20260921-WA0331.jpg" alt="د. محمد علي الاسماعيل - اختصاصي في الأمراض الداخلية" class="header-card-img">
             <h2>حجز موعد - عيادة الأمراض الداخلية</h2>
             <div class="clinic-location-badge">
@@ -609,9 +629,13 @@
         </div>
 
         <div id="clinicClosedNotice">
-            <i class="fa-solid fa-door-closed"></i>
+            <i class="fa-solid fa-door-closed main-closed-icon"></i>
             <h3>العيادة مغلقة حالياً</h3>
             <p id="closedMessageText">نعتذر منك العيادة مغلقة حالياً، أوقات الدوام الرسمي: من الساعة ١١ صباحاً حتى 3 عصراً ومن الساعة 7 مساءً حتى 11 ليلاً.</p>
+            <div class="countdown-box">
+                <i class="fa-solid fa-hourglass-half"></i> موعد فتح العيادة خلال:
+                <div id="countdownTimer" class="countdown-timer">00:00:00</div>
+            </div>
         </div>
 
         <div id="formFieldsContainer">
@@ -796,6 +820,7 @@
     let unsubscribeLive = null;
     let base64ReportImage = "";
     let selectedReportName = "لا يوجد تقرير مرفق";
+    let countdownInterval = null;
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -812,6 +837,71 @@
     window.triggerGalleryInput = function() {
         document.getElementById("galleryInput").click();
     };
+
+    // دالة حساب وبدء العد التنازلي حتى وقت الافتتاح التالي
+    function startCountdownToOpening() {
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        function updateTimer() {
+            const now = new Date();
+            const day = now.getDay(); // 0: الأحد, 5: الجمعة, إلخ.
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const totalCurrentSeconds = hours * 3600 + minutes * 60 + seconds;
+
+            let targetTime = new Date(now);
+            targetTime.setMilliseconds(0);
+
+            // أوقات العيادة:
+            // الأيام العادية: من 11 صباحاً (39600) إلى 3 عصراً (54000)، ومن 7 مساءً (68400) إلى 11 ليلاً (82800)
+            // يوم الجمعة: من 5 مساءً (61200) إلى 11 ليلاً (82800)
+
+            if (day === 5) {
+                // يوم الجمعة
+                if (totalCurrentSeconds < 17 * 3600) {
+                    targetTime.setHours(17, 0, 0, 0); // يفتح الجمعة الساعة 5 مساءً
+                } else if (totalCurrentSeconds >= 17 * 3600 && totalCurrentSeconds < 23 * 3600) {
+                    targetTime.setHours(23, 0, 0, 0);
+                } else {
+                    targetTime.setDate(targetTime.getDate() + 1);
+                    targetTime.setHours(11, 0, 0, 0); // السبت الساعة 11 صباحاً
+                }
+            } else {
+                // الأيام العادية (السبت إلى الخميس)
+                if (totalCurrentSeconds < 11 * 3600) {
+                    targetTime.setHours(11, 0, 0, 0); // اليوم الساعة 11 صباحاً
+                } else if (totalCurrentSeconds >= 11 * 3600 && totalCurrentSeconds < 15 * 3600) {
+                    targetTime.setHours(19, 0, 0, 0); // الفترة المسائية الساعة 7 مساءً
+                } else if (totalCurrentSeconds >= 15 * 3600 && totalCurrentSeconds < 19 * 3600) {
+                    targetTime.setHours(19, 0, 0, 0); // من 3 عصراً حتى 7 مساءً (المثال المطلوب: يغلق 3 ويفتح 7)
+                } else if (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600) {
+                    targetTime.setHours(23, 0, 0, 0);
+                } else {
+                    targetTime.setDate(targetTime.getDate() + 1);
+                    targetTime.setHours(11, 0, 0, 0); // غداً الساعة 11 صباحاً
+                }
+            }
+
+            const diff = targetTime - now;
+            if (diff <= 0) {
+                document.getElementById("countdownTimer").innerText = "قريباً جداً...";
+                return;
+            }
+
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById("countdownTimer").innerText = 
+                String(h).padStart(2, '0') + ":" + 
+                String(m).padStart(2, '0') + ":" + 
+                String(s).padStart(2, '0');
+        }
+
+        updateTimer();
+        countdownInterval = setInterval(updateTimer, 1000);
+    }
 
     function monitorClinicStatus() {
         const statusRef = doc(db, "settings", "clinic_status");
@@ -834,9 +924,11 @@
                 if (!savedDocId) {
                     noticeDiv.style.display = "block";
                     formFields.style.display = "none";
+                    startCountdownToOpening(); // بدء العد التنازلي عند الإغلاق
                 }
             } else {
                 noticeDiv.style.display = "none";
+                if (countdownInterval) clearInterval(countdownInterval);
                 if (!savedDocId) {
                     formFields.style.display = "block";
                 }
