@@ -821,7 +821,7 @@
     let base64ReportImage = "";
     let selectedReportName = "لا يوجد تقرير مرفق";
     let statusInterval = null;
-    let adminOverrideStatus = "open"; // افتراضياً مفتوح حتى يتم جلب الحالة أو التحكم بها من الأدمن
+    let adminOverrideStatus = "auto"; // القيمة الافتراضية للوضع التلقائي
 
     window.openReportModal = function() {
         document.getElementById("reportModalOverlay").style.display = "flex";
@@ -839,22 +839,23 @@
         document.getElementById("galleryInput").click();
     };
 
-    // الاستماع لحالة التحكم اليدوي من لوحة الأدمن عبر Firebase مع دعم الوضع التلقائي
+    // الاستماع لحالة التحكم من لوحة الأدمن بدقة (دعم النصوص والقيم المنطقية)
     function initClinicScheduleSync() {
         onSnapshot(doc(db, "settings", "clinic"), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                if (data.status) {
-                    adminOverrideStatus = data.status; // 'open', 'closed', أو 'auto'
-                    checkStatus();
+                if (data.status !== undefined) {
+                    adminOverrideStatus = data.status; // مثل 'open', 'closed', 'auto'
+                } else if (data.isOpen !== undefined) {
+                    adminOverrideStatus = data.isOpen ? 'open' : 'closed';
                 }
+                checkStatus();
             } else {
-                adminOverrideStatus = "open"; // إذا لم يوجد المستند، يفتح الموقع بشكل طبيعي
+                adminOverrideStatus = "auto";
                 checkStatus();
             }
         }, (error) => {
             console.error("خطأ في قراءة إعدادات العيادة:", error);
-            adminOverrideStatus = "open";
             checkStatus();
         });
 
@@ -871,19 +872,19 @@
 
         let isOpen = false;
 
-        // التحقق من حالة لوحة الأدمن
-        if (adminOverrideStatus === 'open') {
+        // الأولوية القصوى لأوامر لوحة الأدمن (سواء بنصوص أو قيم منطقية)
+        if (adminOverrideStatus === 'open' || adminOverrideStatus === true || adminOverrideStatus === 'مفتوح') {
             isOpen = true;
-        } else if (adminOverrideStatus === 'closed') {
+        } else if (adminOverrideStatus === 'closed' || adminOverrideStatus === false || adminOverrideStatus === 'مغلق') {
             isOpen = false;
-        } else if (adminOverrideStatus === 'auto') {
-            // الوضع التلقائي حسب الأوقات الرسمية (من 9 ص لـ 3 م ومن 7 م لـ 11 ل)
+        } else {
+            // الوضع التلقائي حسب الأوقات الرسمية (من 9 ص لـ 3 م ومن 7 م لـ 11 ليلاً)
             if ((totalCurrentSeconds >= 9 * 3600 && totalCurrentSeconds < 15 * 3600) || 
                 (totalCurrentSeconds >= 19 * 3600 && totalCurrentSeconds < 23 * 3600)) {
                 isOpen = true;
+            } else {
+                isOpen = false;
             }
-        } else {
-            isOpen = true; // كصمام أمان افتراضي
         }
 
         const noticeDiv = document.getElementById("clinicClosedNotice");
